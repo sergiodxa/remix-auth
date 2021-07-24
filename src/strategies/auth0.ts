@@ -12,16 +12,11 @@ export interface Auth0StrategyOptions {
   callbackURL: string;
 }
 
-export interface Auth0Body {
-  access_token: string;
+export interface Auth0ExtraParams extends Record<string, string | number> {
   id_token: string;
   scope: string;
   expires_in: 86_400;
   token_type: "Bearer";
-}
-
-export interface Auth0StrategyVerifyCallback<User> {
-  (accessToken: string, extraParams: Auth0Body): Promise<User>;
 }
 
 export interface Auth0Profile extends OAuth2Profile {
@@ -63,7 +58,7 @@ export interface Auth0Profile extends OAuth2Profile {
 export class Auth0Strategy<User> extends OAuth2Strategy<
   User,
   Auth0Profile,
-  { id_token: string }
+  Auth0ExtraParams
 > {
   name = "auth0";
 
@@ -71,11 +66,7 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
 
   constructor(
     options: Auth0StrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<
-      User,
-      Auth0Profile,
-      { id_token: string }
-    >
+    verify: OAuth2StrategyVerifyCallback<User, Auth0Profile, Auth0ExtraParams>
   ) {
     super(
       {
