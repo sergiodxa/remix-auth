@@ -6,9 +6,9 @@
   "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
   "scripts": {
-    "build:types": "tsc src/index.ts --declaration --emitDeclarationOnly --declarationDir build",
-    "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:remix-utils --external:@remix-run/node --external:crypto",
-    "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix-utils --external:@remix-run/node",
+    "build:types": "tsc src/index.ts --declaration --emitDeclarationOnly --declarationDir build --esModuleInterop",
+    "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:remix-utils --external:@remix-run/node --external:crypto --external:oauth",
+    "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix-utils --external:@remix-run/node --external:oauth",
     "build": "npm run build:types && npm run build:esm && npm run build:cjs"
   },
   "keywords": [
@@ -27,12 +27,16 @@
   "license": "MIT",
   "dependencies": {
     "@remix-run/node": "^0.17.5",
+    "@remix-run/react": "^0.17.5",
+    "remix": "^0.17.5",
     "remix-utils": "^1.0.2"
   },
   "devDependencies": {
+    "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
     "esbuild": "^0.12.15",
     "react": "^17.0.2",
+    "react-router-dom": "^6.0.0-beta.0",
     "typescript": "^4.3.5"
   }
 }
