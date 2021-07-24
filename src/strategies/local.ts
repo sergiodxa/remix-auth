@@ -87,9 +87,6 @@ export class LocalStrategy<User> implements Strategy<User> {
       let cookie = await sessionStorage.commitSession(session);
       return redirect("/", { headers: { "Set-Cookie": cookie } });
     } catch (error: unknown) {
-      let session = await sessionStorage.getSession(
-        request.headers.get("Cookie")
-      );
       session.flash(this.errorKey, (error as Error).message);
       let cookie = await sessionStorage.commitSession(session);
       return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
