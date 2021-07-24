@@ -36,7 +36,7 @@ export interface BasicStrategyVerifyCallback<User> {
 export class BasicStrategy<User> implements Strategy<User> {
   name = "basic";
 
-  private realm = "User";
+  private realm = "Users";
   private verify: BasicStrategyVerifyCallback<User>;
 
   constructor(
@@ -70,6 +70,7 @@ export class BasicStrategy<User> implements Strategy<User> {
         "The authenticate callback on BasicStrategy is required."
       );
     }
+
     let authorization = request.headers.get("Authorization");
     if (!authorization) {
       return this.raise("Missing Authorization header");

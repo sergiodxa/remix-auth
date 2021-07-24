@@ -10,7 +10,9 @@
     "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:remix-utils --external:@remix-run/node --external:crypto --external:oauth",
     "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix-utils --external:@remix-run/node --external:oauth",
     "build": "npm run build:types && npm run build:esm && npm run build:cjs",
-    "lint": "eslint --ext .ts,.tsx src/"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "eslint --ext .ts,.tsx src/",
+    "test": "jest --config=config/jest.config.ts --passWithNoTests"
   },
   "keywords": [
     "remix",
@@ -33,10 +35,16 @@
     "remix-utils": "^1.0.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.14.2",
+    "@babel/preset-env": "^7.14.1",
+    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-typescript": "^7.13.0",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
+    "@types/jest": "^26.0.23",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
+    "babel-jest": "^26.6.3",
     "esbuild": "^0.12.15",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
@@ -50,7 +58,10 @@
     "eslint-plugin-unicorn": "^32.0.1",
     "prettier": "^2.3.2",
     "react": "^17.0.2",
+    "jest": "^26.6.3",
+    "jest-fetch-mock": "^3.0.3",
     "react-router-dom": "^6.0.0-beta.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "ts-node": "^9.1.1"
   }
 }

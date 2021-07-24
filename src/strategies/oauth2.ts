@@ -34,7 +34,6 @@ export interface OAuth2StrategyOptions {
   clientID: string;
   clientSecret: string;
   callbackURL: string;
-  pkce?: boolean;
 }
 
 export interface OAuth2StrategyVerifyCallback<
@@ -49,13 +48,6 @@ export interface OAuth2StrategyVerifyCallback<
     profile: Profile
   ): Promise<User>;
 }
-
-export interface OAuth2AuthorizationParams {
-  response_type: "code";
-  redirect_uri?: string;
-}
-
-export class TokenError extends Error {}
 
 /**
  * The OAuth 2.0 authentication strategy authenticates requests using the OAuth
@@ -113,7 +105,6 @@ export class OAuth2Strategy<
   protected clientSecret: string;
   protected callbackURL: string;
   protected verify: OAuth2StrategyVerifyCallback<User, Profile, ExtraParams>;
-  protected pkceMethod: string | false;
 
   private sessionStateKey = "oauth2:state";
 
@@ -126,7 +117,6 @@ export class OAuth2Strategy<
     this.clientID = options.clientID;
     this.clientSecret = options.clientSecret;
     this.callbackURL = options.callbackURL;
-    this.pkceMethod = options.pkce === true ? "S256" : options.pkce ?? false;
     this.verify = verify;
   }
 
@@ -146,7 +136,6 @@ export class OAuth2Strategy<
     if (user) return callback ? callback(user) : redirect("/");
 
     let callbackURL = this.getCallbackURL(url);
-
     if (url.pathname !== callbackURL.pathname) {
       return this.authorize(sessionStorage, session);
     }
@@ -228,7 +217,10 @@ export class OAuth2Strategy<
   }
 
   private getCallbackURL(url: URL) {
-    if (this.callbackURL.startsWith("http:")) {
+    if (
+      this.callbackURL.startsWith("http:") ||
+      this.callbackURL.startsWith("https:")
+    ) {
       return new URL(this.callbackURL);
     }
     if (this.callbackURL.startsWith("/")) {

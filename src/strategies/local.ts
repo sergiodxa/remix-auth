@@ -42,12 +42,12 @@ export class LocalStrategy<User> implements Strategy<User> {
     sessionStorage: SessionStorage,
     callback?: AuthenticateCallback<User>
   ): Promise<Response> {
-    if (new URL(request.url).pathname === this.loginURL) {
+    if (new URL(request.url).pathname !== this.loginURL) {
       throw new AuthorizationError(
         "The authenticate method with LocalStrategy can only be used on the login URL."
       );
     }
-    if (request.method.toLowerCase() === "post") {
+    if (request.method.toLowerCase() !== "post") {
       throw new AuthorizationError(
         "The authenticate method with LocalStrategy can only be used on action functions."
       );
@@ -90,7 +90,7 @@ export class LocalStrategy<User> implements Strategy<User> {
       let session = await sessionStorage.getSession(
         request.headers.get("Cookie")
       );
-      session.set(this.errorKey, (error as Error).message);
+      session.flash(this.errorKey, (error as Error).message);
       let cookie = await sessionStorage.commitSession(session);
       return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
     }

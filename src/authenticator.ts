@@ -37,7 +37,7 @@ export class Authenticator<User = unknown> {
     callback?: AuthenticateCallback<User>
   ): Promise<Response> {
     const strategyObj = this.strategies.get(strategy);
-    if (!strategyObj) throw new Error(`Strategy ${strategy} not found`);
+    if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
     if (!callback) {
       return strategyObj.authenticate(request.clone(), this.sessionStorage);
     }
