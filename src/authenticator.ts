@@ -9,19 +9,12 @@ export interface Strategy<User> {
 
   authenticate(
     request: Request,
-    sessionStorage: SessionStorage
-  ): Promise<User | null>;
-  authenticate(
-    request: Request,
-    sessionStorage: SessionStorage,
-    callback: AuthenticateCallback<User>
-  ): Promise<Response>;
-  authenticate(
-    request: Request,
     sessionStorage: SessionStorage,
     callback?: AuthenticateCallback<User>
-  ): Promise<Response | User | null>;
+  ): Promise<Response>;
 }
+
+export class AuthorizationError extends Error {}
 
 export class Authenticator<User = unknown> {
   private strategies = new Map<string, Strategy<User>>();
@@ -38,17 +31,11 @@ export class Authenticator<User = unknown> {
     return this;
   }
 
-  authenticate(strategy: string, request: Request): Promise<User | null>;
-  authenticate(
-    strategy: string,
-    request: Request,
-    callback: AuthenticateCallback<User>
-  ): Promise<Response>;
   authenticate(
     strategy: string,
     request: Request,
     callback?: AuthenticateCallback<User>
-  ): Promise<Response | User | null> {
+  ): Promise<Response> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found`);
     if (!callback) {
