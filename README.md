@@ -8,7 +8,8 @@
 
 - Server-Side Authentication.
 - TypeScript Support.
-- Support Different Auth Providers.
+- OAuth2 Support
+- User+Password Auth Support
 
 ## Overview
 
