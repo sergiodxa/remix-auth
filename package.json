@@ -20,6 +20,7 @@
     "authentication",
     "local",
     "auth0",
+    "oauth2",
     "strategies"
   ],
   "author": {
@@ -27,6 +28,11 @@
     "email": "hello@sergiodxa.com",
     "url": "https://sergiodxa.com"
   },
+  "repository": {
+    "url": "https://github.com/sergiodxa/remix-auth",
+    "type": "git"
+  },
+  "homepage": "https://github.com/sergiodxa/remix-auth#readme",
   "license": "MIT",
   "dependencies": {
     "@remix-run/node": "^0.17.5",
