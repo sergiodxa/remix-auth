@@ -72,17 +72,17 @@ export class BasicStrategy<User> implements Strategy<User> {
     }
     let authorization = request.headers.get("Authorization");
     if (!authorization) {
-      return this.raise("Missing Authorization header", callback);
+      return this.raise("Missing Authorization header");
     }
 
     if (!authorization.includes(" ")) {
-      return this.raise("Invalid Authorization value", callback);
+      return this.raise("Invalid Authorization value");
     }
 
     let [scheme, credentials] = authorization.split(" ");
 
-    if (!/Basic/i.test(scheme)) {
-      return this.raise("Invalid Authorization scheme", callback);
+    if (!/basic/i.test(scheme)) {
+      return this.raise("Invalid Authorization scheme");
     }
 
     let [userId, password] = Buffer.from(credentials, "base64")
@@ -90,18 +90,18 @@ export class BasicStrategy<User> implements Strategy<User> {
       .split(":");
 
     if (!userId || !password) {
-      return this.raise("Missing user ID or password", callback);
+      return this.raise("Missing user ID or password");
     }
 
     try {
       let user = await this.verify(userId, password);
       return callback(user);
     } catch (error) {
-      return this.raise(error.message, callback);
+      return this.raise(error.message);
     }
   }
 
-  private raise(message: string, callback: AuthenticateCallback<User>) {
+  private raise(message: string) {
     return new Response(message, {
       status: 401,
       headers: {

@@ -193,7 +193,9 @@ export class OAuth2Strategy<
    * process by automatically submitting required information.
    */
   protected async userProfile(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     accessToken: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     params: ExtraParams
   ): Promise<Profile> {
     return { provider: "oauth2" } as Profile;
