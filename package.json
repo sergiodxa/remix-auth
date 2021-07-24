@@ -1,7 +1,7 @@
 {
   "name": "remix-auth",
   "version": "0.0.0",
-  "description": "Authentication for Remix",
+  "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
   "types": "./build/index.d.ts",

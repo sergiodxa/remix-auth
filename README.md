@@ -2,7 +2,7 @@
 
 # Remix Auth
 
-### Authentication for [Remix](https://remix.run/)
+### Simple Authentication for [Remix](https://remix.run/)
 
 ## Features
 
