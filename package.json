@@ -34,6 +34,11 @@
   },
   "homepage": "https://github.com/sergiodxa/remix-auth#readme",
   "license": "MIT",
+  "files": [
+    "build",
+    "package.json",
+    "README.md"
+  ],
   "dependencies": {
     "@remix-run/node": "^0.17.5",
     "@remix-run/react": "^0.17.5",

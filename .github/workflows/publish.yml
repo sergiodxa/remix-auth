@@ -13,7 +13,10 @@ jobs:
         with:
           node-version: 14
           registry-url: https://registry.npmjs.org/
-      - run: yarn install
+      - run: npm install
+        env:
+          REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
+      - run: npm run build
         env:
           REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
       - run: npm publish --access public
