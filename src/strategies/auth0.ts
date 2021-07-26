@@ -1,12 +1,11 @@
 import { fetch } from "@remix-run/node";
-import { StrategyRedirects } from "../authenticator";
 import {
   OAuth2Profile,
   OAuth2Strategy,
   OAuth2StrategyVerifyCallback,
 } from "./oauth2";
 
-export interface Auth0StrategyOptions extends Required<StrategyRedirects> {
+export interface Auth0StrategyOptions {
   domain: string;
   clientID: string;
   clientSecret: string;
@@ -76,8 +75,6 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
         clientID: options.clientID,
         clientSecret: options.clientSecret,
         callbackURL: options.callbackURL,
-        successRedirect: options.successRedirect,
-        failureRedirect: options.failureRedirect,
       },
       verify
     );

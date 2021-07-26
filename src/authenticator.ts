@@ -14,11 +14,6 @@ export interface Strategy<User> {
   ): Promise<Response>;
 }
 
-export interface StrategyRedirects {
-  successRedirect?: string;
-  failureRedirect?: string;
-}
-
 export class AuthorizationError extends Error {}
 
 export class Authenticator<User = unknown> {

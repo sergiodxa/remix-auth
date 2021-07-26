@@ -4,10 +4,9 @@ import {
   AuthenticateCallback,
   AuthorizationError,
   Strategy,
-  StrategyRedirects,
 } from "../authenticator";
 
-export interface LocalStrategyOptions extends StrategyRedirects {
+export interface LocalStrategyOptions {
   loginURL: string;
   sessionErrorKey?: string;
   usernameField?: string;
@@ -22,23 +21,19 @@ export class LocalStrategy<User> implements Strategy<User> {
   name = "local";
 
   private loginURL: string;
-  private sessionErrorKey: string;
+  private errorKey: string;
   private usernameField: string;
   private passwordField: string;
   private verify: LocalStrategyVerifyCallback<User>;
-  private successRedirect: string;
-  private failureRedirect: string;
 
   constructor(
     options: LocalStrategyOptions,
     verify: LocalStrategyVerifyCallback<User>
   ) {
     this.loginURL = options.loginURL;
-    this.sessionErrorKey = options.sessionErrorKey ?? "auth:local:error";
+    this.errorKey = options.sessionErrorKey ?? "auth:local:error";
     this.usernameField = options.usernameField ?? "username";
     this.passwordField = options.passwordField ?? "password";
-    this.successRedirect = options.successRedirect ?? "/";
-    this.failureRedirect = options.failureRedirect ?? options.loginURL;
     this.verify = verify;
   }
 
@@ -52,7 +47,6 @@ export class LocalStrategy<User> implements Strategy<User> {
         "The authenticate method with LocalStrategy can only be used on the login URL."
       );
     }
-
     if (request.method.toLowerCase() !== "post") {
       throw new AuthorizationError(
         "The authenticate method with LocalStrategy can only be used on action functions."
@@ -71,13 +65,13 @@ export class LocalStrategy<User> implements Strategy<User> {
     // password must be present at the same time.
     if (!username || !password) {
       if (!username) {
-        session.flash(`${this.sessionErrorKey}:user`, "Missing username.");
+        session.flash(`${this.errorKey}:user`, "Missing username.");
       }
       if (!password) {
-        session.flash(`${this.sessionErrorKey}:pass`, "Missing password.");
+        session.flash(`${this.errorKey}:pass`, "Missing password.");
       }
       let cookie = await sessionStorage.commitSession(session);
-      return this.redirect(cookie, false);
+      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
     }
 
     try {
@@ -91,18 +85,11 @@ export class LocalStrategy<User> implements Strategy<User> {
       // data on the session and commit it as a cookie.
       session.set("user", user);
       let cookie = await sessionStorage.commitSession(session);
-      return this.redirect(cookie, true);
+      return redirect("/", { headers: { "Set-Cookie": cookie } });
     } catch (error: unknown) {
-      session.flash(this.sessionErrorKey, (error as Error).message);
+      session.flash(this.errorKey, (error as Error).message);
       let cookie = await sessionStorage.commitSession(session);
-      return this.redirect(cookie, false);
+      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
     }
-  }
-
-  private redirect(cookie: string, status: boolean): Response {
-    let url = status ? this.successRedirect : this.failureRedirect;
-    return redirect(url, {
-      headers: { "Set-Cookie": cookie },
-    });
   }
 }
