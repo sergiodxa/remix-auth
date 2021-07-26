@@ -1,4 +1,5 @@
 import {
+  Headers,
   redirect,
   Request,
   Response,
@@ -10,6 +11,7 @@ import {
   AuthenticateCallback,
   AuthorizationError,
   Strategy,
+  StrategyRedirects,
 } from "../authenticator";
 
 export interface OAuth2Profile {
@@ -28,12 +30,13 @@ export interface OAuth2Profile {
   photos?: Array<{ value: string }>;
 }
 
-export interface OAuth2StrategyOptions {
+export interface OAuth2StrategyOptions extends Required<StrategyRedirects> {
   authorizationURL: string;
   tokenURL: string;
   clientID: string;
   clientSecret: string;
   callbackURL: string;
+  sessionErrorKey?: string;
 }
 
 export interface OAuth2StrategyVerifyCallback<
@@ -104,6 +107,9 @@ export class OAuth2Strategy<
   protected clientID: string;
   protected clientSecret: string;
   protected callbackURL: string;
+  protected successRedirect: string;
+  protected failureRedirect: string;
+  protected sessionErrorKey: string = "oauth2:error";
   protected verify: OAuth2StrategyVerifyCallback<User, Profile, ExtraParams>;
 
   private sessionStateKey = "oauth2:state";
@@ -117,6 +123,9 @@ export class OAuth2Strategy<
     this.clientID = options.clientID;
     this.clientSecret = options.clientSecret;
     this.callbackURL = options.callbackURL;
+    this.successRedirect = options.successRedirect;
+    this.failureRedirect = options.failureRedirect;
+    this.sessionErrorKey = options.sessionErrorKey ?? "oauth2:error";
     this.verify = verify;
   }
 
@@ -133,7 +142,7 @@ export class OAuth2Strategy<
     let user: User | null = session.get("user") ?? null;
 
     // User is already authenticated
-    if (user) return callback ? callback(user) : redirect("/");
+    if (user) return callback ? callback(user) : this.redirect("success");
 
     let callbackURL = this.getCallbackURL(url);
     if (url.pathname !== callbackURL.pathname) {
@@ -141,26 +150,33 @@ export class OAuth2Strategy<
     }
 
     let state = url.searchParams.get("state");
-    if (!state) throw new AuthorizationError("Missing state.");
+    if (!state) return this.authorize(sessionStorage, session);
 
     if (session.get(this.sessionStateKey) === state) {
       session.unset(this.sessionStateKey);
-    } else throw new AuthorizationError("State doesn't match.");
+    } else return this.authorize(sessionStorage, session);
 
     let code = url.searchParams.get("code");
-    if (!code) throw new AuthorizationError("Missing code.");
+    if (!code) return this.authorize(sessionStorage, session);
 
     let params = new URLSearchParams(this.tokenParams());
     params.set("grant_type", "authorization_code");
     params.set("redirect_uri", callbackURL.toString());
 
-    let { accessToken, refreshToken, extraParams } = await this.getAccessToken(
-      code,
-      params
-    );
+    try {
+      let result = await this.getAccessToken(code, params);
+      let { accessToken, refreshToken, extraParams } = result;
 
-    let profile = await this.userProfile(accessToken, extraParams);
-    user = await this.verify(accessToken, refreshToken, extraParams, profile);
+      let profile = await this.userProfile(accessToken, extraParams);
+      user = await this.verify(accessToken, refreshToken, extraParams, profile);
+    } catch (error) {
+      if (error instanceof AuthorizationError) {
+        return this.authorize(sessionStorage, session);
+      }
+      session.flash(this.sessionErrorKey, error.message);
+      let cookie = await sessionStorage.commitSession(session);
+      return this.redirect("failure", cookie);
+    }
 
     // A callback was provided, now it's the developer responsibility to save
     // the user data on the session and commit it.
@@ -170,7 +186,7 @@ export class OAuth2Strategy<
     // on the session and commit it as a cookie.
     session.set("user", user);
     let cookie = await sessionStorage.commitSession(session);
-    return redirect("/", { headers: { "Set-Cookie": cookie } });
+    return this.redirect("success", cookie);
   }
 
   /**
@@ -291,5 +307,18 @@ export class OAuth2Strategy<
       refreshToken: refresh_token as string,
       extraParams,
     } as const;
+  }
+
+  private redirect(status: "success" | "failure", cookie?: string): Response {
+    let url = "/";
+    if (status === "success") url = this.successRedirect;
+    if (status === "failure") url = this.failureRedirect;
+    if (status !== "success" && status !== "failure")
+      throw new Error("Invalid status");
+
+    let headers = new Headers();
+    if (cookie) headers.append("Set-Cookie", cookie);
+
+    return redirect(url, { headers });
   }
 }
