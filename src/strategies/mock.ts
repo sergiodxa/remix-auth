@@ -7,6 +7,6 @@ export class MockStrategy<User> implements Strategy<User> {
   constructor(private response: Response) {}
 
   authenticate() {
-    return Promise.resolve(this.response);
+    return Promise.resolve(this.response.clone());
   }
 }
