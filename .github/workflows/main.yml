@@ -65,7 +65,7 @@ jobs:
           REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
 
       - name: Test
-        run: npm run test:unit -- --ci --coverage --maxWorkers=2
+        run: npm run test -- --ci --coverage --maxWorkers=2
         env:
           REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
 
