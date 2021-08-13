@@ -90,6 +90,7 @@ export let action: ActionFunction = async ({ request }) => {
   // logged-in, if not a redirect will be performed to the login URL
   return authenticator.authenticate("local", request, async (user) => {
     let session = await getSession(request.headers.get("Cookie"));
+    session.set(authenticator.sessionKey, user);
     return redirect("/dashboard", {
       headers: {
         "Set-Cookie": await commitSession(session),

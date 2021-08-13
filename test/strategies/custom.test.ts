@@ -1,5 +1,5 @@
 import { createCookieSessionStorage, Request, Response } from "@remix-run/node";
-import { CustomStrategy } from "../../src";
+import { AuthenticateCallback, CustomStrategy } from "../../src";
 
 describe(CustomStrategy, () => {
   let callback = jest.fn();
@@ -18,10 +18,17 @@ describe(CustomStrategy, () => {
     expect(strategy.name).toBe("custom");
   });
 
-  test("should call the verify callback with the request and session storage", async () => {
+  test("should call the verify callback with the request, session storage and options", async () => {
     let strategy = new CustomStrategy(verify);
-    await strategy.authenticate(request, sessionStorage, callback);
-    expect(verify).toHaveBeenCalledWith(request, sessionStorage);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
+    expect(verify).toHaveBeenCalledWith(request, sessionStorage, {
+      sessionKey: "user",
+    });
     expect(callback).toHaveBeenCalled();
   });
 
@@ -33,6 +40,7 @@ describe(CustomStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toBeInstanceOf(Response);
@@ -40,7 +48,14 @@ describe(CustomStrategy, () => {
 
   test("should throw an error if callback is not defined", () => {
     let strategy = new CustomStrategy(verify);
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
+    expect(
+      strategy.authenticate(
+        request,
+        sessionStorage,
+        { sessionKey: "user" },
+        null as unknown as AuthenticateCallback<unknown>
+      )
+    ).rejects.toThrow(
       "The authenticate callback on CustomStrategy is required."
     );
   });

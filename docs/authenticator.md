@@ -82,7 +82,7 @@ export let action: ActionFunction = async ({ request }) => {
     // get the session from the cookie
     let session = await getSession(request.headers.get("Cookie"));
     // store the user in the session (it's important that you do this)
-    session.set("user", user);
+    session.set(authenticator.sessionKey, user);
     // commit the session and redirect to another route of your app
     return redirect("/dashboard", {
       headers: {

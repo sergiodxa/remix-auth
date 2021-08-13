@@ -20,7 +20,9 @@ describe(LocalStrategy, () => {
   test("should throw an error if request URL is not login URL", () => {
     let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
     let request = new Request("http://example.com/random");
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow(
       "The authenticate method with LocalStrategy can only be used on the login URL."
     );
   });
@@ -28,7 +30,9 @@ describe(LocalStrategy, () => {
   test("should throw an error if request method is not POST", () => {
     let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
     let request = new Request("http://example.com/login", { method: "GET" });
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow(
       "The authenticate method with LocalStrategy can only be used on action functions."
     );
   });
@@ -39,7 +43,9 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams({ password: "pass" }),
     });
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
     );
@@ -54,7 +60,9 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams({ username: "user" }),
     });
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
     );
@@ -69,7 +77,9 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams(),
     });
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
     );
@@ -85,7 +95,9 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams({ username: "user", password: "pass" }),
     });
-    await strategy.authenticate(request, sessionStorage);
+    await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     expect(verify).toHaveBeenCalledWith("user", "pass");
   });
 
@@ -101,6 +113,7 @@ describe(LocalStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(callback).toHaveBeenCalledWith(user);
@@ -116,7 +129,9 @@ describe(LocalStrategy, () => {
     });
     let user = { username: "user" };
     verify.mockResolvedValueOnce(user);
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
     );
@@ -131,7 +146,9 @@ describe(LocalStrategy, () => {
       body: new URLSearchParams({ username: "user", password: "pass" }),
     });
     verify.mockRejectedValueOnce(new Error("Invalid credentials."));
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
     );
