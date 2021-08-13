@@ -24,12 +24,13 @@ Since the Authenticator read from a session storage object you created and the s
 ```ts
 import { Request } from "remix";
 import { sessionStorage } from "./session.server";
+import { authenticator } from "./authenticator.server";
 import { loader } from "./routes/dashboard";
 
 describe("Dashboard", () => {
   test("Loader - is signed in", () => {
     let session = await sessionStorage.getSession(); // get a new Session object
-    session.set("user", fakeUser); // set a fake user in the session
+    session.set(authenticator.sessionKey, fakeUser); // set a fake user in the session
     let request = new Request("/dashboard", {
       // Add a cookie header to the request with the session committed
       headers: { Cookie: await sessionStorage.commitSession(session) },

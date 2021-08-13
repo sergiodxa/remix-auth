@@ -1,5 +1,9 @@
 import { Request, Response, SessionStorage } from "@remix-run/node";
-import { AuthenticateCallback, Strategy } from "../authenticator";
+import {
+  AuthenticateCallback,
+  Strategy,
+  StrategyOptions,
+} from "../authenticator";
 
 export interface BasicStrategyOptions {
   realm?: string;
@@ -63,6 +67,7 @@ export class BasicStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     _sessionStorage: SessionStorage,
+    _options: StrategyOptions,
     callback?: AuthenticateCallback<User>
   ): Promise<Response> {
     if (!callback) {

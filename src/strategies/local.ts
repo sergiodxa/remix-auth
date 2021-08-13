@@ -4,6 +4,7 @@ import {
   AuthenticateCallback,
   AuthorizationError,
   Strategy,
+  StrategyOptions,
 } from "../authenticator";
 
 export interface LocalStrategyOptions {
@@ -40,6 +41,7 @@ export class LocalStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
+    options: StrategyOptions,
     callback?: AuthenticateCallback<User>
   ): Promise<Response> {
     if (new URL(request.url).pathname !== this.loginURL) {
@@ -83,7 +85,7 @@ export class LocalStrategy<User> implements Strategy<User> {
 
       // Because a callback was not provided, we are going to store the user
       // data on the session and commit it as a cookie.
-      session.set("user", user);
+      session.set(options.sessionKey, user);
       let cookie = await sessionStorage.commitSession(session);
       return redirect("/", { headers: { "Set-Cookie": cookie } });
     } catch (error: unknown) {

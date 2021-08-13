@@ -10,6 +10,7 @@ import {
   AuthenticateCallback,
   AuthorizationError,
   Strategy,
+  StrategyOptions,
 } from "../authenticator";
 
 export interface OAuth2Profile {
@@ -123,6 +124,7 @@ export class OAuth2Strategy<
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
+    options: StrategyOptions,
     callback?: AuthenticateCallback<User>
   ): Promise<Response> {
     let url = new URL(request.url);
@@ -130,7 +132,7 @@ export class OAuth2Strategy<
       request.headers.get("Cookie")
     );
 
-    let user: User | null = session.get("user") ?? null;
+    let user: User | null = session.get(options.sessionKey) ?? null;
 
     // User is already authenticated
     if (user) return callback ? callback(user) : redirect("/");
@@ -168,7 +170,7 @@ export class OAuth2Strategy<
 
     // Because a callback was not provided, we are going to store the user data
     // on the session and commit it as a cookie.
-    session.set("user", user);
+    session.set(options.sessionKey, user);
     let cookie = await sessionStorage.commitSession(session);
     return redirect("/", { headers: { "Set-Cookie": cookie } });
   }

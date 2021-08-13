@@ -1,8 +1,16 @@
 import { Request, Response, SessionStorage } from "@remix-run/node";
-import { AuthenticateCallback, Strategy } from "../authenticator";
+import {
+  AuthenticateCallback,
+  Strategy,
+  StrategyOptions,
+} from "../authenticator";
 
 export interface CustomStrategyVerifyCallback<User> {
-  (request: Request, sessionStorage: SessionStorage): Promise<User>;
+  (
+    request: Request,
+    sessionStorage: SessionStorage,
+    options: StrategyOptions
+  ): Promise<User>;
 }
 
 /**
@@ -31,7 +39,8 @@ export class CustomStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    callback?: AuthenticateCallback<User>
+    options: StrategyOptions,
+    callback: AuthenticateCallback<User>
   ): Promise<Response> {
     if (!callback) {
       throw new TypeError(
@@ -39,6 +48,6 @@ export class CustomStrategy<User> implements Strategy<User> {
       );
     }
 
-    return callback(await this.verify(request, sessionStorage));
+    return callback(await this.verify(request, sessionStorage, options));
   }
 }
