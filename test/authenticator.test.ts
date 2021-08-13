@@ -20,7 +20,9 @@ describe(Authenticator, () => {
     });
 
     expect(
-      new Authenticator(sessionStorage).isAuthenticated(request)
+      new Authenticator(sessionStorage, { sessionKey: "user" }).isAuthenticated(
+        request
+      )
     ).resolves.toEqual(user);
   });
 
@@ -34,15 +36,17 @@ describe(Authenticator, () => {
 
   test("should be able to add a new strategy calling use", async () => {
     let request = new Request("/");
-    let response = new Response("It works!");
+    let response = new Response("It works!", {
+      url: "/",
+    });
 
     let authenticator = new Authenticator(sessionStorage);
 
     expect(authenticator.use(new MockStrategy(response))).toBe(authenticator);
-    expect(authenticator.authenticate("mock", request)).resolves.toBe(response);
+    expect(await authenticator.authenticate("mock", request)).toEqual(response);
   });
 
-  test("should be able to remove a strategy calling use", async () => {
+  test("should be able to remove a strategy calling unuse", async () => {
     let response = new Response("It works!");
 
     let authenticator = new Authenticator(sessionStorage);
@@ -51,11 +55,11 @@ describe(Authenticator, () => {
     expect(authenticator.unuse("mock")).toBe(authenticator);
   });
 
-  test.skip("should throw if the strategy was not found", async () => {
+  test("should throw if the strategy was not found", async () => {
     let request = new Request("/");
     let authenticator = new Authenticator(sessionStorage);
 
-    await expect(authenticator.authenticate("unknown", request)).toThrow(
+    expect(() => authenticator.authenticate("unknown", request)).toThrow(
       "Strategy unknown not found."
     );
   });

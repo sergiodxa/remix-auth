@@ -20,7 +20,9 @@ describe(BasicStrategy, () => {
   test("should throw an error if callback is not defined", () => {
     let request = new Request("/auth/basic");
     let strategy = new BasicStrategy(verify);
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow(
       "The authenticate callback on BasicStrategy is required."
     );
   });
@@ -31,6 +33,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);
@@ -46,6 +49,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);
@@ -61,6 +65,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);
@@ -78,6 +83,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);
@@ -92,7 +98,12 @@ describe(BasicStrategy, () => {
       },
     });
     let strategy = new BasicStrategy(verify);
-    await strategy.authenticate(request, sessionStorage, callback);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
     expect(verify).toHaveBeenCalledWith("user", "pass");
   });
 
@@ -105,7 +116,12 @@ describe(BasicStrategy, () => {
     let user = { name: "user" };
     verify.mockResolvedValueOnce(user);
     let strategy = new BasicStrategy(verify);
-    await strategy.authenticate(request, sessionStorage, callback);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
     expect(callback).toHaveBeenCalledWith(user);
   });
 
@@ -122,6 +138,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(200);
@@ -133,6 +150,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);
@@ -151,6 +169,7 @@ describe(BasicStrategy, () => {
     let response = await strategy.authenticate(
       request,
       sessionStorage,
+      { sessionKey: "user" },
       callback
     );
     expect(response).toHaveStatus(401);

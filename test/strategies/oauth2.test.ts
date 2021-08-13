@@ -35,7 +35,9 @@ describe(OAuth2Strategy, () => {
     let request = new Request("https://example.com/login", {
       headers: { cookie: await sessionStorage.commitSession(session) },
     });
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     expect(response).toRedirect("/");
   });
 
@@ -47,14 +49,21 @@ describe(OAuth2Strategy, () => {
     let request = new Request("https://example.com/login", {
       headers: { cookie: await sessionStorage.commitSession(session) },
     });
-    await strategy.authenticate(request, sessionStorage, callback);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
     expect(callback).toHaveBeenLastCalledWith(user);
   });
 
   test("should redirect to authorization if request is not the callback", async () => {
     let strategy = new OAuth2Strategy(options, verify);
     let request = new Request("https://example.com/login");
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     let redirect = new URL(response.headers.get("Location") as string);
     let session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
@@ -76,9 +85,9 @@ describe(OAuth2Strategy, () => {
   test("should throw if state is not on the callback URL params", () => {
     let strategy = new OAuth2Strategy(options, verify);
     let request = new Request("https://example.com/callback");
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
-      "Missing state."
-    );
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow("Missing state.");
   });
 
   test("should throw if the state in params doesn't match the state in session", async () => {
@@ -91,9 +100,9 @@ describe(OAuth2Strategy, () => {
         headers: { cookie: await sessionStorage.commitSession(session) },
       }
     );
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
-      "State doesn't match."
-    );
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow("State doesn't match.");
   });
 
   test("should throw if code is not on the callback URL params", async () => {
@@ -106,9 +115,9 @@ describe(OAuth2Strategy, () => {
         headers: { cookie: await sessionStorage.commitSession(session) },
       }
     );
-    expect(strategy.authenticate(request, sessionStorage)).rejects.toThrow(
-      "Missing code."
-    );
+    expect(
+      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
+    ).rejects.toThrow("Missing code.");
   });
 
   test("should call verify with the access token, refresh token, extra params and user profile", async () => {
@@ -130,7 +139,12 @@ describe(OAuth2Strategy, () => {
       })
     );
 
-    await strategy.authenticate(request, sessionStorage, callback);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
 
     let [url, mockRequest] = fetchMock.mock.calls[0];
     let body = mockRequest?.body as URLSearchParams;
@@ -179,7 +193,12 @@ describe(OAuth2Strategy, () => {
       })
     );
 
-    await strategy.authenticate(request, sessionStorage, callback);
+    await strategy.authenticate(
+      request,
+      sessionStorage,
+      { sessionKey: "user" },
+      callback
+    );
 
     expect(callback).toHaveBeenLastCalledWith(user);
   });
@@ -208,7 +227,9 @@ describe(OAuth2Strategy, () => {
       })
     );
 
-    let response = await strategy.authenticate(request, sessionStorage);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
 
     session = await sessionStorage.getSession(
       response.headers.get("Set-Cookie")
