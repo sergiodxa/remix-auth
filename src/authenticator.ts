@@ -53,6 +53,8 @@ export class Authenticator<User = unknown> {
    */
   private strategies = new Map<string, Strategy<User>>();
 
+  public readonly sessionKey: string;
+
   /**
    * Create a new instance of the Authenticator.
    *
@@ -77,8 +79,10 @@ export class Authenticator<User = unknown> {
    */
   constructor(
     private sessionStorage: SessionStorage,
-    public options: AuthenticatorOptions = {}
-  ) {}
+    options: AuthenticatorOptions = {}
+  ) {
+    this.sessionKey = options.sessionKey || "user";
+  }
 
   /**
    * Call this method with the Strategy, the optional name allows you to setup
@@ -172,9 +176,5 @@ export class Authenticator<User = unknown> {
 
     if (user) return user;
     return null;
-  }
-
-  get sessionKey() {
-    return this.options.sessionKey || "user";
   }
 }
