@@ -10,6 +10,7 @@ export interface Auth0StrategyOptions {
   clientID: string;
   clientSecret: string;
   callbackURL: string;
+  scope?: string;
 }
 
 export interface Auth0ExtraParams extends Record<string, string | number> {
@@ -63,6 +64,7 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
   name = "auth0";
 
   private userInfoURL: string;
+  private scope: string;
 
   constructor(
     options: Auth0StrategyOptions,
@@ -80,11 +82,12 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
     );
 
     this.userInfoURL = `https://${options.domain}/userinfo`;
+    this.scope = options.scope || "openid profile email";
   }
 
   protected authorizationParams() {
     return new URLSearchParams({
-      scope: "openid profile email",
+      scope: this.scope,
     });
   }
 
