@@ -253,7 +253,7 @@ export class OAuth2Strategy<
   /**
    * Format the data to be sent in the request body to the token endpoint.
    */
-  private async getAccessToken(
+  protected async getAccessToken(
     code: string,
     params: URLSearchParams
   ): Promise<{
