@@ -10,8 +10,8 @@ describe(OAuth2Strategy, () => {
   });
 
   let options = Object.freeze({
-    authorizationURL: "https://remix.run/authorize",
-    tokenURL: "https://remix.run/token",
+    authorizationURL: "https://example.app/authorize",
+    tokenURL: "https://example.app/token",
     clientID: "MY_CLIENT_ID",
     clientSecret: "MY_CLIENT_SECRET",
     callbackURL: "https://example.com/callback",

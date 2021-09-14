@@ -156,10 +156,8 @@ export class OAuth2Strategy<
     params.set("grant_type", "authorization_code");
     params.set("redirect_uri", callbackURL.toString());
 
-    let { accessToken, refreshToken, extraParams } = await this.getAccessToken(
-      code,
-      params
-    );
+    let { accessToken, refreshToken, extraParams } =
+      await this.fetchAccessToken(code, params);
 
     let profile = await this.userProfile(accessToken, extraParams);
     user = await this.verify(accessToken, refreshToken, extraParams, profile);
@@ -250,10 +248,23 @@ export class OAuth2Strategy<
     return redirect(url.toString(), { headers: { "Set-Cookie": cookie } });
   }
 
+  protected async getAccessToken(response: Response): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    extraParams: ExtraParams;
+  }> {
+    let { access_token, refresh_token, ...extraParams } = await response.json();
+    return {
+      accessToken: access_token as string,
+      refreshToken: refresh_token as string,
+      extraParams,
+    } as const;
+  }
+
   /**
    * Format the data to be sent in the request body to the token endpoint.
    */
-  protected async getAccessToken(
+  private async fetchAccessToken(
     code: string,
     params: URLSearchParams
   ): Promise<{
@@ -278,20 +289,13 @@ export class OAuth2Strategy<
 
     if (!response.ok) {
       try {
-        let body = await response.json();
-        if (body?.error) throw new AuthorizationError(body.error);
-        throw new AuthorizationError();
-      } catch {
-        throw new AuthorizationError();
+        let body = await response.text();
+        throw new AuthorizationError(body);
+      } catch (error) {
+        throw new AuthorizationError((error as Error).message);
       }
     }
 
-    let { access_token, refresh_token, ...extraParams } = await response.json();
-
-    return {
-      accessToken: access_token as string,
-      refreshToken: refresh_token as string,
-      extraParams,
-    } as const;
+    return await this.getAccessToken(response.clone() as unknown as Response);
   }
 }
