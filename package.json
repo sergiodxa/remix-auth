@@ -7,8 +7,8 @@
   "types": "./build/index.d.ts",
   "scripts": {
     "build:types": "tsc src/index.ts --declaration --emitDeclarationOnly --declarationDir build --esModuleInterop",
-    "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:remix-utils --external:crypto --external:remix",
-    "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix-utils --external:remix",
+    "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:crypto --external:remix",
+    "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix",
     "build": "npm run build:types && npm run build:esm && npm run build:cjs",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
