@@ -28,8 +28,8 @@ export interface Auth0Profile extends OAuth2Profile {
     givenName: string;
     middleName: string;
   };
-  emails: Array<{ value: string }>;
-  photos: Array<{ value: string }>;
+  emails: [{ value: string }];
+  photos: [{ value: string }];
   _json: {
     sub: string;
     name: string;
