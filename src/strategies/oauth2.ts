@@ -1,5 +1,4 @@
 import {
-  fetch,
   redirect,
   Request,
   Response,
@@ -299,6 +298,8 @@ export class OAuth2Strategy<
       }
     }
 
-    return await this.parseAccessTokenResponse(response.clone());
+    return await this.parseAccessTokenResponse(
+      response.clone() as unknown as Response
+    );
   }
 }
