@@ -43,8 +43,7 @@
   "dependencies": {
     "@remix-run/node": "^0.18.1",
     "@remix-run/react": "^0.18.1",
-    "remix": "^0.18.1",
-    "remix-utils": "^1.0.2"
+    "remix": "^0.18.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.2",
