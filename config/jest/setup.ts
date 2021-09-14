@@ -1,4 +1,7 @@
+import { installGlobals } from "@remix-run/node";
 import "jest-fetch-mock/setupJest";
+
+installGlobals();
 
 function validateIsResponse(response: Response) {
   if (response instanceof Response === false) {
