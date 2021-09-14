@@ -6,7 +6,7 @@ If you are using Jest you can import a loader or action from any route file and 
 
 ```ts
 import { Request } from "remix";
-import { loader } from "./routes/dashboard";
+import { loader } from "~/routes/dashboard";
 
 describe("Dashboard", () => {
   test("Loader", () => {
@@ -23,9 +23,9 @@ Since the Authenticator read from a session storage object you created and the s
 
 ```ts
 import { Request } from "remix";
-import { sessionStorage } from "./session.server";
-import { authenticator } from "./authenticator.server";
-import { loader } from "./routes/dashboard";
+import { sessionStorage } from "~/session.server";
+import { authenticator } from "~/authenticator.server";
+import { loader } from "~/routes/dashboard";
 
 describe("Dashboard", () => {
   test("Loader - is signed in", () => {

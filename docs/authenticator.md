@@ -10,7 +10,7 @@ Let's say we have a file at `app/auth.server.ts` with the following code:
 
 ```ts
 import { Authenticator } from "remix-auth";
-import { sessionStorage } from "./session.server";
+import { sessionStorage } from "~/session.server";
 
 type User = { id: string; name: string; email: string };
 
@@ -52,7 +52,7 @@ Let's update our `app/auth.server.ts` file to look like this:
 
 ```ts
 import { Authenticator, LocalStrategy } from "remix-auth";
-import { sessionStorage } from "./session.server";
+import { sessionStorage } from "~/session.server";
 
 type User = { id: string; name: string; email: string };
 
@@ -72,8 +72,8 @@ This will depend a lot on what strategy you are using, since they may have diffe
 
 ```tsx
 import { ActionFunction, LoaderFunction, redirect, json } from "remix";
-import { authenticator } from "../auth.server"; // import our authenticator
-import { getSession, commitSession } from "../session.server";
+import { authenticator } from ".~/auth.server"; // import our authenticator
+import { getSession, commitSession } from ".~/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
   // Authenticate the request, your callback will be called if the user is

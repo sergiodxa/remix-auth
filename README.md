@@ -50,8 +50,8 @@ export let { getSession, commitSession, destroySession } = sessionStorage;
 ```ts
 // app/auth.server.ts
 import { Authenticator, LocalStrategy } from "remix-auth";
-import { sessionStorage } from "./session.server";
-import { User } from "./models/user";
+import { sessionStorage } from "~/session.server";
+import { User, findOrCreateUser } from "~/models/user";
 
 // Create an instance of the authenticator, pass a generic with what your
 // strategies will return and will be stored in the session
@@ -66,7 +66,7 @@ authenticator.use(
     { loginURL: "/login" },
     async (username, password) => {
       // Find your user data in your database or external service
-      let user = await User.findOne({ username });
+      let user = await findOrCreateUser({ username });
       await user.validatePassword(password);
       return user;
     }
@@ -82,8 +82,8 @@ authenticator.use(
 ```tsx
 // app/routes/login.tsx
 import { ActionFunction, LoaderFunction, redirect } from "remix";
-import { authenticator } from "../auth.server";
-import { getSession, commitSession } from "../session.server";
+import { authenticator } from "~/auth.server";
+import { getSession, commitSession } from "~/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
   // Authenticate the request, your callback will be called if the user is

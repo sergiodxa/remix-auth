@@ -4,22 +4,7 @@ This strategy is intended to be used for testing purposes only.
 
 This strategy receives a Response object and it will resolve all authentication requests using a clone of that Response.
 
-## Create a new instance of MockStrategy
-
-```ts
-import { MockStrategy } from "remix-auth";
-import { Response } from "remix";
-
-let strategy = new MockStrategy(new Response("")));
-```
-
-## Use the strategy
-
-```ts
-authenticator.use(strategy);
-```
-
-## Example in a Test
+## Usage
 
 If you want to test a loader or action that uses an authenticator, you can replace it with the MockStrategy.
 
@@ -31,10 +16,12 @@ import { loader } from "./routes/dashboard";
 
 describe("Dashboard", () => {
   describe("Loader", () => {
-    test("should redirect to ", async () => {
+    test("should redirect to `/`", async () => {
       authenticator
         .unuse("auth0") // remove the strategy you are using
-        .use(new MockStrategy(redirect("/")));
+        // tell the authenticator to use the MockStrategy named "auth0"
+        .use(new MockStrategy(redirect("/")), "auth0");
+
       // test your loader here which will redirect to /
     });
   });

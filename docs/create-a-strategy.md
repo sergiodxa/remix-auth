@@ -95,8 +95,8 @@ With this you have created your own strategy for authentication, but you still n
 
 ```ts
 import { Authenticator } from "remix-auth";
-import FormStrategy from "./form-strategy.server";
-import { sessionStorage } from "./session.server";
+import FormStrategy from "~/form-strategy.server";
+import { sessionStorage } from "~/session.server";
 
 export let authenticator = new Authenticator(sessionStorage);
 authenticator.use(
@@ -123,7 +123,7 @@ import {
   OAuth2Profile,
   OAuth2Strategy,
   OAuth2StrategyVerifyCallback,
-} from "./oauth2";
+} from "remix-auth";
 
 // These are the custom options we need from the developer to use the strategy
 export interface Auth0StrategyOptions {

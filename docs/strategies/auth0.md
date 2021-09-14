@@ -25,8 +25,8 @@ export let { getSession, commitSession, destroySession } = sessionStorage;
 ```ts
 // app/auth.server.ts
 import { Authenticator } from "remix-auth";
-import { sessionStorage } from "./session.server";
-import { User } from "./models/user";
+import { sessionStorage } from "~/session.server";
+import { User } from "~/models/user";
 
 // Create an instance of the authenticator, pass a generic with what your
 // strategies will return and will be stored in the session
@@ -59,7 +59,7 @@ authenticator.use(auth0Strategy);
 ```tsx
 // app/routes/auth.auth0.tsx
 import { LoaderFunction } from "remix";
-import { authenticator } from "../auth.server";
+import { authenticator } from ".~/auth.server";
 
 export let loader: LoaderFunction = async ({ request }) => {
   return authenticator.authenticate("auth0", request);
@@ -74,7 +74,7 @@ export default function Auth0Login() {
 ```tsx
 // app/routes/auth.auth0.callback.tsx
 import { LoaderFunction } from "remix";
-import { authenticator } from "../auth.server";
+import { authenticator } from ".~/auth.server";
 
 export let loader: LoaderFunction = async ({ request }) => {
   return authenticator.authenticate("auth0", request);
@@ -90,8 +90,8 @@ export default function Auth0Callback() {
 // app/routes/dashboard.tsx
 import { LoaderFunction, redirect } from "remix";
 import { json } from "remix-utils";
-import { authenticator } from "../auth.server";
-import { User } from "../models/user";
+import { authenticator } from ".~/auth.server";
+import { User } from ".~/models/user";
 
 type RouteData = { user: User };
 
