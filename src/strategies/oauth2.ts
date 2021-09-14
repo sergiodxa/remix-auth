@@ -156,10 +156,8 @@ export class OAuth2Strategy<
     params.set("grant_type", "authorization_code");
     params.set("redirect_uri", callbackURL.toString());
 
-    let { accessToken, refreshToken, extraParams } = await this.getAccessToken(
-      code,
-      params
-    );
+    let { accessToken, refreshToken, extraParams } =
+      await this.fetchAccessToken(code, params);
 
     let profile = await this.userProfile(accessToken, extraParams);
     user = await this.verify(accessToken, refreshToken, extraParams, profile);
@@ -250,7 +248,7 @@ export class OAuth2Strategy<
     return redirect(url.toString(), { headers: { "Set-Cookie": cookie } });
   }
 
-  protected async parseAccessTokenResponse(response: Response): Promise<{
+  protected async getAccessToken(response: Response): Promise<{
     accessToken: string;
     refreshToken: string;
     extraParams: ExtraParams;
@@ -266,7 +264,7 @@ export class OAuth2Strategy<
   /**
    * Format the data to be sent in the request body to the token endpoint.
    */
-  private async getAccessToken(
+  private async fetchAccessToken(
     code: string,
     params: URLSearchParams
   ): Promise<{
@@ -298,8 +296,6 @@ export class OAuth2Strategy<
       }
     }
 
-    return await this.parseAccessTokenResponse(
-      response.clone() as unknown as Response
-    );
+    return await this.getAccessToken(response.clone() as unknown as Response);
   }
 }

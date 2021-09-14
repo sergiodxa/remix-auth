@@ -143,7 +143,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
     return profile;
   }
 
-  protected async parseAccessTokenResponse(response: Response): Promise<{
+  protected async getAccessToken(response: Response): Promise<{
     accessToken: string;
     refreshToken: string;
     extraParams: GitHubExtraParams;
