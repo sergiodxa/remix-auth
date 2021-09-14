@@ -1,5 +1,4 @@
 import "jest-fetch-mock/setupJest";
-import { Response } from "remix";
 
 function validateIsResponse(response: Response) {
   if (response instanceof Response === false) {

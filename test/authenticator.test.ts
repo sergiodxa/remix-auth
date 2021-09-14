@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, Request, Response } from "@remix-run/node";
+import { createCookieSessionStorage } from "remix";
 import { Authenticator, MockStrategy } from "../src";
 
 describe(Authenticator, () => {
