@@ -1,4 +1,4 @@
-import { Request, Response, SessionStorage } from "@remix-run/node";
+import { SessionStorage } from "remix";
 import {
   AuthenticateCallback,
   Strategy,
@@ -103,7 +103,7 @@ export class BasicStrategy<User> implements Strategy<User> {
       let user = await this.verify(userId, password);
       return callback(user);
     } catch (error) {
-      return this.raise(error.message);
+      return this.raise((error as Error).message);
     }
   }
 

@@ -1,4 +1,3 @@
-import { Response } from "@remix-run/node";
 import { Strategy } from "../authenticator";
 
 export class MockStrategy<User> implements Strategy<User> {

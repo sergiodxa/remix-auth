@@ -1,4 +1,4 @@
-import { Request, Response, SessionStorage } from "@remix-run/node";
+import { SessionStorage } from "remix";
 
 export interface AuthenticateCallback<User> {
   (user: User): Promise<Response>;

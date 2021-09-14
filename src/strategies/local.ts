@@ -1,5 +1,4 @@
-import { redirect, Request, Response, SessionStorage } from "@remix-run/node";
-import { parseBody } from "remix-utils";
+import { redirect, SessionStorage } from "remix";
 import {
   AuthenticateCallback,
   AuthorizationError,
@@ -55,7 +54,7 @@ export class LocalStrategy<User> implements Strategy<User> {
       );
     }
 
-    let body = await parseBody(request);
+    let body = new URLSearchParams(await request.text());
     let session = await sessionStorage.getSession(
       request.headers.get("Cookie")
     );

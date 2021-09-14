@@ -1,6 +1,8 @@
-import { createCookieSessionStorage, Request } from "@remix-run/node";
-import fetchMock from "jest-fetch-mock";
+import fetchMock, { enableFetchMocks } from "jest-fetch-mock";
+import { createCookieSessionStorage } from "remix";
 import { OAuth2Strategy } from "../../src";
+
+enableFetchMocks();
 
 describe(OAuth2Strategy, () => {
   let verify = jest.fn();

@@ -8,5 +8,6 @@
     "skipLibCheck": true,
     "outDir": "./dist"
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "include": ["remix.env.d.ts", "jest.d.ts", "src/**/*.ts", "src/**/*.tsx"]
 }

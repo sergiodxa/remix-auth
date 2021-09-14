@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, Request } from "remix";
+import { createCookieSessionStorage } from "remix";
 import { GitHubStrategy } from "../../src";
 
 describe(GitHubStrategy, () => {

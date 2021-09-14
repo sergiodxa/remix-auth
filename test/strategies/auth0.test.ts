@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, Request } from "remix";
+import { createCookieSessionStorage } from "remix";
 import { Auth0Strategy } from "../../src";
 
 describe(Auth0Strategy, () => {
