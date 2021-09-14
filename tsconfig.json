@@ -9,5 +9,5 @@
     "outDir": "./dist"
   },
   "exclude": ["node_modules"],
-  "include": ["remix.env.d.ts", "src/**/*.ts", "src/**/*.tsx"]
+  "include": ["remix.env.d.ts", "jest.d.ts", "src/**/*.ts", "src/**/*.tsx"]
 }
