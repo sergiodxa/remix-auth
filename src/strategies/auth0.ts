@@ -1,4 +1,3 @@
-import { fetch } from "@remix-run/node";
 import {
   OAuth2Profile,
   OAuth2Strategy,

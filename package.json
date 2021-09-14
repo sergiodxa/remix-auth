@@ -12,7 +12,8 @@
     "build": "npm run build:types && npm run build:esm && npm run build:cjs",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
-    "test": "jest --config=config/jest.config.ts --passWithNoTests"
+    "test": "jest --config=config/jest.config.ts --passWithNoTests",
+    "postinstall": "remix setup"
   },
   "keywords": [
     "remix",
@@ -40,9 +41,10 @@
     "README.md"
   ],
   "dependencies": {
-    "@remix-run/node": "^0.17.5",
-    "@remix-run/react": "^0.17.5",
-    "remix": "^0.17.5",
+    "@remix-run/dev": "^0.18.1",
+    "@remix-run/node": "^0.18.1",
+    "@remix-run/react": "^0.18.1",
+    "remix": "^0.18.1",
     "remix-utils": "^1.0.2"
   },
   "devDependencies": {

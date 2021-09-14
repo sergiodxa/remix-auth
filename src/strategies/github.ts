@@ -1,5 +1,4 @@
-import { fetch, Response } from "@remix-run/node";
-import { AuthorizationError } from "..";
+import { AuthorizationError } from "../authenticator";
 import {
   OAuth2Profile,
   OAuth2Strategy,
