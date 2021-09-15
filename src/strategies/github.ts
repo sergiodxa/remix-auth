@@ -84,6 +84,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
 
   private scope: string;
   private allowSignup: boolean;
+  private userInfoURL = "https://api.github.com/user";
 
   constructor(
     {
@@ -117,7 +118,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
   }
 
   protected async userProfile(accessToken: string): Promise<GitHubProfile> {
-    let response = await fetch("https://api.github.com/user", {
+    let response = await fetch(this.userInfoURL, {
       headers: {
         Accept: "application/vnd.github.v3+json",
         Authorization: `token ${accessToken}`,
