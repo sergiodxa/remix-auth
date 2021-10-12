@@ -1,13 +1,8 @@
 import { ActionFunction, LoaderFunction, redirect } from "remix";
-import { authenticator } from "../auth";
-import { getSession } from "../session";
+import { authenticator } from "~/auth";
 
 export let action: ActionFunction = async ({ request }) => {
-  return authenticator.authenticate("local", request, async (user) => {
-    let session = await getSession(request);
-    session.set(authenticator.sessionKey, user);
-    return redirect("/");
-  });
+  return authenticator.authenticate("local", request);
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -21,12 +16,18 @@ export default function Login() {
     <form method="post">
       <div>
         <label>Email</label>
-        <input type="email" name="email" required />
+        <input
+          type="email"
+          name="email"
+          required
+          defaultValue="user@example.com"
+        />
       </div>
       <div>
         <label>Password</label>
-        <input type="password" name="password" required />
+        <input type="password" name="password" required defaultValue="abc123" />
       </div>
+      <button>Login</button>
     </form>
   );
 }

@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
-import type { LinksFunction, LoaderFunction, MetaFunction } from "remix";
-import { useLoaderData } from "remix";
+import {
+  Form,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+  useLoaderData,
+} from "remix";
+import { authenticator, User } from "~/auth";
 import stylesUrl from "../styles/index.css";
 
 export let meta: MetaFunction = () => {
@@ -14,12 +20,13 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 
-export let loader: LoaderFunction = async () => {
-  return { message: "this is awesome 😎" };
+export let loader: LoaderFunction = async ({ request }) => {
+  let user = await authenticator.isAuthenticated(request);
+  return { message: "this is awesome 😎", user };
 };
 
 export default function Index() {
-  let data = useLoaderData();
+  let data = useLoaderData<{ user: User; message: string }>();
 
   return (
     <div style={{ textAlign: "center", padding: 20 }}>
@@ -32,10 +39,17 @@ export default function Index() {
         <Link to="not-found">Link to 404 not found page.</Link> Clicking this
         link will land you in your root CatchBoundary component.
       </p>
-      <p>
-        <Link to="login">Link to login page.</Link> Clicking this link will land
-        you in the login page UI.
-      </p>
+      {!data.user && (
+        <p>
+          <Link to="login">Link to login page.</Link> Clicking this link will
+          land you in the login page UI.
+        </p>
+      )}
+      {data.user && (
+        <Form action="/logout" method="post">
+          <button>Logout</button>
+        </Form>
+      )}
     </div>
   );
 }

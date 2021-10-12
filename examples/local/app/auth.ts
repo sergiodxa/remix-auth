@@ -1,7 +1,7 @@
 import { Authenticator, AuthorizationError, LocalStrategy } from "remix-auth";
-import { sessionStorage } from "./session";
+import { sessionStorage } from "~/session";
 
-type User = {
+export type User = {
   email: string;
 };
 
