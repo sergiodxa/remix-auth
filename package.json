@@ -13,7 +13,8 @@
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
     "test": "jest --config=config/jest.config.ts --passWithNoTests",
-    "postinstall": "remix setup"
+    "setup": "remix setup",
+    "postinstall": "npm run setup"
   },
   "keywords": [
     "remix",
