@@ -52,6 +52,8 @@
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
     "@remix-run/dev": "^0.19.2",
+    "@remix-run/node": "^0.19.2",
+    "@remix-run/react": "^0.19.2",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
@@ -74,6 +76,7 @@
     "prettier": "^2.3.2",
     "react": "^17.0.2",
     "react-router-dom": "^6.0.0-beta.6",
+    "remix": "^0.19.2",
     "ts-node": "^9.1.1",
     "typescript": "^4.3.5"
   }
