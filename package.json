@@ -40,17 +40,17 @@
     "package.json",
     "README.md"
   ],
-  "dependencies": {
-    "@remix-run/node": "^0.18.1",
-    "@remix-run/react": "^0.18.1",
-    "remix": "^0.18.1"
+  "peerDependencies": {
+    "@remix-run/node": "^0.19.2",
+    "@remix-run/react": "^0.19.2",
+    "remix": "^0.19.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.2",
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@remix-run/dev": "^0.18.1",
+    "@remix-run/dev": "^0.19.2",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
