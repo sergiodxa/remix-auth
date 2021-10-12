@@ -40,7 +40,7 @@
     "package.json",
     "README.md"
   ],
-  "dependencies": {
+  "peerDependencies": {
     "@remix-run/node": "^0.19.2",
     "@remix-run/react": "^0.19.2",
     "remix": "^0.19.2"
