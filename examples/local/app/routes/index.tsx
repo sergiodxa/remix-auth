@@ -6,8 +6,8 @@ import {
   MetaFunction,
   useLoaderData,
 } from "remix";
-import { authenticator } from "~/auth";
 import { User } from "~/models/user";
+import { authenticator } from "~/services/auth";
 import stylesUrl from "../styles/index.css";
 
 export let meta: MetaFunction = () => {

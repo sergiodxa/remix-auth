@@ -1,5 +1,5 @@
 import { ActionFunction, LoaderFunction, redirect } from "remix";
-import { authenticator } from "~/auth";
+import { authenticator } from "~/services/auth";
 
 export let action: ActionFunction = async ({ request }) => {
   return authenticator.authenticate("local", request);
