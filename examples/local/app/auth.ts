@@ -1,18 +1,9 @@
-import { Authenticator, AuthorizationError, LocalStrategy } from "remix-auth";
+import { Authenticator, LocalStrategy } from "remix-auth";
 import { sessionStorage } from "~/session";
-
-export type User = {
-  email: string;
-};
+import { login, User } from "./models/user";
 
 export let authenticator = new Authenticator<User>(sessionStorage);
 
 authenticator.use(
-  new LocalStrategy(
-    { loginURL: "/login", usernameField: "email" },
-    async (email, password) => {
-      if (password === "abc123") return { email };
-      throw new AuthorizationError();
-    }
-  )
+  new LocalStrategy({ loginURL: "/login", usernameField: "email" }, login)
 );
