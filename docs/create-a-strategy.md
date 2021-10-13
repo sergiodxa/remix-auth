@@ -33,8 +33,8 @@ class FormStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response> {
+    options: StrategyOptions
+  ): Promise<User> {
     // First we will get the session instance, we will use it later
     let session = await sessionStorage.getSession(
       request.headers.get("Cookie")
@@ -59,34 +59,34 @@ class FormStrategy<User> implements Strategy<User> {
       }
 
       let cookie = await sessionStorage.commitSession(session);
-      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
+      throw redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
     }
-
-    // Now you may want to also validate if the email address it correct
-    await checkEmailAddressIsValid(email);
 
     try {
-      // Now we can call the verify callback and get back the user object
-      let user = await this.verify(email, password);
-
-      // If when calling the authenticate on a route a callback was provided we
-      // need to pass the user and return the result, the result of a callback is
-      // always a Response object, when you do this the route is responsible for
-      // storing the user on the session and committing it.
-      if (callback) return callback(user);
-
-      // But if you are ok with the default behavior you can let the strategy set
-      // the user on the session, commit it and redirect to the next page
-      session.set("user", user);
-      let cookie = await sessionStorage.commitSession(session);
-      return redirect("/", { headers: { "Set-Cookie": cookie } });
+      user = await this.verify(username, password);
     } catch (error) {
-      // if the verify fails (and it can fail) we need to return a redirect to
-      // our login page with a flash message.
-      session.flash("auth:error", (error as Error).message);
-      let cookie = await sessionStorage.commitSession(session);
-      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
+      let message = (error as Error).message;
+
+      // if a failureRedirect is not set, we throw a 401 Response
+      if (!options.failureRedirect) throw json({ message }, { status: 401 });
+      // if we do have a failureRedirect, we redirect to it and set the error
+      // in the session errorKey
+      session.flash(this.errorKey, { message });
+      throw redirect(options.failureRedirect, {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
     }
+
+    // if a successRedirect is not set, we return the user
+    if (!options.successRedirect) return user;
+
+    // if the successRedirect is set, we redirect to it and set the user in the
+    // session sessionKey
+    session.set(options.sessionKey, user);
+    let cookie = await sessionStorage.commitSession(session);
+    throw redirect(options.successRedirect, {
+      headers: { "Set-Cookie": cookie },
+    });
   }
 }
 ```

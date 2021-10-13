@@ -62,13 +62,8 @@ import { LoaderFunction } from "remix";
 import { authenticator } from ".~/auth.server";
 
 export let loader: LoaderFunction = async ({ request }) => {
-  return authenticator.authenticate("auth0", request);
+  authenticator.authenticate("auth0", request);
 };
-
-// Empty React component required by Remix
-export default function Auth0Login() {
-  return null;
-}
 ```
 
 ```tsx
@@ -77,13 +72,11 @@ import { LoaderFunction } from "remix";
 import { authenticator } from ".~/auth.server";
 
 export let loader: LoaderFunction = async ({ request }) => {
-  return authenticator.authenticate("auth0", request);
+  authenticator.authenticate("auth0", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
 };
-
-// Empty React component required by Remix
-export default function Auth0Callback() {
-  return null;
-}
 ```
 
 ```tsx
@@ -96,8 +89,9 @@ import { User } from ".~/models/user";
 type RouteData = { user: User };
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let user = await authenticator.isAuthenticated(request);
-  if (!user) return redirect("/login");
+  let user = await authenticator.isAuthenticated(request, {
+    redirectTo: "/login",
+  });
   return json<RouteData>({ user });
 };
 

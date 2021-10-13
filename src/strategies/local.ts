@@ -1,10 +1,5 @@
-import { redirect, SessionStorage } from "remix";
-import {
-  AuthenticateCallback,
-  AuthorizationError,
-  Strategy,
-  StrategyOptions,
-} from "../authenticator";
+import { json, redirect, SessionStorage } from "remix";
+import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface LocalStrategyOptions {
   loginURL: string;
@@ -40,17 +35,24 @@ export class LocalStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response> {
+    options: StrategyOptions
+  ): Promise<User> {
     if (new URL(request.url).pathname !== this.loginURL) {
-      throw new AuthorizationError(
-        "The authenticate method with LocalStrategy can only be used on the login URL."
+      throw json(
+        {
+          message:
+            "The authenticate method with LocalStrategy can only be used on the login URL.",
+        },
+        { status: 400 }
       );
     }
     if (request.method.toLowerCase() !== "post") {
-      throw new AuthorizationError(
-        "The authenticate method with LocalStrategy can only be used on action functions."
+      throw json(
+        {
+          message:
+            "The authenticate method with LocalStrategy can only be used on action functions.",
+        },
+        { status: 405 }
       );
     }
 
@@ -72,25 +74,35 @@ export class LocalStrategy<User> implements Strategy<User> {
         session.flash(`${this.errorKey}:pass`, "Missing password.");
       }
       let cookie = await sessionStorage.commitSession(session);
-      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
+      throw redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
     }
+
+    let user: User;
 
     try {
-      let user = await this.verify(username, password);
+      user = await this.verify(username, password);
+    } catch (error) {
+      let message = (error as Error).message;
 
-      // A callback was provided, now it's the developer responsibility to
-      // save the user data on the session and commit it.
-      if (callback) return callback(user);
-
-      // Because a callback was not provided, we are going to store the user
-      // data on the session and commit it as a cookie.
-      session.set(options.sessionKey, user);
-      let cookie = await sessionStorage.commitSession(session);
-      return redirect("/", { headers: { "Set-Cookie": cookie } });
-    } catch (error: unknown) {
-      session.flash(this.errorKey, (error as Error).message);
-      let cookie = await sessionStorage.commitSession(session);
-      return redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });
+      // if a failureRedirect is not set, we throw a 401 Response
+      if (!options.failureRedirect) throw json({ message }, { status: 401 });
+      // if we do have a failureRedirect, we redirect to it and set the error
+      // in the session errorKey
+      session.flash(this.errorKey, { message });
+      throw redirect(options.failureRedirect, {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
     }
+
+    // if a successRedirect is not set, we return the user
+    if (!options.successRedirect) return user;
+
+    // if the successRedirect is set, we redirect to it and set the user in the
+    // session sessionKey
+    session.set(options.sessionKey, user);
+    let cookie = await sessionStorage.commitSession(session);
+    throw redirect(options.successRedirect, {
+      headers: { "Set-Cookie": cookie },
+    });
   }
 }

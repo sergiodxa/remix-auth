@@ -37,9 +37,9 @@ authenticator.use(gitHubStrategy);
 // app/routes/login.tsx
 export default function Login() {
   return (
-    <form action="/auth/github" method="post">
+    <Form action="/auth/github" method="post">
       <button>Login with GitHub</button>
-    </form>
+    </Form>
   );
 }
 ```
@@ -52,12 +52,8 @@ import { authenticator } from "~/auth.server";
 export let loader: LoaderFunction = () => redirect("/login");
 
 export let action: ActionFunction = ({ request }) => {
-  return authenticator.authenticate("github", request);
+  authenticator.authenticate("github", request);
 };
-
-export default function Empty() {
-  return null;
-}
 ```
 
 ```tsx
@@ -66,10 +62,9 @@ import { ActionFunction, LoaderFunction } from "remix";
 import { authenticator } from "~/auth.server";
 
 export let loader: LoaderFunction = ({ request }) => {
-  return authenticator.authenticate("github", request);
+  authenticator.authenticate("github", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
 };
-
-export default function Empty() {
-  return null;
-}
 ```

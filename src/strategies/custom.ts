@@ -1,9 +1,5 @@
 import { SessionStorage } from "remix";
-import {
-  AuthenticateCallback,
-  Strategy,
-  StrategyOptions,
-} from "../authenticator";
+import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface CustomStrategyVerifyCallback<User> {
   (
@@ -36,18 +32,11 @@ export class CustomStrategy<User> implements Strategy<User> {
     this.verify = verify;
   }
 
-  async authenticate(
+  authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions,
-    callback: AuthenticateCallback<User>
-  ): Promise<Response> {
-    if (!callback) {
-      throw new TypeError(
-        "The authenticate callback on CustomStrategy is required."
-      );
-    }
-
-    return callback(await this.verify(request, sessionStorage, options));
+    options: StrategyOptions
+  ): Promise<User> {
+    return this.verify(request, sessionStorage, options);
   }
 }

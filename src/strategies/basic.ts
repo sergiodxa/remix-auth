@@ -1,9 +1,5 @@
-import { SessionStorage } from "remix";
-import {
-  AuthenticateCallback,
-  Strategy,
-  StrategyOptions,
-} from "../authenticator";
+import { json } from "remix";
+import { Strategy } from "../authenticator";
 
 export interface BasicStrategyOptions {
   realm?: string;
@@ -64,31 +60,29 @@ export class BasicStrategy<User> implements Strategy<User> {
     }
   }
 
-  async authenticate(
-    request: Request,
-    _sessionStorage: SessionStorage,
-    _options: StrategyOptions,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response> {
-    if (!callback) {
-      throw new TypeError(
-        "The authenticate callback on BasicStrategy is required."
+  async authenticate(request: Request): Promise<User> {
+    let authorization = request.headers.get("Authorization");
+    if (!authorization) {
+      throw json(
+        { message: "Missing Authorization header." },
+        { status: 401, headers: this.headers() }
       );
     }
 
-    let authorization = request.headers.get("Authorization");
-    if (!authorization) {
-      return this.raise("Missing Authorization header");
-    }
-
     if (!authorization.includes(" ")) {
-      return this.raise("Invalid Authorization value");
+      throw json(
+        { message: "Invalid Authorization value." },
+        { status: 401, headers: this.headers() }
+      );
     }
 
     let [scheme, credentials] = authorization.split(" ");
 
     if (!/basic/i.test(scheme)) {
-      return this.raise("Invalid Authorization scheme");
+      throw json(
+        { message: "Invalid Authorization scheme." },
+        { status: 401, headers: this.headers() }
+      );
     }
 
     let [userId, password] = Buffer.from(credentials, "base64")
@@ -96,27 +90,27 @@ export class BasicStrategy<User> implements Strategy<User> {
       .split(":");
 
     if (!userId || !password) {
-      return this.raise("Missing user ID or password");
+      throw json(
+        { message: "Missing user ID or password." },
+        { status: 401, headers: this.headers() }
+      );
     }
 
     try {
-      let user = await this.verify(userId, password);
-      return callback(user);
+      return await this.verify(userId, password);
     } catch (error) {
-      return this.raise((error as Error).message);
+      let message = (error as Error).message;
+      throw json({ message }, { status: 401, headers: this.headers() });
     }
   }
 
-  private raise(message: string) {
-    return new Response(message, {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": this.challange(),
-      },
-    });
+  private headers() {
+    return {
+      "WWW-Authenticate": this.challenge(),
+    };
   }
 
-  private challange() {
+  private challenge() {
     return `Basic realm="${this.realm}"`;
   }
 }

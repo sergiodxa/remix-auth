@@ -25,20 +25,20 @@ describe(GoogleStrategy, () => {
 
     let request = new Request("https://example.app/auth/google");
 
-    let response = await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      let location = error.headers.get("Location");
 
-    let location = response.headers.get("Location");
+      if (!location) throw new Error("No redirect header");
 
-    if (!location) throw new Error("No redirect header");
+      let redirectUrl = new URL(location);
 
-    let redirectUrl = new URL(location);
-
-    expect(redirectUrl.searchParams.get("scope")).toBe("custom");
+      expect(redirectUrl.searchParams.get("scope")).toBe("custom");
+    }
   });
 
   test("should have the scope `openid profile email` as default", async () => {
@@ -53,20 +53,22 @@ describe(GoogleStrategy, () => {
 
     let request = new Request("https://example.app/auth/github");
 
-    let response = await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      let location = error.headers.get("Location");
 
-    let location = response.headers.get("Location");
+      if (!location) throw new Error("No redirect header");
 
-    if (!location) throw new Error("No redirect header");
+      let redirectUrl = new URL(location);
 
-    let redirectUrl = new URL(location);
-
-    expect(redirectUrl.searchParams.get("scope")).toBe("openid profile email");
+      expect(redirectUrl.searchParams.get("scope")).toBe(
+        "openid profile email"
+      );
+    }
   });
 
   test("should correctly format the authorization URL", async () => {
@@ -81,20 +83,21 @@ describe(GoogleStrategy, () => {
 
     let request = new Request("https://example.app/auth/google");
 
-    let response = await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
 
-    let location = response.headers.get("Location");
+      let location = error.headers.get("Location");
 
-    if (!location) throw new Error("No redirect header");
+      if (!location) throw new Error("No redirect header");
 
-    let redirectUrl = new URL(location);
+      let redirectUrl = new URL(location);
 
-    expect(redirectUrl.hostname).toBe("accounts.google.com");
-    expect(redirectUrl.pathname).toBe("/o/oauth2/v2/auth");
+      expect(redirectUrl.hostname).toBe("accounts.google.com");
+      expect(redirectUrl.pathname).toBe("/o/oauth2/v2/auth");
+    }
   });
 });
