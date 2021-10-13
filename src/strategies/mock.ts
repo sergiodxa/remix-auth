@@ -1,11 +1,15 @@
 import { Strategy } from "../authenticator";
 
+export interface MockStrategyVerifyCallback<User> {
+  (): Promise<User>;
+}
+
 export class MockStrategy<User> implements Strategy<User> {
   name = "mock";
 
-  constructor(private response: Response) {}
+  constructor(private verify: MockStrategyVerifyCallback<User>) {}
 
   authenticate() {
-    return Promise.resolve(this.response.clone());
+    return this.verify();
   }
 }

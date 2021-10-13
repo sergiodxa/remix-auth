@@ -1,11 +1,6 @@
 import { randomBytes } from "crypto";
-import { redirect, Session, SessionStorage } from "remix";
-import {
-  AuthenticateCallback,
-  AuthorizationError,
-  Strategy,
-  StrategyOptions,
-} from "../authenticator";
+import { json, redirect, SessionStorage } from "remix";
+import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface OAuth2Profile {
   provider: string;
@@ -118,9 +113,8 @@ export class OAuth2Strategy<
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response> {
+    options: StrategyOptions
+  ): Promise<User> {
     let url = new URL(request.url);
     let session = await sessionStorage.getSession(
       request.headers.get("Cookie")
@@ -129,22 +123,35 @@ export class OAuth2Strategy<
     let user: User | null = session.get(options.sessionKey) ?? null;
 
     // User is already authenticated
-    if (user) return callback ? callback(user) : redirect("/");
-
-    let callbackURL = this.getCallbackURL(url);
-    if (url.pathname !== callbackURL.pathname) {
-      return this.authorize(sessionStorage, session);
+    if (user) {
+      if (options.successRedirect) throw redirect(options.successRedirect);
+      else return user;
     }
 
+    let callbackURL = this.getCallbackURL(url);
+
+    // Redirect the user to the callback URL
+    if (url.pathname !== callbackURL.pathname) {
+      let state = this.generateState();
+      session.set(this.sessionStateKey, state);
+      throw redirect(this.getAuthorizationURL(state).toString(), {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+    }
+
+    // Validations of the callback URL params
+
     let state = url.searchParams.get("state");
-    if (!state) throw new AuthorizationError("Missing state.");
+    if (!state) throw json({ message: "Missing state." }, { status: 400 });
 
     if (session.get(this.sessionStateKey) === state) {
       session.unset(this.sessionStateKey);
-    } else throw new AuthorizationError("State doesn't match.");
+    } else throw json({ message: "State doesn't match." }, { status: 400 });
 
     let code = url.searchParams.get("code");
-    if (!code) throw new AuthorizationError("Missing code.");
+    if (!code) throw json({ message: "Missing code." }, { status: 400 });
+
+    // Get the access token
 
     let params = new URLSearchParams(this.tokenParams());
     params.set("grant_type", "authorization_code");
@@ -153,18 +160,38 @@ export class OAuth2Strategy<
     let { accessToken, refreshToken, extraParams } =
       await this.fetchAccessToken(code, params);
 
+    // Get the profile
+
     let profile = await this.userProfile(accessToken, extraParams);
-    user = await this.verify(accessToken, refreshToken, extraParams, profile);
 
-    // A callback was provided, now it's the developer responsibility to save
-    // the user data on the session and commit it.
-    if (callback) return callback(user);
+    // Verify the user and return it, or redirect
+    try {
+      user = await this.verify(accessToken, refreshToken, extraParams, profile);
+    } catch (error) {
+      let message = (error as Error).message;
+      // if we don't have a failureRedirect, we'll just throw a 401 error
+      if (!options.failureRedirect) {
+        throw json({ message }, { status: 401 });
+      }
+      // if we do have a failureRedirect, we'll redirect to it and set the
+      // error on the session with the key oauth2:error
+      session.set("oauth2:error", { message });
+      let cookie = await sessionStorage.commitSession(session);
+      throw redirect(options.failureRedirect, {
+        headers: { "Set-Cookie": cookie },
+      });
+    }
 
-    // Because a callback was not provided, we are going to store the user data
-    // on the session and commit it as a cookie.
+    // if a successRedirect is not provided, we'll just return the user
+    if (!options.successRedirect) return user;
+
+    // if we get the successRedirect, we'll set the user in the session and then
+    // redirect to the successRedirect URL
     session.set(options.sessionKey, user);
     let cookie = await sessionStorage.commitSession(session);
-    return redirect("/", { headers: { "Set-Cookie": cookie } });
+    throw redirect(options.successRedirect, {
+      headers: { "Set-Cookie": cookie },
+    });
   }
 
   /**
@@ -210,6 +237,19 @@ export class OAuth2Strategy<
     return new URLSearchParams();
   }
 
+  protected async getAccessToken(response: Response): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    extraParams: ExtraParams;
+  }> {
+    let { access_token, refresh_token, ...extraParams } = await response.json();
+    return {
+      accessToken: access_token as string,
+      refreshToken: refresh_token as string,
+      extraParams,
+    } as const;
+  }
+
   private getCallbackURL(url: URL) {
     if (
       this.callbackURL.startsWith("http:") ||
@@ -223,13 +263,7 @@ export class OAuth2Strategy<
     return new URL(`${url.protocol}//${this.callbackURL}`);
   }
 
-  private async authorize(sessionStorage: SessionStorage, session: Session) {
-    let state = encodeURIComponent(randomBytes(100).toString("base64"));
-
-    session.set(this.sessionStateKey, state);
-
-    let cookie = await sessionStorage.commitSession(session);
-
+  private getAuthorizationURL(state: string) {
     let params = new URLSearchParams(this.authorizationParams());
     params.set("response_type", "code");
     params.set("client_id", this.clientID);
@@ -239,20 +273,11 @@ export class OAuth2Strategy<
     let url = new URL(this.authorizationURL);
     url.search = params.toString();
 
-    return redirect(url.toString(), { headers: { "Set-Cookie": cookie } });
+    return url;
   }
 
-  protected async getAccessToken(response: Response): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    extraParams: ExtraParams;
-  }> {
-    let { access_token, refresh_token, ...extraParams } = await response.json();
-    return {
-      accessToken: access_token as string,
-      refreshToken: refresh_token as string,
-      extraParams,
-    } as const;
+  private generateState() {
+    return encodeURIComponent(randomBytes(100).toString("base64"));
   }
 
   /**
@@ -284,9 +309,9 @@ export class OAuth2Strategy<
     if (!response.ok) {
       try {
         let body = await response.text();
-        throw new AuthorizationError(body);
+        throw new Response(body, { status: 401 });
       } catch (error) {
-        throw new AuthorizationError((error as Error).message);
+        throw new Response((error as Error).message, { status: 401 });
       }
     }
 

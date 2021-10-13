@@ -71,24 +71,16 @@ authenticator.use(
 This will depend a lot on what strategy you are using, since they may have different requirements, but continuing the example of the `LocalStrategy` we need to create a `/login` route and call our authenticator there.
 
 ```tsx
-import { ActionFunction, LoaderFunction, redirect, json } from "remix";
+import { ActionFunction, LoaderFunction, Form, redirect, json } from "remix";
 import { authenticator } from ".~/auth.server"; // import our authenticator
 import { getSession, commitSession } from ".~/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
-  // Authenticate the request, your callback will be called if the user is
-  // logged-in, if not a redirect will be performed to the login URL
-  return authenticator.authenticate("local", request, async (user) => {
-    // get the session from the cookie
-    let session = await getSession(request.headers.get("Cookie"));
-    // store the user in the session (it's important that you do this)
-    session.set(authenticator.sessionKey, user);
-    // commit the session and redirect to another route of your app
-    return redirect("/dashboard", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
+  // Authenticate the request and redirect to /dashboard if user is
+  // authenticated or to /login if it's not
+  authenticator.authenticate("local", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
   });
 };
 
@@ -107,11 +99,11 @@ export default function Login() {
   // it to use the Form component from Remix in case you provide a custom loading
   // state to your form
   return (
-    <form action="/login" method="post">
+    <Form action="/login" method="post">
       <input type="text" name="username" required />
       <input type="password" name="password" required />
       <button>Log In</button>
-    </form>
+    </Form>
   );
 }
 ```

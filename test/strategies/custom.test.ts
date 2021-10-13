@@ -1,8 +1,7 @@
 import { createCookieSessionStorage } from "remix";
-import { AuthenticateCallback, CustomStrategy } from "../../src";
+import { CustomStrategy } from "../../src";
 
 describe(CustomStrategy, () => {
-  let callback = jest.fn();
   let verify = jest.fn();
   let request = new Request("/auth/custom");
   let sessionStorage = createCookieSessionStorage({
@@ -20,43 +19,30 @@ describe(CustomStrategy, () => {
 
   test("should call the verify callback with the request, session storage and options", async () => {
     let strategy = new CustomStrategy(verify);
-    await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
+    await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
     expect(verify).toHaveBeenCalledWith(request, sessionStorage, {
       sessionKey: "user",
     });
-    expect(callback).toHaveBeenCalled();
   });
 
-  test("should return a response from authenticate", async () => {
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    callback.mockImplementationOnce(async (response: Response) => response);
-    verify.mockResolvedValueOnce(new Response("", { status: 200 }));
+  test("should return the verify result from authenticate", async () => {
+    verify.mockResolvedValueOnce({ id: "123" });
     let strategy = new CustomStrategy(verify);
-    let response = await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
-    expect(response).toBeInstanceOf(Response);
+    let response = await strategy.authenticate(request, sessionStorage, {
+      sessionKey: "user",
+    });
+    expect(response).toEqual({ id: "123" });
   });
 
-  test("should throw an error if callback is not defined", () => {
+  test("should throw if verify raise an error", async () => {
+    verify.mockRejectedValueOnce(new Error("Something failed."));
     let strategy = new CustomStrategy(verify);
-    expect(
-      strategy.authenticate(
-        request,
-        sessionStorage,
-        { sessionKey: "user" },
-        null as unknown as AuthenticateCallback<unknown>
-      )
-    ).rejects.toThrow(
-      "The authenticate callback on CustomStrategy is required."
-    );
+    await expect(
+      strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      })
+    ).rejects.toThrow("Something failed.");
   });
 });

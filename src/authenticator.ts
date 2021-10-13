@@ -1,4 +1,4 @@
-import { SessionStorage } from "remix";
+import { redirect, SessionStorage } from "remix";
 
 export interface AuthenticateCallback<User> {
   (user: User): Promise<Response>;
@@ -16,6 +16,8 @@ export interface AuthenticatorOptions {
  */
 export interface StrategyOptions {
   sessionKey: string;
+  successRedirect?: string;
+  failureRedirect?: string;
 }
 
 export interface Strategy<User> {
@@ -39,9 +41,8 @@ export interface Strategy<User> {
   authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response>;
+    options: StrategyOptions
+  ): Promise<User>;
 }
 
 export class AuthorizationError extends Error {}
@@ -133,26 +134,14 @@ export class Authenticator<User = unknown> {
   authenticate(
     strategy: string,
     request: Request,
-    callback?: AuthenticateCallback<User>
-  ): Promise<Response> {
+    options: { successRedirect?: string; failureRedirect?: string } = {}
+  ): Promise<User> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
-    let options: StrategyOptions = {
+    return strategyObj.authenticate(request.clone(), this.sessionStorage, {
+      ...options,
       sessionKey: this.sessionKey,
-    };
-    if (!callback) {
-      return strategyObj.authenticate(
-        request.clone(),
-        this.sessionStorage,
-        options
-      );
-    }
-    return strategyObj.authenticate(
-      request.clone(),
-      this.sessionStorage,
-      options,
-      callback
-    );
+    });
   }
 
   /**
@@ -161,20 +150,60 @@ export class Authenticator<User = unknown> {
    * logged-in or not withour triggering the whole authentication flow.
    * @example
    * let loader: LoaderFunction = async ({ request }) => {
-   *   let user = await authenticator.isAuthenticated(request);
-   *   if (!user) return redirect("/login");
+   *   // if the user is not authenticated, redirect to login
+   *   let user = await authenticator.isAuthenticated(request, {
+   *     failureRedirect: "/login",
+   *   });
    *   // do something with the user
-   *   return json(data);
+   *   return json(privateData);
+   * }
+   * @example
+   * let loader: LoaderFunction = async ({ request }) => {
+   *   // if the user is authenticated, redirect to /dashboard
+   *   await authenticator.isAuthenticated(request, {
+   *     successRedirect: "/dashboard"
+   *   });
+   *   return json(publicData);
+   * }
+   * @example
+   * let loader: LoaderFunction = async ({ request }) => {
+   *   // manually handle what happens if the user is or not authenticated
+   *   let user = await authenticator.isAuthenticated(request);
+   *   if (!user) return json(publicData);
+   *   return essionLoader(request);
    * }
    */
-  async isAuthenticated(request: Request): Promise<User | null> {
+  async isAuthenticated(
+    request: Request,
+    options?: { successRedirect?: never; failureRedirect?: never }
+  ): Promise<User | null>;
+  async isAuthenticated(
+    request: Request,
+    options: { successRedirect: string; failureRedirect?: never }
+  ): Promise<null>;
+  async isAuthenticated(
+    request: Request,
+    options: { successRedirect?: never; failureRedirect: string }
+  ): Promise<User>;
+  async isAuthenticated(
+    request: Request,
+    options:
+      | { successRedirect?: never; failureRedirect?: never }
+      | { successRedirect: string; failureRedirect?: never }
+      | { successRedirect?: never; failureRedirect: string } = {}
+  ): Promise<User | null> {
     let session = await this.sessionStorage.getSession(
       request.headers.get("Cookie")
     );
 
-    let user: User | null = session.get(this.sessionKey);
+    let user: User | null = session.get(this.sessionKey) ?? null;
 
-    if (user) return user;
-    return null;
+    if (user) {
+      if (options.successRedirect) throw redirect(options.successRedirect);
+      else return user;
+    }
+
+    if (options.failureRedirect) throw redirect(options.failureRedirect);
+    else return null;
   }
 }

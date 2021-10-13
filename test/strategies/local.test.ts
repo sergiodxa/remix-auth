@@ -1,9 +1,8 @@
-import { createCookieSessionStorage } from "remix";
+import { createCookieSessionStorage, json } from "remix";
 import { LocalStrategy } from "../../src";
 
 describe(LocalStrategy, () => {
   let verify = jest.fn();
-  let callback = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },
   });
@@ -17,24 +16,44 @@ describe(LocalStrategy, () => {
     expect(strategy.name).toBe("local");
   });
 
-  test("should throw an error if request URL is not login URL", () => {
+  test("should throw a 400 if request URL is not login URL", async () => {
     let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
     let request = new Request("http://example.com/random");
-    expect(
-      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
-    ).rejects.toThrow(
-      "The authenticate method with LocalStrategy can only be used on the login URL."
+    let response = json(
+      {
+        message:
+          "The authenticate method with LocalStrategy can only be used on the login URL.",
+      },
+      { status: 400 }
     );
+
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      expect(error).toEqual(response);
+    }
   });
 
-  test("should throw an error if request method is not POST", () => {
+  test("should throw a 405 if request method is not POST", async () => {
     let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
     let request = new Request("http://example.com/login", { method: "GET" });
-    expect(
-      strategy.authenticate(request, sessionStorage, { sessionKey: "user" })
-    ).rejects.toThrow(
-      "The authenticate method with LocalStrategy can only be used on action functions."
+    let response = json(
+      {
+        message:
+          "The authenticate method with LocalStrategy can only be used on action functions.",
+      },
+      { status: 405 }
     );
+
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      expect(error).toEqual(response);
+    }
   });
 
   test("should redirect to the login URL if username is missing", async () => {
@@ -43,15 +62,21 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams({ password: "pass" }),
     });
-    let response = await strategy.authenticate(request, sessionStorage, {
-      sessionKey: "user",
-    });
-    let session = await sessionStorage.getSession(
-      response.headers.get("Set-Cookie")
-    );
-    expect(response).toHaveStatus(302);
-    expect(response).toRedirect("/login");
-    expect(session.get("auth:local:error:user")).toBe("Missing username.");
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw new Error("Not a response");
+
+      let session = await sessionStorage.getSession(
+        error.headers.get("Set-Cookie")
+      );
+
+      expect(error).toHaveStatus(302);
+      expect(error).toRedirect("/login");
+      expect(session.get("auth:local:error:user")).toBe("Missing username.");
+    }
   });
 
   test("should redirect to the login URL if password is missing", async () => {
@@ -60,15 +85,22 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams({ username: "user" }),
     });
-    let response = await strategy.authenticate(request, sessionStorage, {
-      sessionKey: "user",
-    });
-    let session = await sessionStorage.getSession(
-      response.headers.get("Set-Cookie")
-    );
-    expect(response).toHaveStatus(302);
-    expect(response).toRedirect("/login");
-    expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw new Error("Not a response");
+
+      let session = await sessionStorage.getSession(
+        error.headers.get("Set-Cookie")
+      );
+
+      expect(error).toHaveStatus(302);
+      expect(error).toRedirect("/login");
+      expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+    }
   });
 
   test("should redirect to the login URL if password and password are missing", async () => {
@@ -77,16 +109,23 @@ describe(LocalStrategy, () => {
       method: "POST",
       body: new URLSearchParams(),
     });
-    let response = await strategy.authenticate(request, sessionStorage, {
-      sessionKey: "user",
-    });
-    let session = await sessionStorage.getSession(
-      response.headers.get("Set-Cookie")
-    );
-    expect(response).toHaveStatus(302);
-    expect(response).toRedirect("/login");
-    expect(session.get("auth:local:error:user")).toBe("Missing username.");
-    expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw new Error("Not a response");
+
+      let session = await sessionStorage.getSession(
+        error.headers.get("Set-Cookie")
+      );
+
+      expect(error).toHaveStatus(302);
+      expect(error).toRedirect("/login");
+      expect(session.get("auth:local:error:user")).toBe("Missing username.");
+      expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+    }
   });
 
   test("should call the verify function with the username and password", async () => {
@@ -101,42 +140,40 @@ describe(LocalStrategy, () => {
     expect(verify).toHaveBeenCalledWith("user", "pass");
   });
 
-  test("should call the callback with the result of the verify function and expect a Response as result of authenticate", async () => {
+  test("should return the result of the verify function", async () => {
     let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
     let request = new Request("http://example.com/login", {
       method: "POST",
       body: new URLSearchParams({ username: "user", password: "pass" }),
     });
-    let user = { username: "user" };
-    verify.mockResolvedValueOnce(user);
-    callback.mockResolvedValueOnce(new Response("Test"));
-    let response = await strategy.authenticate(
-      request,
-      sessionStorage,
-      { sessionKey: "user" },
-      callback
-    );
-    expect(callback).toHaveBeenCalledWith(user);
-    expect(response).toBeInstanceOf(Response);
-    expect(await response.text()).toBe("Test");
-  });
-
-  test("should return a response with a cookie containing the result of verify if callback is not passed to authenticate", async () => {
-    let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
-    let request = new Request("http://example.com/login", {
-      method: "POST",
-      body: new URLSearchParams({ username: "user", password: "pass" }),
-    });
-    let user = { username: "user" };
-    verify.mockResolvedValueOnce(user);
-    let response = await strategy.authenticate(request, sessionStorage, {
+    verify.mockResolvedValueOnce({ username: "user" });
+    let user = await strategy.authenticate(request, sessionStorage, {
       sessionKey: "user",
     });
-    let session = await sessionStorage.getSession(
-      response.headers.get("Set-Cookie")
-    );
-    expect(response).toRedirect("/");
-    expect(session.get("user")).toEqual(user);
+    expect(user).toEqual({ username: "user" });
+  });
+
+  test("should return a response with a cookie containing the result of verify if redirectTo is passed to authenticate", async () => {
+    let strategy = new LocalStrategy({ loginURL: "/login" }, verify);
+    let request = new Request("http://example.com/login", {
+      method: "POST",
+      body: new URLSearchParams({ username: "user", password: "pass" }),
+    });
+    let user = { username: "user" };
+    verify.mockResolvedValueOnce(user);
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+        successRedirect: "/",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw new Error("Not a response");
+      let session = await sessionStorage.getSession(
+        error.headers.get("Set-Cookie")
+      );
+      expect(error).toRedirect("/");
+      expect(session.get("user")).toEqual(user);
+    }
   });
 
   test("should redirect to login URL with a flash message if verify was rejected", async () => {
@@ -146,13 +183,21 @@ describe(LocalStrategy, () => {
       body: new URLSearchParams({ username: "user", password: "pass" }),
     });
     verify.mockRejectedValueOnce(new Error("Invalid credentials."));
-    let response = await strategy.authenticate(request, sessionStorage, {
-      sessionKey: "user",
-    });
-    let session = await sessionStorage.getSession(
-      response.headers.get("Set-Cookie")
-    );
-    expect(response).toRedirect("/login");
-    expect(session.get("auth:local:error")).toBe("Invalid credentials.");
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+        failureRedirect: "/login",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw new Error("Not a response");
+
+      let session = await sessionStorage.getSession(
+        error.headers.get("Set-Cookie")
+      );
+      expect(error).toRedirect("/login");
+      expect(session.get("auth:local:error")).toEqual({
+        message: "Invalid credentials.",
+      });
+    }
   });
 });

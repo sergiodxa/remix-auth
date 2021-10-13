@@ -86,24 +86,19 @@ import { authenticator } from "~/auth.server";
 import { getSession, commitSession } from "~/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
-  // Authenticate the request, your callback will be called if the user is
-  // logged-in, if not a redirect will be performed to the login URL
-  return authenticator.authenticate("local", request, async (user) => {
-    let session = await getSession(request.headers.get("Cookie"));
-    session.set(authenticator.sessionKey, user);
-    return redirect("/dashboard", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
+  // Authenticate the request, after that it will redirect to the defined URLs
+  // and set the user in the session if it's a success
+  authenticator.authenticate("local", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
   });
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
-  // Check if the user is already logged-in
-  let user = await authenticator.isAuthenticated(request);
-  if (!user) return new Response("");
-  return redirect("/dashboard");
+  // If the user is already authenticated redirect to /dashboard directly
+  await authenticator.isAuthenticated(request, {
+    successRedirect: "/dashboard",
+  });
 };
 
 export default function Login() {
