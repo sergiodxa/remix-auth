@@ -124,4 +124,34 @@ describe(KCDStrategy, () => {
       })
     ).rejects.toEqual(response);
   });
+
+  test("should throw if the host is not defined in the headers", async () => {
+    validateEmail.mockResolvedValueOnce(true);
+
+    let strategy = new KCDStrategy<User>(
+      { sendEmail, callbackURL: "/magic", validateEmail, secret: "s3cr3t" },
+      verify
+    );
+
+    auth.use(strategy);
+
+    let request = new Request("/", {
+      method: "POST",
+      body: new URLSearchParams({ email: "user@example.com" }),
+    });
+
+    let session = await sessionStorage.getSession();
+    session.flash("kcd:error", "Could not determine domain URL.");
+
+    let response = redirect("/login", {
+      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+    });
+
+    expect(
+      auth.authenticate("kcd", request, {
+        successRedirect: "/me",
+        failureRedirect: "/login",
+      })
+    ).rejects.toEqual(response);
+  });
 });
