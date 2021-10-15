@@ -149,7 +149,7 @@ export class KCDStrategy<User> implements Strategy<User> {
 
         let magicLink = await this.sendToken(emailAddress, domainUrl);
 
-        session.set(this.sessionMagicLinkKey, magicLink);
+        session.set(this.sessionMagicLinkKey, this.encrypt(magicLink));
         throw redirect(options.successRedirect, {
           headers: {
             "Set-Cookie": await sessionStorage.commitSession(session),
@@ -170,10 +170,8 @@ export class KCDStrategy<User> implements Strategy<User> {
 
     try {
       // If we get here, the user clicked on the magic link inside email
-      let email = this.validateMagicLink(
-        request.url,
-        session.get(this.sessionMagicLinkKey) as string | undefined
-      );
+      let magicLink = session.get(this.sessionMagicLinkKey) ?? "";
+      let email = this.validateMagicLink(request.url, this.decrypt(magicLink));
 
       // now that we have the user email we can call verify to get the user
       user = await this.verify(email);
