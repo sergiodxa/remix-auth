@@ -30,144 +30,154 @@ describe(KCDStrategy, () => {
     jest.resetAllMocks();
   });
 
-  test("should throw if email address is not in the request body", () => {
+  describe("should throw if email address is not in the request body", () => {
     let request = new Request("/login", { method: "POST" });
 
-    expect(
-      auth.authenticate("kcd", request, { successRedirect: "/me" })
-    ).rejects.toThrow("Missing email address.");
-  });
-
-  test("should throw a redirect to failureRedirect if email address is not in the request body and failureRedirect is defined", async () => {
-    let request = new Request("/login", { method: "POST" });
-
-    let session = await sessionStorage.getSession();
-    session.flash("kcd:error", "Missing email address.");
-
-    let response = redirect("/login", {
-      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+    test("if failureRedirect is not defined throw an error", () => {
+      expect(
+        auth.authenticate("kcd", request, { successRedirect: "/me" })
+      ).rejects.toThrow("Missing email address.");
     });
 
-    expect(
-      auth.authenticate("kcd", request, {
-        successRedirect: "/me",
-        failureRedirect: "/login",
-      })
-    ).rejects.toEqual(response);
+    test("if failureRedirect is defined throw a redirect", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Missing email address.");
+
+      let response = redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+
+      expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+          failureRedirect: "/login",
+        })
+      ).rejects.toEqual(response);
+    });
   });
 
-  test("should throw if validateEmail is rejected", () => {
-    validateEmail.mockRejectedValueOnce(
-      new Error("Email address is disposable.")
-    );
-
+  describe("should throw if validateEmail is rejected", () => {
     let request = new Request("/login", {
       method: "POST",
       body: new URLSearchParams({ email: "user@example.com" }),
     });
 
-    expect(
-      auth.authenticate("kcd", request, { successRedirect: "/me" })
-    ).rejects.toThrow("Email address is disposable.");
+    beforeEach(() => {
+      validateEmail.mockRejectedValueOnce(
+        new Error("Email address is disposable.")
+      );
+    });
+
+    test("if failureRedirect is not defined throw an error", () => {
+      expect(
+        auth.authenticate("kcd", request, { successRedirect: "/me" })
+      ).rejects.toThrow("Email address is disposable.");
+    });
+
+    test("if failureRedirect is defined throw a redirect", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Email address is disposable.");
+
+      let response = redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+
+      expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+          failureRedirect: "/login",
+        })
+      ).rejects.toEqual(response);
+    });
   });
 
-  test("should throw a redirect if validateEmail is rejected and failureRedirect is defined", async () => {
-    validateEmail.mockRejectedValueOnce(
-      new Error("Email address is disposable.")
-    );
-
+  describe("should throw if the host is not defined in the headers", () => {
     let request = new Request("/login", {
       method: "POST",
       body: new URLSearchParams({ email: "user@example.com" }),
     });
 
-    let session = await sessionStorage.getSession();
-    session.flash("kcd:error", "Email address is disposable.");
-
-    let response = redirect("/login", {
-      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+    beforeEach(() => {
+      validateEmail.mockResolvedValueOnce(true);
     });
 
-    expect(
-      auth.authenticate("kcd", request, {
-        successRedirect: "/me",
-        failureRedirect: "/login",
-      })
-    ).rejects.toEqual(response);
+    test("if failureRedirect is not defined throw an error", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Could not determine domain URL.");
+
+      let response = redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+
+      expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+          failureRedirect: "/login",
+        })
+      ).rejects.toEqual(response);
+    });
+
+    test("if failureRedirect is defined throw a redirect", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Could not determine domain URL.");
+
+      let response = redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+
+      expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+          failureRedirect: "/login",
+        })
+      ).rejects.toEqual(response);
+    });
   });
 
-  test("should throw if the host is not defined in the headers", async () => {
-    validateEmail.mockResolvedValueOnce(true);
-
-    let request = new Request("/login", {
-      method: "POST",
-      body: new URLSearchParams({ email: "user@example.com" }),
-    });
-
-    let session = await sessionStorage.getSession();
-    session.flash("kcd:error", "Could not determine domain URL.");
-
-    let response = redirect("/login", {
-      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-    });
-
-    expect(
-      auth.authenticate("kcd", request, {
-        successRedirect: "/me",
-        failureRedirect: "/login",
-      })
-    ).rejects.toEqual(response);
-  });
-
-  test("should throw if sendEmail failed", async () => {
-    verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
-    sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
-
+  describe("should throw if sendEmail failed", () => {
     let request = new Request("/login", {
       method: "POST",
       body: new URLSearchParams({ email: "user@example.com" }),
       headers: { Host: "localhost:3000" },
     });
 
-    let session = await sessionStorage.getSession();
-    session.flash("kcd:error", "Failed to send the email.");
-
-    await expect(
-      auth.authenticate("kcd", request, {
-        successRedirect: "/me",
-      })
-    ).rejects.toThrow("Failed to send the email.");
-
-    expect(verify).toHaveBeenCalledTimes(1);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
-  });
-
-  test("should throw a redirect to failureRedirect if sendEmail failed", async () => {
-    verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
-    sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
-
-    let request = new Request("/login", {
-      method: "POST",
-      body: new URLSearchParams({ email: "user@example.com" }),
-      headers: { "X-Forwarded-Host": "localhost:3000" },
+    beforeEach(() => {
+      verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
+      sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
     });
 
-    let session = await sessionStorage.getSession();
-    session.flash("kcd:error", "Failed to send the email.");
+    test("if failureRedirect is not defined throw an error", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Failed to send the email.");
 
-    let response = redirect("/login", {
-      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      await expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+        })
+      ).rejects.toThrow("Failed to send the email.");
+
+      expect(verify).toHaveBeenCalledTimes(1);
+      expect(sendEmail).toHaveBeenCalledTimes(1);
     });
 
-    await expect(
-      auth.authenticate("kcd", request, {
-        successRedirect: "/me",
-        failureRedirect: "/login",
-      })
-    ).rejects.toEqual(response);
+    test("if failureRedirect is defined throw a redirect", async () => {
+      let session = await sessionStorage.getSession();
+      session.flash("kcd:error", "Failed to send the email.");
 
-    expect(verify).toHaveBeenCalledTimes(1);
-    expect(sendEmail).toHaveBeenCalledTimes(1);
+      let response = redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      });
+
+      await expect(
+        auth.authenticate("kcd", request, {
+          successRedirect: "/me",
+          failureRedirect: "/login",
+        })
+      ).rejects.toEqual(response);
+
+      expect(verify).toHaveBeenCalledTimes(1);
+      expect(sendEmail).toHaveBeenCalledTimes(1);
+    });
   });
 
   test("Happy path flow", async () => {
