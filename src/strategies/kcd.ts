@@ -49,7 +49,7 @@ export interface KCDStrategyOptions<User> {
    */
   validateEmail?: ValidateEmailFunction;
   /**
-   * A secret string used to encrypt the token.
+   * A secret string used to encrypt and decrypt the token and magic link.
    */
   secret: string;
   /**
@@ -57,10 +57,30 @@ export interface KCDStrategyOptions<User> {
    * @default "email"
    */
   emailField?: string;
+  /**
+   * The param name the strategy will use to read the token from the email link.
+   * @default "token"
+   */
   magicLinkSearchParam?: string;
+  /**
+   * How long the magic link will be valid. Default to 30 minutes.
+   * @default 1_800_000
+   */
   linkExpirationTime?: number;
+  /**
+   * The key on the session to store any error message.
+   * @default "kcd:error"
+   */
   sessionErrorKey?: string;
+  /**
+   * The key on the session to store the magic link.
+   * @default "kcd:magicLink"
+   */
   sessionMagicLinkKey?: string;
+  /**
+   * Add an extra layer of protection and validate the magic link is valid.
+   * @default false
+   */
   validateSessionMagicLink?: boolean;
 }
 
