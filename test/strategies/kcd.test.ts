@@ -43,16 +43,18 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Missing email address.");
 
-      let response = redirect("/login", {
-        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-      });
-
       expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
-      ).rejects.toEqual(response);
+      ).rejects.toEqual(
+        redirect("/login", {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        })
+      );
     });
   });
 
@@ -78,16 +80,18 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Email address is disposable.");
 
-      let response = redirect("/login", {
-        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-      });
-
       expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
-      ).rejects.toEqual(response);
+      ).rejects.toEqual(
+        redirect("/login", {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        })
+      );
     });
   });
 
@@ -105,32 +109,36 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
-      let response = redirect("/login", {
-        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-      });
-
       expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
-      ).rejects.toEqual(response);
+      ).rejects.toEqual(
+        redirect("/login", {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        })
+      );
     });
 
     test("if failureRedirect is defined throw a redirect", async () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
-      let response = redirect("/login", {
-        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-      });
-
       expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
-      ).rejects.toEqual(response);
+      ).rejects.toEqual(
+        redirect("/login", {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        })
+      );
     });
   });
 
@@ -164,16 +172,18 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Failed to send the email.");
 
-      let response = redirect("/login", {
-        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-      });
-
       await expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
-      ).rejects.toEqual(response);
+      ).rejects.toEqual(
+        redirect("/login", {
+          headers: {
+            "Set-Cookie": await sessionStorage.commitSession(session),
+          },
+        })
+      );
 
       expect(verify).toHaveBeenCalledTimes(1);
       expect(sendEmail).toHaveBeenCalledTimes(1);
