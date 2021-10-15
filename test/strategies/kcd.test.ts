@@ -14,6 +14,7 @@ describe(KCDStrategy, () => {
 
   beforeEach(() => {
     auth.unuse("kcd");
+    jest.resetAllMocks();
   });
 
   test("should throw if method is POST and successRedirect is not defined", () => {
@@ -153,5 +154,70 @@ describe(KCDStrategy, () => {
         failureRedirect: "/login",
       })
     ).rejects.toEqual(response);
+  });
+
+  test("should throw if sendEmail failed", async () => {
+    verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
+    sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
+
+    let strategy = new KCDStrategy<User>(
+      { sendEmail, callbackURL: "/magic", validateEmail, secret: "s3cr3t" },
+      verify
+    );
+
+    auth.use(strategy);
+
+    let request = new Request("/", {
+      method: "POST",
+      body: new URLSearchParams({ email: "user@example.com" }),
+      headers: { Host: "localhost:3000" },
+    });
+
+    let session = await sessionStorage.getSession();
+    session.flash("kcd:error", "Failed to send the email.");
+
+    await expect(
+      auth.authenticate("kcd", request, {
+        successRedirect: "/me",
+      })
+    ).rejects.toThrow("Failed to send the email.");
+
+    expect(verify).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  test("should throw a redirect to failureRedirect if sendEmail failed", async () => {
+    verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
+    sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
+
+    let strategy = new KCDStrategy<User>(
+      { sendEmail, callbackURL: "/magic", validateEmail, secret: "s3cr3t" },
+      verify
+    );
+
+    auth.use(strategy);
+
+    let request = new Request("/", {
+      method: "POST",
+      body: new URLSearchParams({ email: "user@example.com" }),
+      headers: { "X-Forwarded-Host": "localhost:3000" },
+    });
+
+    let session = await sessionStorage.getSession();
+    session.flash("kcd:error", "Failed to send the email.");
+
+    let response = redirect("/login", {
+      headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+    });
+
+    await expect(
+      auth.authenticate("kcd", request, {
+        successRedirect: "/me",
+        failureRedirect: "/login",
+      })
+    ).rejects.toEqual(response);
+
+    expect(verify).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 });
