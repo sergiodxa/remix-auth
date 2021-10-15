@@ -2,7 +2,6 @@ import { createCookieSessionStorage } from "remix";
 import { GoogleStrategy } from "../../src";
 
 describe(GoogleStrategy, () => {
-  let callback = jest.fn();
   let verify = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },

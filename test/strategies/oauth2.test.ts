@@ -6,7 +6,6 @@ enableFetchMocks();
 
 describe(OAuth2Strategy, () => {
   let verify = jest.fn();
-  let callback = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },
   });

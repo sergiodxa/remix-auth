@@ -2,7 +2,6 @@ import { createCookieSessionStorage } from "remix";
 import { GitHubStrategy } from "../../src";
 
 describe(GitHubStrategy, () => {
-  let callback = jest.fn();
   let verify = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },
