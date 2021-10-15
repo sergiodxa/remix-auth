@@ -13,13 +13,31 @@ export interface KCDSendEmailFunction<User> {
   (options: KCDSendEmailOptions<User>): Promise<void>;
 }
 
+/**
+ * Validate the email address the user is trying to use to login.
+ * This can be useful to ensure it's not a disposable email address.
+ * @param emailAddress The email address to validate
+ */
 export interface ValidateEmailFunction {
   (email: string): Promise<void>;
 }
 
+/**
+ * The content of the magic link payload
+ */
 export interface KCDMagicLinkPayload {
+  /**
+   * The email address used to authenticate
+   */
   emailAddress: string;
+  /**
+   * Whent the magic link was created, as an ISO string. This is used to check
+   * the email link is still valid.
+   */
   creationDate: string;
+  /**
+   * If it should be validated or not.
+   */
   validateSessionMagicLink: boolean;
 }
 
