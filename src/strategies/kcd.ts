@@ -206,12 +206,16 @@ export class KCDStrategy<User> implements Strategy<User> {
     return `${protocol}://${host}`;
   }
 
-  private getMagicLink(emailAddress: string, domainUrl: string) {
-    let payload: KCDMagicLinkPayload = {
+  private createMagicLinkPayload(emailAddress: string): KCDMagicLinkPayload {
+    return {
       emailAddress,
       creationDate: new Date().toISOString(),
       validateSessionMagicLink: this.validateSessionMagicLink,
     };
+  }
+
+  private getMagicLink(emailAddress: string, domainUrl: string) {
+    let payload = this.createMagicLinkPayload(emailAddress);
     let stringToEncrypt = JSON.stringify(payload);
     let encryptedString = this.encrypt(stringToEncrypt);
     let url = new URL(domainUrl);
