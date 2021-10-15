@@ -239,14 +239,14 @@ export class KCDStrategy<User> implements Strategy<User> {
     return magicLink;
   }
 
-  public encrypt(text: string): string {
+  private encrypt(text: string): string {
     let iv = crypto.randomBytes(this.ivLength);
     let cipher = crypto.createCipheriv(this.algorithm, this.encryptionKey, iv);
     let encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
     return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
   }
 
-  public decrypt(text: string): string {
+  private decrypt(text: string): string {
     let [ivPart, encryptedPart] = text.split(":");
     if (!ivPart || !encryptedPart) {
       throw new Error("Invalid text.");

@@ -289,6 +289,7 @@ describe(KCDStrategy, () => {
       let cookie = error.headers.get("Set-Cookie");
 
       let session = await sessionStorage.getSession(cookie);
+      // @ts-expect-error this method is marked as private but we need it here
       let magicLink = strategy.decrypt(session.get("kcd:magiclink"));
 
       session.unset("kcd:magiclink");
