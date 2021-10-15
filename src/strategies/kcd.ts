@@ -26,8 +26,9 @@ export interface KCDMagicLinkPayload {
 export interface KCDStrategyOptions<User> {
   /**
    * The endpoint the user will go after clicking on the email link.
+   * @default "/magic"
    */
-  callbackURL: string;
+  callbackURL?: string;
   /**
    * A function to send the email. This function should receive the email
    * address of the user and the URL to redirect to and should return a Promise.
@@ -79,8 +80,16 @@ export class KCDStrategy<User> implements Strategy<User> {
   private encryptionKey: Buffer;
   private magicLinkSearchParam: string;
   private linkExpirationTime: number;
-  private sessionErrorKey: string;
-  private sessionMagicLinkKey: string;
+  private _sessionErrorKey: string;
+  private _sessionMagicLinkKey: string;
+
+  get sessionErrorKey() {
+    return this._sessionErrorKey;
+  }
+
+  get sessionMagicLinkKey() {
+    return this._sessionMagicLinkKey;
+  }
 
   constructor(
     options: KCDStrategyOptions<User>,
@@ -88,10 +97,10 @@ export class KCDStrategy<User> implements Strategy<User> {
   ) {
     this.verify = verify;
     this.sendEmail = options.sendEmail;
-    this.callbackURL = options.callbackURL;
+    this.callbackURL = options.callbackURL ?? "/magic";
     this.secret = options.secret;
-    this.sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
-    this.sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
+    this._sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
+    this._sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
     this.validateEmail = options.validateEmail ?? validateEmail;
     this.emailField = options.emailField ?? this.emailField;
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "magic";
@@ -112,7 +121,9 @@ export class KCDStrategy<User> implements Strategy<User> {
     // process
     if (request.method === "POST") {
       if (!options.successRedirect) {
-        throw new Error("Missing successRedirect. The successRedirect");
+        throw new Error(
+          "Missing successRedirect. The successRedirect is required for POST requests."
+        );
       }
 
       // get the email address from the request body
@@ -121,20 +132,8 @@ export class KCDStrategy<User> implements Strategy<User> {
 
       // if it doesn't have an email address,
       if (!emailAddress) {
-        if (!options.failureRedirect) throw new Error("Missing email address.");
-        session.flash(this.sessionErrorKey, "Missing email address.");
-        let cookie = await sessionStorage.commitSession(session);
-        throw redirect(options.failureRedirect, {
-          headers: { "Set-Cookie": cookie },
-        });
-      }
-
-      // Validate the email address
-      try {
-        await this.validateEmail(emailAddress);
-      } catch (error) {
-        if (!options.failureRedirect) throw error;
-        let message = (error as Error).message;
+        let message = "Missing email address.";
+        if (!options.failureRedirect) throw new Error(message);
         session.flash(this.sessionErrorKey, message);
         let cookie = await sessionStorage.commitSession(session);
         throw redirect(options.failureRedirect, {
@@ -143,7 +142,11 @@ export class KCDStrategy<User> implements Strategy<User> {
       }
 
       try {
+        // Validate the email address
+        await this.validateEmail(emailAddress);
+
         let domainUrl = this.getDomainURL(request);
+
         let magicLink = await this.sendToken(emailAddress, domainUrl);
 
         session.set(this.sessionMagicLinkKey, magicLink);
@@ -161,13 +164,41 @@ export class KCDStrategy<User> implements Strategy<User> {
           headers: { "Set-Cookie": cookie },
         });
       }
+    }
 
+    let user: User;
+
+    try {
       // If we get here, the user clicked on the magic link inside email
       let email = this.validateMagicLink(
         request.url,
         session.get(this.sessionMagicLinkKey) as string | undefined
       );
+
+      // now that we have the user email we can call verify to get the user
+      user = await this.verify(email);
+    } catch (error) {
+      // if something happens, we should redirect to the failureRedirect
+      // and flash the error message, or just throw the error if failureRedirect
+      // is not defined
+      if (!options.failureRedirect) throw error;
+      let message = (error as Error).message;
+      session.flash(this.sessionErrorKey, message);
+      let cookie = await sessionStorage.commitSession(session);
+      throw redirect(options.failureRedirect, {
+        headers: { "Set-Cookie": cookie },
+      });
     }
+
+    if (!options.successRedirect) return user;
+
+    // remove the magic link from the session
+    session.unset(this.sessionMagicLinkKey);
+    session.set(options.sessionKey, user);
+    let cookie = await sessionStorage.commitSession(session);
+    throw redirect(options.successRedirect, {
+      headers: { "Set-Cookie": cookie },
+    });
   }
 
   private getDomainURL(request: Request): string {
@@ -191,7 +222,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     let stringToEncrypt = JSON.stringify(payload);
     let encryptedString = this.encrypt(stringToEncrypt);
     let url = new URL(domainUrl);
-    url.pathname = "magic";
+    url.pathname = this.callbackURL;
     url.searchParams.set(this.magicLinkSearchParam, encryptedString);
     return url.toString();
   }
