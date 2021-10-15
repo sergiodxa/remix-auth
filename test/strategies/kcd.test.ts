@@ -10,28 +10,27 @@ describe(KCDStrategy, () => {
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: [secret] },
   });
-
   let auth = new Authenticator<User>(sessionStorage);
+  let strategy = new KCDStrategy<User>(
+    {
+      waitURL: "/login",
+      sendEmail,
+      callbackURL: "/magic",
+      validateEmail,
+      secret,
+    },
+    verify
+  );
+
+  beforeAll(() => {
+    auth.use(strategy);
+  });
 
   beforeEach(() => {
-    auth.unuse("kcd");
     jest.resetAllMocks();
   });
 
   test("should throw if email address is not in the request body", () => {
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
-
     let request = new Request("/login", { method: "POST" });
 
     expect(
@@ -40,19 +39,6 @@ describe(KCDStrategy, () => {
   });
 
   test("should throw a redirect to failureRedirect if email address is not in the request body and failureRedirect is defined", async () => {
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
-
     let request = new Request("/login", { method: "POST" });
 
     let session = await sessionStorage.getSession();
@@ -75,19 +61,6 @@ describe(KCDStrategy, () => {
       new Error("Email address is disposable.")
     );
 
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
-
     let request = new Request("/login", {
       method: "POST",
       body: new URLSearchParams({ email: "user@example.com" }),
@@ -102,19 +75,6 @@ describe(KCDStrategy, () => {
     validateEmail.mockRejectedValueOnce(
       new Error("Email address is disposable.")
     );
-
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
 
     let request = new Request("/login", {
       method: "POST",
@@ -138,19 +98,6 @@ describe(KCDStrategy, () => {
 
   test("should throw if the host is not defined in the headers", async () => {
     validateEmail.mockResolvedValueOnce(true);
-
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
 
     let request = new Request("/login", {
       method: "POST",
@@ -176,19 +123,6 @@ describe(KCDStrategy, () => {
     verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
     sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
 
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
-
     let request = new Request("/login", {
       method: "POST",
       body: new URLSearchParams({ email: "user@example.com" }),
@@ -211,19 +145,6 @@ describe(KCDStrategy, () => {
   test("should throw a redirect to failureRedirect if sendEmail failed", async () => {
     verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
     sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
-
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
 
     let request = new Request("/login", {
       method: "POST",
@@ -253,19 +174,6 @@ describe(KCDStrategy, () => {
     let user: User = { id: "123", name: "John Doe" };
     verify.mockResolvedValue(user);
     sendEmail.mockResolvedValueOnce(null);
-
-    let strategy = new KCDStrategy<User>(
-      {
-        waitURL: "/login",
-        sendEmail,
-        callbackURL: "/magic",
-        validateEmail,
-        secret,
-      },
-      verify
-    );
-
-    auth.use(strategy);
 
     try {
       await auth.authenticate(
