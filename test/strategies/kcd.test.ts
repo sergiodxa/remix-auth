@@ -111,7 +111,7 @@ describe(KCDStrategy, () => {
     });
 
     let session = await sessionStorage.getSession();
-    session.flash(strategy.sessionErrorKey, "Email address is disposable.");
+    session.flash("kcd:error", "Email address is disposable.");
 
     let response = redirect("/login", {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },

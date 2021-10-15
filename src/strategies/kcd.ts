@@ -80,16 +80,8 @@ export class KCDStrategy<User> implements Strategy<User> {
   private encryptionKey: Buffer;
   private magicLinkSearchParam: string;
   private linkExpirationTime: number;
-  private _sessionErrorKey: string;
-  private _sessionMagicLinkKey: string;
-
-  get sessionErrorKey() {
-    return this._sessionErrorKey;
-  }
-
-  get sessionMagicLinkKey() {
-    return this._sessionMagicLinkKey;
-  }
+  private sessionErrorKey: string;
+  private sessionMagicLinkKey: string;
 
   constructor(
     options: KCDStrategyOptions<User>,
@@ -99,8 +91,8 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.sendEmail = options.sendEmail;
     this.callbackURL = options.callbackURL ?? "/magic";
     this.secret = options.secret;
-    this._sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
-    this._sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
+    this.sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
+    this.sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
     this.validateEmail = options.validateEmail ?? validateEmail;
     this.emailField = options.emailField ?? this.emailField;
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "magic";
