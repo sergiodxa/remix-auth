@@ -56,6 +56,7 @@ export interface KCDStrategyOptions<User> {
   linkExpirationTime?: number;
   sessionErrorKey?: string;
   sessionMagicLinkKey?: string;
+  validateSessionMagicLink?: boolean;
 }
 
 export interface KCDStrategyVerifyCallback<User> {
@@ -82,6 +83,7 @@ export class KCDStrategy<User> implements Strategy<User> {
   private linkExpirationTime: number;
   private sessionErrorKey: string;
   private sessionMagicLinkKey: string;
+  private validateSessionMagicLink: boolean;
 
   constructor(
     options: KCDStrategyOptions<User>,
@@ -98,6 +100,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "magic";
     this.linkExpirationTime = options.linkExpirationTime ?? 1000 * 60 * 30; // 30 minutes
     this.encryptionKey = crypto.scryptSync(this.secret, "salt", 32);
+    this.validateSessionMagicLink = options.validateSessionMagicLink ?? false;
   }
 
   async authenticate(
@@ -207,7 +210,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     let payload: KCDMagicLinkPayload = {
       emailAddress,
       creationDate: new Date().toISOString(),
-      validateSessionMagicLink: false,
+      validateSessionMagicLink: this.validateSessionMagicLink,
     };
     let stringToEncrypt = JSON.stringify(payload);
     let encryptedString = this.encrypt(stringToEncrypt);
