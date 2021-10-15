@@ -97,7 +97,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
     this.validateEmail = options.validateEmail ?? validateEmail;
     this.emailField = options.emailField ?? this.emailField;
-    this.magicLinkSearchParam = options.magicLinkSearchParam ?? "magic";
+    this.magicLinkSearchParam = options.magicLinkSearchParam ?? "token";
     this.linkExpirationTime = options.linkExpirationTime ?? 1000 * 60 * 30; // 30 minutes
     this.encryptionKey = crypto.scryptSync(this.secret, "salt", 32);
     this.validateSessionMagicLink = options.validateSessionMagicLink ?? false;
