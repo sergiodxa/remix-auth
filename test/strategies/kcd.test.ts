@@ -249,7 +249,7 @@ describe(KCDStrategy, () => {
     expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
-  test.only("complete flow", async () => {
+  test("Happy path flow", async () => {
     let user: User = { id: "123", name: "John Doe" };
     verify.mockResolvedValue(user);
     sendEmail.mockResolvedValueOnce(null);
