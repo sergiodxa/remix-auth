@@ -5,7 +5,7 @@ describe(KCDStrategy, () => {
   type User = { id: string; name: string };
   let verify = jest.fn();
   let sendEmail = jest.fn();
-  let validateEmail = jest.fn();
+  let verifyEmailAddress = jest.fn();
   let secret = "s3cr3t";
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: [secret] },
@@ -18,7 +18,7 @@ describe(KCDStrategy, () => {
   test("should throw if method is POST and successRedirect is not defined", () => {
     let auth = new Authenticator<User>(sessionStorage);
     let strategy = new KCDStrategy<User>(
-      { sendEmail, callbackURL: "/magic", validateEmail, secret },
+      { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
       verify
     );
     auth.use(strategy);
@@ -34,7 +34,7 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is not defined throw an error", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
@@ -49,7 +49,7 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is defined throw a redirect", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
@@ -76,12 +76,12 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is not defined throw an error", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
 
-      validateEmail.mockRejectedValueOnce(
+      verifyEmailAddress.mockRejectedValueOnce(
         new Error("Email address is disposable.")
       );
 
@@ -100,12 +100,12 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is defined throw a redirect", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
 
-      validateEmail.mockRejectedValueOnce(
+      verifyEmailAddress.mockRejectedValueOnce(
         new Error("Email address is disposable.")
       );
 
@@ -138,12 +138,12 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is not defined throw an error", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
 
-      validateEmail.mockResolvedValueOnce(true);
+      verifyEmailAddress.mockResolvedValueOnce(true);
 
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
@@ -172,12 +172,12 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is defined throw a redirect", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
 
-      validateEmail.mockResolvedValueOnce(true);
+      verifyEmailAddress.mockResolvedValueOnce(true);
 
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
@@ -208,7 +208,7 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is not defined throw an error", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
@@ -240,7 +240,7 @@ describe(KCDStrategy, () => {
     test("if failureRedirect is defined throw a redirect", async () => {
       let auth = new Authenticator<User>(sessionStorage);
       let strategy = new KCDStrategy<User>(
-        { sendEmail, callbackURL: "/magic", validateEmail, secret },
+        { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
         verify
       );
       auth.use(strategy);
@@ -280,7 +280,7 @@ describe(KCDStrategy, () => {
   test("Happy path flow", async () => {
     let auth = new Authenticator<User>(sessionStorage);
     let strategy = new KCDStrategy<User>(
-      { sendEmail, callbackURL: "/magic", validateEmail, secret },
+      { sendEmail, callbackURL: "/magic", verifyEmailAddress, secret },
       verify
     );
     auth.use(strategy);

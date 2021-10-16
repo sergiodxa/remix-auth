@@ -18,7 +18,7 @@ export interface KCDSendEmailFunction<User> {
  * This can be useful to ensure it's not a disposable email address.
  * @param emailAddress The email address to validate
  */
-export interface ValidateEmailFunction {
+export interface KCDVerifyEmailFunction {
   (email: string): Promise<void>;
 }
 
@@ -44,6 +44,8 @@ export interface KCDMagicLinkPayload {
 export interface KCDStrategyOptions<User> {
   /**
    * The endpoint the user will go after clicking on the email link.
+   * A whole URL is not required, the pathname is enough, the strategy will
+   * detect the host of the request and use it to build the URL.
    * @default "/magic"
    */
   callbackURL?: string;
@@ -60,7 +62,7 @@ export interface KCDStrategyOptions<User> {
    *
    * By default it only test the email agains the RegExp `/.+@.+/`.
    */
-  validateEmail?: ValidateEmailFunction;
+  verifyEmailAddress?: KCDVerifyEmailFunction;
   /**
    * A secret string used to encrypt and decrypt the token and magic link.
    */
@@ -101,7 +103,7 @@ export interface KCDStrategyVerifyCallback<User> {
   (emailAddress: string): Promise<User>;
 }
 
-let validateEmail: ValidateEmailFunction = async (email) => {
+let verifyEmailAddress: KCDVerifyEmailFunction = async (email) => {
   if (!/.+@.+/.test(email)) throw new Error("A valid email is required.");
 };
 
@@ -112,7 +114,7 @@ export class KCDStrategy<User> implements Strategy<User> {
   private emailField = "email";
   private callbackURL: string;
   private sendEmail: KCDSendEmailFunction<User>;
-  private validateEmail: ValidateEmailFunction;
+  private validateEmail: KCDVerifyEmailFunction;
   private secret: string;
   private algorithm = "aes-256-ctr";
   private ivLength = 16;
@@ -133,7 +135,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.secret = options.secret;
     this.sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
     this.sessionMagicLinkKey = options.sessionMagicLinkKey ?? "kcd:magiclink";
-    this.validateEmail = options.validateEmail ?? validateEmail;
+    this.validateEmail = options.verifyEmailAddress ?? verifyEmailAddress;
     this.emailField = options.emailField ?? this.emailField;
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "token";
     this.linkExpirationTime = options.linkExpirationTime ?? 1000 * 60 * 30; // 30 minutes
