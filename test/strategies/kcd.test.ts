@@ -33,8 +33,8 @@ describe(KCDStrategy, () => {
   describe("should throw if email address is not in the request body", () => {
     let request = new Request("/login", { method: "POST" });
 
-    test("if failureRedirect is not defined throw an error", () => {
-      expect(
+    test("if failureRedirect is not defined throw an error", async () => {
+      await expect(
         auth.authenticate("kcd", request, { successRedirect: "/me" })
       ).rejects.toThrow("Missing email address.");
     });
@@ -43,7 +43,7 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Missing email address.");
 
-      expect(
+      await expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
@@ -70,8 +70,8 @@ describe(KCDStrategy, () => {
       );
     });
 
-    test("if failureRedirect is not defined throw an error", () => {
-      expect(
+    test("if failureRedirect is not defined throw an error", async () => {
+      await expect(
         auth.authenticate("kcd", request, { successRedirect: "/me" })
       ).rejects.toThrow("Email address is disposable.");
     });
@@ -80,7 +80,7 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Email address is disposable.");
 
-      expect(
+      await expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
@@ -109,7 +109,7 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
-      expect(
+      await expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
@@ -127,7 +127,7 @@ describe(KCDStrategy, () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
-      expect(
+      await expect(
         auth.authenticate("kcd", request, {
           successRedirect: "/me",
           failureRedirect: "/login",
