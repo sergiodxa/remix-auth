@@ -328,10 +328,8 @@ export class KCDStrategy<User> implements Strategy<User> {
       linkCreationDateString = payload.creationDate;
       validateSessionMagicLink = payload.validateSessionMagicLink;
     } catch (error: unknown) {
-      throw new AggregateError(
-        [error],
-        "Sign in link invalid. Please request a new one."
-      );
+      console.error(error);
+      throw new Error("Sign in link invalid. Please request a new one.");
     }
 
     if (typeof emailAddress !== "string") {
