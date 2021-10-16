@@ -43,11 +43,6 @@ export interface KCDMagicLinkPayload {
 
 export interface KCDStrategyOptions<User> {
   /**
-   * The URL of the wait page. The user will be redirected here after starting
-   * the authentication flow.
-   */
-  waitURL: string;
-  /**
    * The endpoint the user will go after clicking on the email link.
    * @default "/magic"
    */
@@ -115,7 +110,6 @@ export class KCDStrategy<User> implements Strategy<User> {
 
   private verify: KCDStrategyVerifyCallback<User>;
   private emailField = "email";
-  private waitURL: string;
   private callbackURL: string;
   private sendEmail: KCDSendEmailFunction<User>;
   private validateEmail: ValidateEmailFunction;
@@ -135,7 +129,6 @@ export class KCDStrategy<User> implements Strategy<User> {
   ) {
     this.verify = verify;
     this.sendEmail = options.sendEmail;
-    this.waitURL = options.waitURL;
     this.callbackURL = options.callbackURL ?? "/magic";
     this.secret = options.secret;
     this.sessionErrorKey = options.sessionErrorKey ?? "kcd:error";
@@ -160,6 +153,12 @@ export class KCDStrategy<User> implements Strategy<User> {
     // This should only be called in an action if it's used to start the login
     // process
     if (request.method === "POST") {
+      if (!options.successRedirect) {
+        throw new Error(
+          "Missing successRedirect. The successRedirect is required for POST requests."
+        );
+      }
+
       // get the email address from the request body
       let body = new URLSearchParams(await request.text());
       let emailAddress = body.get(this.emailField);
@@ -184,7 +183,7 @@ export class KCDStrategy<User> implements Strategy<User> {
         let magicLink = await this.sendToken(emailAddress, domainUrl);
 
         session.set(this.sessionMagicLinkKey, this.encrypt(magicLink));
-        throw redirect(this.waitURL, {
+        throw redirect(options.successRedirect, {
           headers: {
             "Set-Cookie": await sessionStorage.commitSession(session),
           },
