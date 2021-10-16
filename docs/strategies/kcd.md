@@ -99,6 +99,9 @@ import { sessionStorage } from "~/services/session.server";
 let loader: LoaderFunction = async ({ request }) => {
   auth.isAuthenticated(request, { successRedirect: "/me" });
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
+  // This session key `kcd:magiclink` is the default one used by the KCDStrategy
+  // you can customize it passing a `sessionMagicLinkKey` when creating an
+  // instance.
   if (session.has("kcd:magiclink")) return json({ magicLinkSent: true });
   return json({ magicLinkSent: false });
 };
@@ -233,4 +236,68 @@ auth.use(
     }
   )
 );
+```
+
+## Options options
+
+The KCDStrategy supports a few more optional configuration options you can set. Here's the whole interface with each option commented.
+
+```ts
+interface KCDStrategyOptions<User> {
+  /**
+   * The endpoint the user will go after clicking on the email link.
+   * A whole URL is not required, the pathname is enough, the strategy will
+   * detect the host of the request and use it to build the URL.
+   * @default "/magic"
+   */
+  callbackURL?: string;
+  /**
+   * A function to send the email. This function should receive the email
+   * address of the user and the URL to redirect to and should return a Promise.
+   * The value of the Promise will be ignored.
+   */
+  sendEmail: KCDSendEmailFunction<User>;
+  /**
+   * A function to validate the email address. This function should receive the
+   * email address as a string and return a Promise. The value of the Promise
+   * will be ignored, in case of error throw an error.
+   *
+   * By default it only test the email agains the RegExp `/.+@.+/`.
+   */
+  verifyEmailAddress?: KCDVerifyEmailFunction;
+  /**
+   * A secret string used to encrypt and decrypt the token and magic link.
+   */
+  secret: string;
+  /**
+   * The name of the form input used to get the email.
+   * @default "email"
+   */
+  emailField?: string;
+  /**
+   * The param name the strategy will use to read the token from the email link.
+   * @default "token"
+   */
+  magicLinkSearchParam?: string;
+  /**
+   * How long the magic link will be valid. Default to 30 minutes.
+   * @default 1_800_000
+   */
+  linkExpirationTime?: number;
+  /**
+   * The key on the session to store any error message.
+   * @default "kcd:error"
+   */
+  sessionErrorKey?: string;
+  /**
+   * The key on the session to store the magic link.
+   * @default "kcd:magicLink"
+   */
+  sessionMagicLinkKey?: string;
+  /**
+   * Add an extra layer of protection and validate the magic link is valid.
+   * @default false
+   */
+  validateSessionMagicLink?: boolean;
+}
 ```

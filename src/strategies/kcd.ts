@@ -68,7 +68,7 @@ export interface KCDStrategyOptions<User> {
    */
   secret: string;
   /**
-   * The name of the form input used to get the email
+   * The name of the form input used to get the email.
    * @default "email"
    */
   emailField?: string;
