@@ -328,24 +328,21 @@ export class KCDStrategy<User> implements Strategy<User> {
       linkCreationDateString = payload.creationDate;
       validateSessionMagicLink = payload.validateSessionMagicLink;
     } catch (error: unknown) {
-      console.error(error);
-      throw new Error("Sign in link invalid. Please request a new one.");
+      throw new AggregateError(
+        [error],
+        "Sign in link invalid. Please request a new one."
+      );
     }
 
     if (typeof emailAddress !== "string") {
-      console.error(`Email is not a string. Maybe wasn't set in the session?`);
-      throw new Error("Sign in link invalid. Please request a new one.");
+      throw new TypeError("Sign in link invalid. Please request a new one.");
     }
 
     if (validateSessionMagicLink) {
       if (!sessionLinkCode) {
-        console.error(
-          "Must validate session magic link but no session link provided"
-        );
         throw new Error("Sign in link invalid. Please request a new one.");
       }
       if (linkCode !== sessionLinkCode) {
-        console.error(`Magic link does not match sessionMagicLink`);
         throw new Error(
           `You must open the magic link on the same device it was created from for security reasons. Please request a new link.`
         );
@@ -353,8 +350,7 @@ export class KCDStrategy<User> implements Strategy<User> {
     }
 
     if (typeof linkCreationDateString !== "string") {
-      console.error("Link expiration is not a string.");
-      throw new Error("Sign in link invalid. Please request a new one.");
+      throw new TypeError("Sign in link invalid. Please request a new one.");
     }
 
     let linkCreationDate = new Date(linkCreationDateString);
