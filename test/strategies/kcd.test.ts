@@ -10,41 +10,52 @@ describe(KCDStrategy, () => {
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: [secret] },
   });
-  let auth = new Authenticator<User>(sessionStorage);
-  let strategy = new KCDStrategy<User>(
-    {
-      waitURL: "/login",
-      sendEmail,
-      callbackURL: "/magic",
-      validateEmail,
-      secret,
-    },
-    verify
-  );
-
-  beforeAll(() => {
-    auth.use(strategy);
-  });
 
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   describe("should throw if email address is not in the request body", () => {
-    let request = new Request("/login", { method: "POST" });
-
     test("if failureRedirect is not defined throw an error", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
       await expect(
-        auth.authenticate("kcd", request, { successRedirect: "/me" })
+        auth.authenticate("kcd", new Request("/login", { method: "POST" }), {
+          successRedirect: "/me",
+        })
       ).rejects.toThrow("Missing email address.");
     });
 
     test("if failureRedirect is defined throw a redirect", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Missing email address.");
 
       await expect(
-        auth.authenticate("kcd", request, {
+        auth.authenticate("kcd", new Request("/login", { method: "POST" }), {
           successRedirect: "/me",
           failureRedirect: "/login",
         })
@@ -59,32 +70,69 @@ describe(KCDStrategy, () => {
   });
 
   describe("should throw if validateEmail is rejected", () => {
-    let request = new Request("/login", {
-      method: "POST",
-      body: new URLSearchParams({ email: "user@example.com" }),
-    });
+    test("if failureRedirect is not defined throw an error", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
 
-    beforeEach(() => {
       validateEmail.mockRejectedValueOnce(
         new Error("Email address is disposable.")
       );
-    });
 
-    test("if failureRedirect is not defined throw an error", async () => {
       await expect(
-        auth.authenticate("kcd", request, { successRedirect: "/me" })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+          }),
+          { successRedirect: "/me" }
+        )
       ).rejects.toThrow("Email address is disposable.");
     });
 
     test("if failureRedirect is defined throw a redirect", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
+      validateEmail.mockRejectedValueOnce(
+        new Error("Email address is disposable.")
+      );
+
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Email address is disposable.");
 
       await expect(
-        auth.authenticate("kcd", request, {
-          successRedirect: "/me",
-          failureRedirect: "/login",
-        })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+          }),
+          {
+            successRedirect: "/me",
+            failureRedirect: "/login",
+          }
+        )
       ).rejects.toEqual(
         redirect("/login", {
           headers: {
@@ -96,24 +144,37 @@ describe(KCDStrategy, () => {
   });
 
   describe("should throw if the host is not defined in the headers", () => {
-    let request = new Request("/login", {
-      method: "POST",
-      body: new URLSearchParams({ email: "user@example.com" }),
-    });
-
-    beforeEach(() => {
-      validateEmail.mockResolvedValueOnce(true);
-    });
-
     test("if failureRedirect is not defined throw an error", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
+      validateEmail.mockResolvedValueOnce(true);
+
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
       await expect(
-        auth.authenticate("kcd", request, {
-          successRedirect: "/me",
-          failureRedirect: "/login",
-        })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+          }),
+          {
+            successRedirect: "/me",
+            failureRedirect: "/login",
+          }
+        )
       ).rejects.toEqual(
         redirect("/login", {
           headers: {
@@ -124,14 +185,36 @@ describe(KCDStrategy, () => {
     });
 
     test("if failureRedirect is defined throw a redirect", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
+      validateEmail.mockResolvedValueOnce(true);
+
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Could not determine domain URL.");
 
       await expect(
-        auth.authenticate("kcd", request, {
-          successRedirect: "/me",
-          failureRedirect: "/login",
-        })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+          }),
+          {
+            successRedirect: "/me",
+            failureRedirect: "/login",
+          }
+        )
       ).rejects.toEqual(
         redirect("/login", {
           headers: {
@@ -143,25 +226,38 @@ describe(KCDStrategy, () => {
   });
 
   describe("should throw if sendEmail failed", () => {
-    let request = new Request("/login", {
-      method: "POST",
-      body: new URLSearchParams({ email: "user@example.com" }),
-      headers: { Host: "localhost:3000" },
-    });
+    test("if failureRedirect is not defined throw an error", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
 
-    beforeEach(() => {
       verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
       sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
-    });
 
-    test("if failureRedirect is not defined throw an error", async () => {
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Failed to send the email.");
 
       await expect(
-        auth.authenticate("kcd", request, {
-          successRedirect: "/me",
-        })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+            headers: { Host: "localhost:3000" },
+          }),
+          {
+            successRedirect: "/me",
+          }
+        )
       ).rejects.toThrow("Failed to send the email.");
 
       expect(verify).toHaveBeenCalledTimes(1);
@@ -169,14 +265,38 @@ describe(KCDStrategy, () => {
     });
 
     test("if failureRedirect is defined throw a redirect", async () => {
+      let auth = new Authenticator<User>(sessionStorage);
+      let strategy = new KCDStrategy<User>(
+        {
+          waitURL: "/login",
+          sendEmail,
+          callbackURL: "/magic",
+          validateEmail,
+          secret,
+        },
+        verify
+      );
+      auth.use(strategy);
+
+      verify.mockResolvedValueOnce({ id: "123", name: "John Doe" } as User);
+      sendEmail.mockRejectedValueOnce(new Error("Failed to send the email."));
+
       let session = await sessionStorage.getSession();
       session.flash("kcd:error", "Failed to send the email.");
 
       await expect(
-        auth.authenticate("kcd", request, {
-          successRedirect: "/me",
-          failureRedirect: "/login",
-        })
+        auth.authenticate(
+          "kcd",
+          new Request("/login", {
+            method: "POST",
+            body: new URLSearchParams({ email: "user@example.com" }),
+            headers: { Host: "localhost:3000" },
+          }),
+          {
+            successRedirect: "/me",
+            failureRedirect: "/login",
+          }
+        )
       ).rejects.toEqual(
         redirect("/login", {
           headers: {
@@ -191,7 +311,21 @@ describe(KCDStrategy, () => {
   });
 
   test("Happy path flow", async () => {
+    let auth = new Authenticator<User>(sessionStorage);
+    let strategy = new KCDStrategy<User>(
+      {
+        waitURL: "/login",
+        sendEmail,
+        callbackURL: "/magic",
+        validateEmail,
+        secret,
+      },
+      verify
+    );
+    auth.use(strategy);
+
     let user: User = { id: "123", name: "John Doe" };
+
     verify.mockResolvedValue(user);
     sendEmail.mockResolvedValueOnce(null);
 
@@ -223,7 +357,7 @@ describe(KCDStrategy, () => {
       session.unset("kcd:magiclink");
       session.set(auth.sessionKey, user);
 
-      expect(
+      await expect(
         auth.authenticate(
           "kcd",
           new Request(magicLink, { headers: { cookie } }),
