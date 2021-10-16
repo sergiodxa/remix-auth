@@ -23,9 +23,9 @@ describe(KCDStrategy, () => {
     );
     auth.use(strategy);
 
-    let request = new Request("/", { method: "POST" });
-
-    expect(auth.authenticate("kcd", request)).rejects.toThrow(
+    expect(
+      auth.authenticate("kcd", new Request("/", { method: "POST" }))
+    ).rejects.toThrow(
       "Missing successRedirect. The successRedirect is required for POST requests."
     );
   });
