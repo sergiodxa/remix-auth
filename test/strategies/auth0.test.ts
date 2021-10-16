@@ -2,7 +2,6 @@ import { createCookieSessionStorage } from "remix";
 import { Auth0Strategy } from "../../src";
 
 describe(Auth0Strategy, () => {
-  let callback = jest.fn();
   let verify = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },

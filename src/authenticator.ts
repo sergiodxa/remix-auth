@@ -134,7 +134,7 @@ export class Authenticator<User = unknown> {
   authenticate(
     strategy: string,
     request: Request,
-    options: { successRedirect?: string; failureRedirect?: string } = {}
+    options: Pick<StrategyOptions, "successRedirect" | "failureRedirect"> = {}
   ): Promise<User> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
