@@ -1,4 +1,4 @@
-import { ActionFunction, LoaderFunction, redirect } from "remix";
+import { ActionFunction, json, LoaderFunction, redirect } from "remix";
 import { destroySession, getSession } from "~/services/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
@@ -10,5 +10,5 @@ export let action: ActionFunction = async ({ request }) => {
 };
 
 export let loader: LoaderFunction = () => {
-  throw new Response("", { status: 404 });
+  throw json({}, { status: 404 });
 };
