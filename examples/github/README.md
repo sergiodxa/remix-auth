@@ -1,3 +1,3 @@
-# LocalStrategy Example
+# GitHubStrategy Example
 
-This example shows how you can use the Remix Auth with the LocalStrategy.
+This example shows how you can use the Remix Auth with the GitHubStrategy.
