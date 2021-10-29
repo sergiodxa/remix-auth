@@ -1,6 +1,6 @@
 import { Authenticator, LocalStrategy } from "remix-auth";
 import { login, User } from "~/models/user";
-import { sessionStorage } from "~/session";
+import { sessionStorage } from "~/services/session.server";
 
 export let authenticator = new Authenticator<User>(sessionStorage);
 
