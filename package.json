@@ -42,8 +42,8 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@remix-run/node": "^0.19.2",
-    "@remix-run/react": "^0.19.2",
+    "@remix-run/node": "^0.20.1",
+    "@remix-run/react": "^0.20.1",
     "remix": "^0.19.2"
   },
   "devDependencies": {
@@ -76,7 +76,7 @@
     "prettier": "^2.3.2",
     "react": "^17.0.2",
     "react-router-dom": "^6.0.0-beta.6",
-    "remix": "^0.19.2",
+    "remix": "^0.20.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.3.5"
   }
