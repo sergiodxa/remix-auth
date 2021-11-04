@@ -8,8 +8,24 @@ export interface ShopifyStrategyOptions {
   clientID: string;
   clientSecret: string;
   callbackURL: string;
+  /**
+   * The URL to your Shopify store.
+   */
   shop: string;
-  scope: string;
+  /**
+   * A comma-separated list of scopes. For example, to write orders and read
+   * customers, use scope=write_orders,read_customers. Any permission to write
+   * a resource includes the permission to read it.
+   *
+   * If you pass a list of strings the strategy will join them with a comma.
+   */
+  scopes: string | string[];
+  /**
+   * Sets the access mode. For online access mode, set to per-user. For offline
+   * access mode, set to value. If no access mode is defined, then it defaults
+   * to offline access mode.
+   * @see https://shopify.dev/apps/auth/access-modes
+   */
   accessMode: "value" | "per-user";
 }
 
@@ -25,7 +41,7 @@ export class ShopifyStrategy<User> extends OAuth2Strategy<User, OAuth2Profile> {
       clientSecret,
       callbackURL,
       shop,
-      scope,
+      scopes,
       accessMode,
     }: ShopifyStrategyOptions,
     verify: OAuth2StrategyVerifyCallback<User, OAuth2Profile>
@@ -40,7 +56,7 @@ export class ShopifyStrategy<User> extends OAuth2Strategy<User, OAuth2Profile> {
       },
       verify
     );
-    this.scope = scope;
+    this.scope = Array.isArray(scopes) ? scopes.join(",") : scopes;
     this.accessMode = accessMode;
   }
 
