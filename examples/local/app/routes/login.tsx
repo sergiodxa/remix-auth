@@ -1,8 +1,11 @@
-import { ActionFunction, LoaderFunction, redirect } from "remix";
+import { ActionFunction, Form, LoaderFunction, redirect } from "remix";
 import { authenticator } from "~/services/auth";
 
 export let action: ActionFunction = async ({ request }) => {
-  return authenticator.authenticate("local", request);
+  return await authenticator.authenticate("local", request, {
+    successRedirect: "/",
+    failureRedirect: "/login",
+  });
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -13,7 +16,7 @@ export let loader: LoaderFunction = async ({ request }) => {
 
 export default function Login() {
   return (
-    <form method="post">
+    <Form method="post">
       <div>
         <label>Email</label>
         <input
@@ -28,6 +31,6 @@ export default function Login() {
         <input type="password" name="password" required defaultValue="abc123" />
       </div>
       <button>Login</button>
-    </form>
+    </Form>
   );
 }
