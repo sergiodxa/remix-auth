@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto";
 import { json, redirect, SessionStorage } from "remix";
 import { Strategy, StrategyOptions } from "../authenticator";
 
@@ -277,7 +276,14 @@ export class OAuth2Strategy<
   }
 
   private generateState() {
-    return encodeURIComponent(randomBytes(100).toString("base64"));
+    let charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.!~*()';
+    let state = '';
+
+    while (state.length < 100) {
+      state += charset[Math.floor(Math.random() * charset.length)];
+    }
+
+    return state;
   }
 
   /**
