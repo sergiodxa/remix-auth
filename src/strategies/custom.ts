@@ -1,4 +1,4 @@
-import { SessionStorage } from "remix";
+import { SessionStorage } from "@remix-run/server-runtime";
 import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface CustomStrategyVerifyCallback<User> {

@@ -1,4 +1,4 @@
-import { json, redirect, SessionStorage } from "remix";
+import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
 import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface LocalStrategyOptions {
