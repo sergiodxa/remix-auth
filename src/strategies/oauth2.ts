@@ -1,5 +1,5 @@
-import { randomBytes } from "crypto";
 import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
+import { v4 as uuid } from "uuid";
 import { Strategy, StrategyOptions } from "../authenticator";
 
 export interface OAuth2Profile {
@@ -277,7 +277,7 @@ export class OAuth2Strategy<
   }
 
   private generateState() {
-    return encodeURIComponent(randomBytes(100).toString("base64"));
+    return uuid();
   }
 
   /**
