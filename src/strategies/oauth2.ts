@@ -1,6 +1,6 @@
 import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
-import randomString from "crypto-random-string";
 import { Strategy, StrategyOptions } from "../authenticator";
+import { randomString } from "../crypto";
 
 export interface OAuth2Profile {
   provider: string;
@@ -277,7 +277,7 @@ export class OAuth2Strategy<
   }
 
   private generateState() {
-    return randomString({ type: "url-safe", length: 100 });
+    return randomString();
   }
 
   /**
