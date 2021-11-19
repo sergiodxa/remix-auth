@@ -88,7 +88,7 @@ import { getSession, commitSession } from "~/session.server";
 export let action: ActionFunction = async ({ request }) => {
   // Authenticate the request, after that it will redirect to the defined URLs
   // and set the user in the session if it's a success
-  authenticator.authenticate("local", request, {
+  await authenticator.authenticate("local", request, {
     successRedirect: "/dashboard",
     failureRedirect: "/login",
   });
