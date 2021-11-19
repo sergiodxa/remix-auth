@@ -1,6 +1,6 @@
 {
   "name": "remix-auth",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
   "module": "./build/index.mjs",
@@ -40,17 +40,17 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@remix-run/react": "^0.20.1",
-    "@remix-run/server-runtime": "^0.20.1"
+    "@remix-run/react": "^0.21.0",
+    "@remix-run/server-runtime": "^0.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.2",
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@remix-run/node": "^0.20.1",
-    "@remix-run/react": "^0.20.1",
-    "@remix-run/server-runtime": "^0.20.1",
+    "@remix-run/node": "^0.21.0",
+    "@remix-run/react": "^0.21.0",
+    "@remix-run/server-runtime": "^0.21.0",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
