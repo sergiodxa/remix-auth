@@ -1,4 +1,4 @@
-import { createCookieSessionStorage, json } from "remix";
+import { createCookieSessionStorage, json } from "@remix-run/server-runtime";
 import { LocalStrategy } from "../../src";
 
 describe(LocalStrategy, () => {
