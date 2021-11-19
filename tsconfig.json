@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ESNext", "ESNext.Promise"],
+    "lib": ["DOM", "DOM.Iterable", "ES2019"],
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "target": "ESNext",
+    "module": "CommonJS",
+    "target": "ES2019",
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "./dist"
+    "declaration": true,
+    "jsx": "react-jsx",
+    "outDir": "./build"
   },
   "exclude": ["node_modules"],
-  "include": ["remix.env.d.ts", "jest.d.ts", "src/**/*.ts", "src/**/*.tsx"]
+  "include": ["config/remix.env.d.ts", "src/**/*.ts", "src/**/*.tsx"]
 }
