@@ -3,7 +3,6 @@
   "version": "2.3.0",
   "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
-  "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
   "scripts": {
     "build": "tsc --project tsconfig.json",
