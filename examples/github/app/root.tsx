@@ -1,9 +1,9 @@
-import { Outlet } from "react-router-dom";
 import type { LinksFunction, LoaderFunction } from "remix";
 import {
   Links,
   LiveReload,
   Meta,
+  Outlet,
   Scripts,
   useCatch,
   useLoaderData,
