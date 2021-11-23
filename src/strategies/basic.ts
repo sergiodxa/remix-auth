@@ -1,4 +1,4 @@
-import { json } from "remix";
+import { json } from "@remix-run/server-runtime";
 import { Strategy } from "../authenticator";
 
 export interface BasicStrategyOptions {

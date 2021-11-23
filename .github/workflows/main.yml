@@ -19,7 +19,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Build
-        run: npm run setup && npm run build
+        run: npm run build
 
   typecheck:
     name: Typechecker
@@ -37,7 +37,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Typecheck
-        run: npm run setup && npm run typecheck
+        run: npm run typecheck
 
   test:
     name: Unit and Integration Tests
@@ -55,7 +55,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Test
-        run: npm run setup && npm run test -- --ci --coverage --maxWorkers=2
+        run: npm run test -- --ci --coverage --maxWorkers=2
 
   lint:
     name: Linter
@@ -73,7 +73,7 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Build
-        run: npm run setup && npm run build
+        run: npm run build
 
       - name: Lint
         run: npm run lint

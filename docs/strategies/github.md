@@ -52,7 +52,7 @@ import { authenticator } from "~/auth.server";
 export let loader: LoaderFunction = () => redirect("/login");
 
 export let action: ActionFunction = ({ request }) => {
-  authenticator.authenticate("github", request);
+  return authenticator.authenticate("github", request);
 };
 ```
 
@@ -62,7 +62,7 @@ import { ActionFunction, LoaderFunction } from "remix";
 import { authenticator } from "~/auth.server";
 
 export let loader: LoaderFunction = ({ request }) => {
-  authenticator.authenticate("github", request, {
+  return authenticator.authenticate("github", request, {
     successRedirect: "/dashboard",
     failureRedirect: "/login",
   });

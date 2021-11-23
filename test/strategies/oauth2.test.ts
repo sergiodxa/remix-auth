@@ -1,5 +1,5 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock";
-import { createCookieSessionStorage, json } from "remix";
+import { createCookieSessionStorage, json } from "@remix-run/server-runtime";
 import { OAuth2Profile, OAuth2Strategy } from "../../src";
 
 enableFetchMocks();

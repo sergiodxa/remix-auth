@@ -1,20 +1,14 @@
 {
   "name": "remix-auth",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
-  "module": "./build/index.mjs",
   "types": "./build/index.d.ts",
   "scripts": {
-    "build:types": "tsc src/index.ts --declaration --emitDeclarationOnly --declarationDir build --esModuleInterop",
-    "build:esm": "esbuild src/index.ts --bundle --platform=neutral --outfile=build/index.mjs --external:crypto --external:remix",
-    "build:cjs": "esbuild src/index.ts --bundle --platform=node --outfile=build/index.js --external:remix",
-    "build": "npm run build:types && npm run build:esm && npm run build:cjs",
+    "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
-    "test": "jest --config=config/jest.config.ts --passWithNoTests",
-    "setup": "remix setup",
-    "postinstall": "npm run setup"
+    "test": "jest --config=config/jest.config.ts --passWithNoTests"
   },
   "keywords": [
     "remix",
@@ -42,25 +36,24 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@remix-run/node": "^0.21.0",
     "@remix-run/react": "^0.21.0",
-    "remix": "^0.21.0"
+    "@remix-run/server-runtime": "^0.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.2",
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@remix-run/dev": "^0.21.0",
     "@remix-run/node": "^0.21.0",
     "@remix-run/react": "^0.21.0",
+    "@remix-run/server-runtime": "^0.21.0",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
+    "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
     "babel-jest": "^26.6.3",
-    "esbuild": "^0.12.15",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-cypress": "^2.11.3",
@@ -76,8 +69,10 @@
     "prettier": "^2.3.2",
     "react": "^17.0.2",
     "react-router-dom": "^6.0.0-beta.8",
-    "remix": "^0.21.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "uuid": "^8.3.2"
   }
 }

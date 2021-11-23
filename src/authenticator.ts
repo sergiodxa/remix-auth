@@ -1,4 +1,4 @@
-import { redirect, SessionStorage } from "remix";
+import { redirect, SessionStorage } from "@remix-run/server-runtime";
 
 export interface AuthenticateCallback<User> {
   (user: User): Promise<Response>;
