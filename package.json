@@ -44,6 +44,7 @@
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
+    "@remix-run/node": "^1.0.3",
     "@remix-run/react": "^1.0.0",
     "@remix-run/server-runtime": "^1.0.0",
     "@types/jest": "^26.0.23",
