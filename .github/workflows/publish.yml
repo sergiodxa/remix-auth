@@ -14,12 +14,7 @@ jobs:
           node-version: 14
           registry-url: https://registry.npmjs.org/
       - run: npm install
-        env:
-          REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
       - run: npm run build
-        env:
-          REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          REMIX_TOKEN: ${{ secrets.REMIX_TOKEN }}
