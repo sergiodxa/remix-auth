@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "remix build",
-    "dev": "remix run",
+    "dev": "remix dev",
     "postinstall": "remix setup node",
     "start": "remix-serve build"
   },
@@ -16,7 +16,7 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "remix": "*",
-    "remix-auth": "*"
+    "remix-auth": "file:../.."
   },
   "devDependencies": {
     "@remix-run/dev": "*",
