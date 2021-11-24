@@ -13,32 +13,6 @@ export interface Rule<User, Data = unknown> {
   (context: RuleContext<User, Data>): Promise<boolean>;
 }
 
-export function createAuthorizer<User, Data = unknown>(
-  authenticator: Authenticator<User>,
-  rules: Rule<User, Data>[]
-) {
-  return async (
-    args: Omit<RuleContext<User, Data>, "user">,
-    options: { failureRedirect?: string; rules?: Rule<User, Data>[] } = {}
-  ): Promise<User> => {
-    let user = await authenticator.isAuthenticated(args.request);
-
-    if (!user) {
-      if (options.failureRedirect) throw redirect(options.failureRedirect);
-      throw unauthorized({ message: "Not authenticated." });
-    }
-
-    for (let rule of [...rules, ...(options.rules ?? [])]) {
-      if (await rule({ user, ...args })) continue;
-      if (options.failureRedirect) throw redirect(options.failureRedirect);
-      if (!rule.name) throw forbidden({ message: "Forbidden" });
-      throw forbidden({ message: `Forbidden by policy ${rule.name}` });
-    }
-
-    return user;
-  };
-}
-
 export class Authorizer<User = unknown, Data = unknown> {
   constructor(
     private authenticator: Authenticator<User>,
