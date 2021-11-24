@@ -71,7 +71,7 @@ describe(Authorizer, () => {
     await expect(
       authorizer.authorize(
         { request, params: { id: "1" }, context: {} },
-        { failureRedirect: "/login" }
+        { raise: "redirect", failureRedirect: "/login" }
       )
     ).rejects.toEqual(redirect("/login"));
   });
@@ -129,7 +129,7 @@ describe(Authorizer, () => {
     await expect(
       authorizer.authorize(
         { request, params: { id: "1" }, context: {} },
-        { failureRedirect: "/login" }
+        { raise: "redirect", failureRedirect: "/login" }
       )
     ).rejects.toEqual(redirect("/login"));
   });
