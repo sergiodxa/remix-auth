@@ -56,7 +56,7 @@ export class Authorizer<User = unknown, Data = unknown> {
       throw unauthorized({ message: "Not authenticated." });
     }
 
-    for (let rule of [...rules, ...(options.rules ?? [])]) {
+    for (let rule of [...this.rules, ...(options.rules ?? [])]) {
       if (await rule({ user, ...args })) continue;
       if (options.failureRedirect) throw redirect(options.failureRedirect);
       if (!rule.name) throw forbidden({ message: "Forbidden" });
