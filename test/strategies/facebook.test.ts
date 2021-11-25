@@ -22,7 +22,7 @@ describe(FacebookStrategy, () => {
       verify
     );
 
-    let request = new Request("https://example.app/auth/google");
+    let request = new Request("https://example.app/auth/facebook");
 
     try {
       await strategy.authenticate(request, sessionStorage, {
