@@ -50,7 +50,7 @@ describe(FacebookStrategy, () => {
       verify
     );
 
-    let request = new Request("https://example.app/auth/github");
+    let request = new Request("https://example.app/auth/facebook");
 
     try {
       await strategy.authenticate(request, sessionStorage, {
