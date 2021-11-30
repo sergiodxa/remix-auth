@@ -19,10 +19,7 @@ let googleStrategy = new GoogleStrategy(
     clientSecret: "YOUR_CLIENT_SECRET",
     callbackURL: "https://example.com/auth/google/callback";
   },
-  async (accessToken, _, extraParams, profile) => {
-    // Note that GitHub doesn't have a refreshToken so the second param is always
-    // an empty string, you can skip it using `_` as param name
-
+  async (accessToken, refreshToken, extraParams, profile) => {
     // Get the user data from your DB or API using the tokens and profile
     return User.findOrCreate({ email: profile.emails[0].value });
   }
