@@ -1,4 +1,5 @@
-import { createCookieSessionStorage } from "remix";
+import { createCookieSessionStorage } from "@remix-run/server-runtime";
+
 import { AppleStrategy } from "../../src";
 
 describe(AppleStrategy, () => {
@@ -11,13 +12,12 @@ describe(AppleStrategy, () => {
     jest.resetAllMocks();
   });
 
-  test("should allow changing the scope", async () => {
+  test("should have no scope specified", async () => {
     let strategy = new AppleStrategy(
       {
         clientID: "CLIENT_ID",
         clientSecret: "CLIENT_SECRET",
         callbackURL: "https://example.app/callback",
-        scope: "email",
       },
       verify
     );
@@ -36,11 +36,11 @@ describe(AppleStrategy, () => {
 
       let redirectUrl = new URL(location);
 
-      expect(redirectUrl.searchParams.get("scope")).toBe("email");
+      expect(redirectUrl.searchParams.get("scope")).toBe(null);
     }
   });
 
-  test("should have an empty scope if no scope is specified", async () => {
+  test("should have response mode query", async () => {
     let strategy = new AppleStrategy(
       {
         clientID: "CLIENT_ID",
@@ -64,7 +64,7 @@ describe(AppleStrategy, () => {
 
       let redirectUrl = new URL(location);
 
-      expect(redirectUrl.searchParams.get("scope")).toBe("");
+      expect(redirectUrl.searchParams.get("response_mode")).toBe("query");
     }
   });
 

@@ -10,7 +10,6 @@ export interface AppleStrategyOptions {
   clientID: string;
   clientSecret: string;
   callbackURL: string;
-  scope?: "email";
 }
 
 // These interface declare what extra params we will get from Apple on the
@@ -23,14 +22,7 @@ export interface AppleExtraParams extends Record<string, string | number> {
 
 // The AppleProfile extends the OAuth2Profile with the extra params and mark
 // some of them as required
-export interface AppleProfile extends OAuth2Profile {
-  name?: {
-    familyName: string;
-    givenName: string;
-    middleName: string;
-  };
-  email?: string;
-}
+export type AppleProfile = OAuth2Profile;
 
 // And we create our strategy extending the OAuth2Strategy, we also need to
 // pass the User as we did on the FormStrategy, we pass the Auth0Profile and the
@@ -43,7 +35,6 @@ export class AppleStrategy<User> extends OAuth2Strategy<
   // The OAuth2Strategy already has a name but we can override it
   name = "apple";
 
-  private scope: string;
   // We receive our custom options and our verify callback
   constructor(
     options: AppleStrategyOptions,
@@ -63,8 +54,6 @@ export class AppleStrategy<User> extends OAuth2Strategy<
       },
       verify
     );
-
-    this.scope = options.scope || "";
   }
 
   protected async userProfile(): Promise<AppleProfile> {
@@ -77,8 +66,7 @@ export class AppleStrategy<User> extends OAuth2Strategy<
   // you need to send to the authorizationURL here base on your provider.
   protected authorizationParams() {
     return new URLSearchParams({
-      scope: this.scope,
-      response_mode: "form_post",
+      response_mode: "query",
     });
   }
 }
