@@ -6,7 +6,7 @@ This example shows how you can use the Remix Auth with the GitHubStrategy.
 
 1. [Register a new Github OAuth application](https://github.com/settings/applications/new)
 
-  ![](/assets/github-new-oauth-app.png)
+  <img src="/assets/github-new-oauth-app.png" alt="" width="700">
 
 2. Update `.env` with the provided Client ID and the generated Client secret.
 3. Run `npm run dev`
