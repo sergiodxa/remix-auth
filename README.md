@@ -83,7 +83,6 @@ authenticator.use(
 // app/routes/login.tsx
 import { ActionFunction, LoaderFunction, redirect } from "remix";
 import { authenticator } from "~/auth.server";
-import { getSession, commitSession } from "~/session.server";
 
 export let action: ActionFunction = async ({ request }) => {
   // Authenticate the request, after that it will redirect to the defined URLs
