@@ -30,7 +30,7 @@ interface KCDSendEmailFunction<User> {
 So if you have something like `app/services/email-provider.server.ts` file exposing a generic function like `sendEmail` function receiving an email address, subject and body, you could use it like this:
 
 ```tsx
-// app/services/email.server.ts
+// app/services/email.server.tsx
 import { renderToString } from "react-dom/server";
 import type { KCDSendEmailFunction } from "remix-auth";
 import type { User } from "~/models/user.model";
@@ -69,7 +69,7 @@ import { User, getUserByEmail } from "~/models/user.model";
 let secret = process.env.MAGIC_LINK_SECRET;
 if (!secret) throw new Error("Missing MAGIC_LINK_SECRET env variable.");
 
-let auth = new Authenticator<User>(sessionStorage);
+export let auth = new Authenticator<User>(sessionStorage);
 
 // Here we need the sendEmail, the secret and the URL where the user is sent
 // after clicking on the magic link
@@ -96,7 +96,7 @@ import { Form, LoaderFunction, ActionFunction, json } from "remix";
 import { auth } from "~/services/auth.server";
 import { sessionStorage } from "~/services/session.server";
 
-let loader: LoaderFunction = async ({ request }) => {
+export let loader: LoaderFunction = async ({ request }) => {
   auth.isAuthenticated(request, { successRedirect: "/me" });
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   // This session key `kcd:magiclink` is the default one used by the KCDStrategy
@@ -106,7 +106,7 @@ let loader: LoaderFunction = async ({ request }) => {
   return json({ magicLinkSent: false });
 };
 
-let action: ActionFunction = async ({ request }) => {
+export let action: ActionFunction = async ({ request }) => {
   // The success redirect is required in this action, this is where the user is
   // going to be redirected after the magic link is sent, note that here the
   // user is not yet authenticated, so you can't send it to a private page.
@@ -140,8 +140,8 @@ import { LoaderFunction, ActionFunction, json } from "remix";
 import { auth } from "~/services/auth.server";
 import { sessionStorage } from "~/services/session.server";
 
-let loader: LoaderFunction = async ({ request }) => {
-  await auth.authenticate(request, {
+export let loader: LoaderFunction = async ({ request }) => {
+  await auth.authenticate("kcd", request, {
     // If the user was authenticated, we redirect them to their profile page
     // This redirect is optional, if not defined the user will be returnted by
     // the `authenticate` function and you can render something on this page
