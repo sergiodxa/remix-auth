@@ -75,7 +75,7 @@ describe(LocalStrategy, () => {
 
       expect(error).toHaveStatus(302);
       expect(error).toRedirect("/login");
-      expect(session.get("auth:local:error:user")).toBe("Missing username.");
+      expect(session.get("auth:local:error:user")).toStrictEqual({ message: "Missing username." });
     }
   });
 
@@ -99,7 +99,7 @@ describe(LocalStrategy, () => {
 
       expect(error).toHaveStatus(302);
       expect(error).toRedirect("/login");
-      expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+      expect(session.get("auth:local:error:pass")).toStrictEqual({ message: "Missing password." });
     }
   });
 
@@ -123,8 +123,8 @@ describe(LocalStrategy, () => {
 
       expect(error).toHaveStatus(302);
       expect(error).toRedirect("/login");
-      expect(session.get("auth:local:error:user")).toBe("Missing username.");
-      expect(session.get("auth:local:error:pass")).toBe("Missing password.");
+      expect(session.get("auth:local:error:user")).toStrictEqual({ message: "Missing username." });
+      expect(session.get("auth:local:error:pass")).toStrictEqual({ message: "Missing password." });
     }
   });
 
