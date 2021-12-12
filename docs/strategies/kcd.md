@@ -97,7 +97,7 @@ import { auth } from "~/services/auth.server";
 import { sessionStorage } from "~/services/session.server";
 
 export let loader: LoaderFunction = async ({ request }) => {
-  auth.isAuthenticated(request, { successRedirect: "/me" });
+  await auth.isAuthenticated(request, { successRedirect: "/me" });
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   // This session key `kcd:magiclink` is the default one used by the KCDStrategy
   // you can customize it passing a `sessionMagicLinkKey` when creating an
