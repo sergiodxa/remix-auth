@@ -85,6 +85,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
 
   private scope: string;
   private allowSignup: boolean;
+  private userAgent: string;
   private userInfoURL = "https://api.github.com/user";
 
   constructor(
@@ -110,7 +111,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
     );
     this.scope = scope ?? "email";
     this.allowSignup = allowSignup ?? true;
-    this.userAgent = userAgent ?? "Remix Auth"
+    this.userAgent = userAgent ?? "Remix Auth";
   }
 
   protected authorizationParams() {
