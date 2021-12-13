@@ -13,7 +13,7 @@ body:
         Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
          - Remix Auth's Issues tab: https://github.com/sergiodxa/remix-auth/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc
          - Remix Auth's closed issues tab: https://github.com/sergiodxa/remix-auth/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed
-         - remix-auth's Discussion's tab: https://github.com/sergiodxa/remix-auth/discussions
+         - Remix Auth's Discussions tab: https://github.com/sergiodxa/remix-auth/discussions
 
         The more information you fill in, the better the community can help you.
   - type: textarea
