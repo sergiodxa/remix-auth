@@ -74,5 +74,8 @@
   "dependencies": {
     "remix-utils": "^2.1.0",
     "uuid": "^8.3.2"
+  },
+  "browser": {
+    "./src/lib/crypto.ts": "./src/lib/crypto.browser.ts"
   }
 }
