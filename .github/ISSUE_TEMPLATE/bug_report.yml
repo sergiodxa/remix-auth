@@ -30,7 +30,7 @@ body:
       description: |
         Which website or app were you using when the bug happened?
         Note:
-        - Your bug will may get fixed much faster if we can run your code and it doesn't have dependencies other than the remix-auth npm package.
+        - Your bug will may get fixed much faster if we can run your code and it doesn't have dependencies other than the Remix Auth npm package.
         - To create a shareable code example you can use Stackblitz (https://stackblitz.com/). Please no localhost URLs.
         - Please read these tips for providing a minimal example: https://stackoverflow.com/help/mcve.
       placeholder: |
