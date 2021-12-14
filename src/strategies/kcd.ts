@@ -31,7 +31,7 @@ export interface KCDMagicLinkPayload {
    */
   emailAddress: string;
   /**
-   * Whent the magic link was created, as an ISO string. This is used to check
+   * When the magic link was created, as an ISO string. This is used to check
    * the email link is still valid.
    */
   creationDate: string;
@@ -60,7 +60,7 @@ export interface KCDStrategyOptions<User> {
    * email address as a string and return a Promise. The value of the Promise
    * will be ignored, in case of error throw an error.
    *
-   * By default it only test the email agains the RegExp `/.+@.+/`.
+   * By default it only test the email against the RegExp `/.+@.+/`.
    */
   verifyEmailAddress?: KCDVerifyEmailFunction;
   /**

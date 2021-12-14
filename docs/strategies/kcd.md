@@ -143,7 +143,7 @@ import { sessionStorage } from "~/services/session.server";
 export let loader: LoaderFunction = async ({ request }) => {
   await auth.authenticate("kcd", request, {
     // If the user was authenticated, we redirect them to their profile page
-    // This redirect is optional, if not defined the user will be returnted by
+    // This redirect is optional, if not defined the user will be returned by
     // the `authenticate` function and you can render something on this page
     // manually redirect the user.
     successRedirect: "/me",
@@ -262,7 +262,7 @@ interface KCDStrategyOptions<User> {
    * email address as a string and return a Promise. The value of the Promise
    * will be ignored, in case of error throw an error.
    *
-   * By default it only test the email agains the RegExp `/.+@.+/`.
+   * By default it only test the email against the RegExp `/.+@.+/`.
    */
   verifyEmailAddress?: KCDVerifyEmailFunction;
   /**

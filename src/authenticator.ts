@@ -147,7 +147,7 @@ export class Authenticator<User = unknown> {
   /**
    * Call this to check if the user is authenticated. It will return a Promise
    * with the user object or null, you can use this to check if the user is
-   * logged-in or not withour triggering the whole authentication flow.
+   * logged-in or not without triggering the whole authentication flow.
    * @example
    * let loader: LoaderFunction = async ({ request }) => {
    *   // if the user is not authenticated, redirect to login
@@ -170,7 +170,7 @@ export class Authenticator<User = unknown> {
    *   // manually handle what happens if the user is or not authenticated
    *   let user = await authenticator.isAuthenticated(request);
    *   if (!user) return json(publicData);
-   *   return essionLoader(request);
+   *   return sessionLoader(request);
    * }
    */
   async isAuthenticated(

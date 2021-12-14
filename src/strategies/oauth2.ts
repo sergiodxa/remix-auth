@@ -64,7 +64,7 @@ export interface OAuth2StrategyVerifyCallback<
  * - `authorizationURL`  URL used to obtain an authorization grant
  * - `tokenURL`          URL used to obtain an access token
  * - `clientID`          identifies client to service provider
- * - `clientSecret`      secret used to establish ownership of the client identifer
+ * - `clientSecret`      secret used to establish ownership of the client identifier
  * - `callbackURL`       URL to which the service provider will redirect the user after obtaining authorization
  *
  * @example
@@ -197,7 +197,7 @@ export class OAuth2Strategy<
   /**
    * Retrieve user profile from service provider.
    *
-   * OAuth 2.0-based authentication strategies can overrride this function in
+   * OAuth 2.0-based authentication strategies can override this function in
    * order to load the user's profile from the service provider.  This assists
    * applications (and users of those applications) in the initial registration
    * process by automatically submitting required information.
@@ -217,7 +217,7 @@ export class OAuth2Strategy<
    * Some OAuth 2.0 providers allow additional, non-standard parameters to be
    * included when requesting authorization.  Since these parameters are not
    * standardized by the OAuth 2.0 specification, OAuth 2.0-based authentication
-   * strategies can overrride this function in order to populate these
+   * strategies can override this function in order to populate these
    * parameters as required by the provider.
    */
   protected authorizationParams(): URLSearchParams {
@@ -230,7 +230,7 @@ export class OAuth2Strategy<
    * Some OAuth 2.0 providers allow additional, non-standard parameters to be
    * included when requesting an access token.  Since these parameters are not
    * standardized by the OAuth 2.0 specification, OAuth 2.0-based authentication
-   * strategies can overrride this function in order to populate these
+   * strategies can override this function in order to populate these
    * parameters as required by the provider.
    */
   protected tokenParams(): URLSearchParams {
