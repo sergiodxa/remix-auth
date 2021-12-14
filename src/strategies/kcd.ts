@@ -1,7 +1,7 @@
 import {
-  generateKey,
   encrypt as encryptFromLib,
   decrypt as decryptFromLib,
+  generateKey,
 } from "../lib/crypto";
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
 import { Strategy, StrategyOptions } from "../authenticator";
@@ -101,7 +101,6 @@ export interface KCDStrategyOptions<User> {
    * @default false
    */
   validateSessionMagicLink?: boolean;
-  encryptionKey: any;
 }
 
 export interface KCDStrategyVerifyCallback<User> {
@@ -144,7 +143,6 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.emailField = options.emailField ?? this.emailField;
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "token";
     this.linkExpirationTime = options.linkExpirationTime ?? 1000 * 60 * 30; // 30 minutes
-    this.encryptionKey = options.encryptionKey;
     this.validateSessionMagicLink = options.validateSessionMagicLink ?? false;
   }
 
@@ -287,11 +285,12 @@ export class KCDStrategy<User> implements Strategy<User> {
   }
 
   private async encrypt(text: string): Promise<string> {
-    return await encryptFromLib({ text, encryptionKey: this.encryptionKey });
+    this.encryptionKey = await generateKey(this.secret);
+    return await encryptFromLib({ text, key: this.encryptionKey });
   }
 
   private async decrypt(text: string): Promise<string> {
-    return await decryptFromLib({ text, encryptionKey: this.encryptionKey });
+    return await decryptFromLib({ text, key: this.encryptionKey });
   }
 
   private getMagicLinkCode(link: string) {

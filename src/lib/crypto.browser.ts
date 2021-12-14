@@ -8,7 +8,7 @@ function arrayBufferToString(buf: ArrayBuffer): string {
 
 let keyUsages: KeyUsage[] = ["encrypt", "decrypt"];
 
-async function generateKey(): Promise<ArrayBuffer> {
+async function generateKey(secret: string): Promise<ArrayBuffer> {
   let algoKeyGen = {
     name: "AES-GCM",
     length: 256,
