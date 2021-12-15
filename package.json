@@ -4,6 +4,9 @@
   "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
+  "browser": {
+    "./build/crypto/index.ts": "./build/crypto/browser.ts"
+  },
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
@@ -74,8 +77,5 @@
   "dependencies": {
     "remix-utils": "^2.1.0",
     "uuid": "^8.3.2"
-  },
-  "browser": {
-    "./src/lib/crypto.ts": "./src/lib/crypto.browser.ts"
   }
 }
