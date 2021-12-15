@@ -68,10 +68,14 @@ export class LocalStrategy<User> implements Strategy<User> {
     // password must be present at the same time.
     if (!username || !password) {
       if (!username) {
-        session.flash(`${this.errorKey}:user`, { message: "Missing username." });
+        session.flash(`${this.errorKey}:user`, {
+          message: "Missing username.",
+        });
       }
       if (!password) {
-        session.flash(`${this.errorKey}:pass`, { message: "Missing password." });
+        session.flash(`${this.errorKey}:pass`, {
+          message: "Missing password.",
+        });
       }
       let cookie = await sessionStorage.commitSession(session);
       throw redirect(this.loginURL, { headers: { "Set-Cookie": cookie } });

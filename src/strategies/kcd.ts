@@ -1,10 +1,6 @@
-import {
-  encrypt as encryptFromLib,
-  decrypt as decryptFromLib,
-  generateKey,
-} from "../lib/crypto";
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
 import { Strategy, StrategyOptions } from "../authenticator";
+import crypto from "../crypto";
 
 export interface KCDSendEmailOptions<User> {
   emailAddress: string;
@@ -120,9 +116,6 @@ export class KCDStrategy<User> implements Strategy<User> {
   private sendEmail: KCDSendEmailFunction<User>;
   private validateEmail: KCDVerifyEmailFunction;
   private secret: string;
-  private algorithm = "aes-256-ctr";
-  private ivLength = 16;
-  private encryptionKey: any;
   private magicLinkSearchParam: string;
   private linkExpirationTime: number;
   private sessionErrorKey: string;
@@ -187,7 +180,7 @@ export class KCDStrategy<User> implements Strategy<User> {
 
         let magicLink = await this.sendToken(emailAddress, domainUrl);
 
-        session.set(this.sessionMagicLinkKey, this.encrypt(magicLink));
+        session.set(this.sessionMagicLinkKey, await this.encrypt(magicLink));
         throw redirect(options.successRedirect, {
           headers: {
             "Set-Cookie": await sessionStorage.commitSession(session),
@@ -284,13 +277,12 @@ export class KCDStrategy<User> implements Strategy<User> {
     return magicLink;
   }
 
-  private async encrypt(text: string): Promise<string> {
-    this.encryptionKey = await generateKey(this.secret);
-    return await encryptFromLib({ text, key: this.encryptionKey });
+  private async encrypt(value: string): Promise<string> {
+    return await crypto.encrypt(await crypto.generateKey(this.secret), value);
   }
 
-  private async decrypt(text: string): Promise<string> {
-    return await decryptFromLib({ text, key: this.encryptionKey });
+  private async decrypt(value: string): Promise<string> {
+    return await crypto.decrypt(await crypto.generateKey(this.secret), value);
   }
 
   private getMagicLinkCode(link: string) {

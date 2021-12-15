@@ -301,10 +301,7 @@ describe(KCDStrategy, () => {
           body: new URLSearchParams({ email: "user@example.com" }),
           headers: { "X-Forwarded-Host": "localhost:3000" },
         }),
-        {
-          successRedirect: "/me",
-          failureRedirect: "/login",
-        }
+        { successRedirect: "/me", failureRedirect: "/login" }
       );
     } catch (error) {
       if (!(error instanceof Response)) throw error;
@@ -316,7 +313,7 @@ describe(KCDStrategy, () => {
 
       let session = await sessionStorage.getSession(cookie);
       // @ts-expect-error this method is marked as private but we need it here
-      let magicLink = strategy.decrypt(session.get("kcd:magiclink"));
+      let magicLink = await strategy.decrypt(session.get("kcd:magiclink"));
 
       session.unset("kcd:magiclink");
       session.set(auth.sessionKey, user);
