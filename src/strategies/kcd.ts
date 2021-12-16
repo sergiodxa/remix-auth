@@ -1,6 +1,6 @@
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
 import { Strategy, StrategyOptions } from "../authenticator";
-import crypto from "../crypto";
+import crypto from "../crypto/index";
 
 export interface KCDSendEmailOptions<User> {
   emailAddress: string;
