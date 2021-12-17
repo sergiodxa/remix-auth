@@ -43,7 +43,7 @@ export interface DiscordProfile extends OAuth2Profile {
      * the user's avatar hash
      * @see https://discord.com/developers/docs/reference#image-formatting
      */
-    avatar?: string;
+    avatar: string | null;
     /**
      * whether the user belongs to an OAuth2 application
      */
@@ -60,11 +60,11 @@ export interface DiscordProfile extends OAuth2Profile {
      * the user's banner hash
      * @see https://discord.com/developers/docs/reference#image-formatting
      */
-    banner?: string;
+    banner?: string | null;
     /**
      * the user's banner color encoded as an integer representation of hexadecimal color code
      */
-    accent_color?: string;
+    accent_color?: string | null;
     /**
      * the user's chosen language option
      */
@@ -76,7 +76,7 @@ export interface DiscordProfile extends OAuth2Profile {
     /**
      * the user's email
      */
-    email?: string;
+    email?: string | null;
     /**
      * the flags on a user's account
      * @see https://discord.com/developers/docs/resources/user#user-object-user-flags
