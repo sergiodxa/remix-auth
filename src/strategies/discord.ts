@@ -4,7 +4,7 @@ import {
   OAuth2StrategyVerifyCallback,
 } from "./oauth2";
 
-type DiscordScope = "activities.read" | "activities.write" | "applications.builds.read" | "applications.builds.upload" |
+export type DiscordScope = "activities.read" | "activities.write" | "applications.builds.read" | "applications.builds.upload" |
   "applications.commands" | "applications.commands.update" | "applications.entitlements" | "applications.store.update" |
   "bot" | "connections" | "email" | "gdm.join" | "guilds" | "guilds.join" | "guilds.members.read" | "identify" |
   "messages.read" | "relationships.read" | "rpc" | "rpc.activities.write" | "rpc.notifications.read" |
