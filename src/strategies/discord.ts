@@ -4,17 +4,27 @@ import {
   OAuth2StrategyVerifyCallback,
 } from "./oauth2";
 
+
+/**
+ * @see https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
+ */
+export type DiscordScope = "activities.read" | "activities.write" | "applications.builds.read" | "applications.builds.upload" |
+  "applications.commands" | "applications.commands.update" | "applications.entitlements" | "applications.store.update" |
+  "bot" | "connections" | "email" | "gdm.join" | "guilds" | "guilds.join" | "guilds.members.read" | "identify" |
+  "messages.read" | "relationships.read" | "rpc" | "rpc.activities.write" | "rpc.notifications.read" |
+  "rpc.voice.read" | "rpc.voice.write" | "webhook.incoming";
+
 export interface DiscordStrategyOptions {
   clientID: string;
   clientSecret: string;
   callbackURL: string;
   /**
-   * @default "identify email"
+   * @default ["identify", "email"]
    *
    * See all the possible scopes:
    * @see https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
    */
-  scope?: string;
+  scope?: Array<DiscordScope>;
   prompt?: "none" | "consent";
 }
 
@@ -95,10 +105,10 @@ export interface DiscordProfile extends OAuth2Profile {
   };
 }
 
-export interface DiscordExtraParams extends Record<string, string | number> {
+export interface DiscordExtraParams extends Record<string, Array<DiscordScope> | string | number> {
   expires_in: 604_800;
   token_type: "Bearer";
-  scope: string;
+  scope: Array<DiscordScope>;
 }
 
 export class DiscordStrategy<User> extends OAuth2Strategy<
@@ -108,7 +118,7 @@ export class DiscordStrategy<User> extends OAuth2Strategy<
 > {
   name = "discord";
 
-  private scope: string;
+  private scope: Array<DiscordScope>;
   private prompt?: "none" | "consent";
   private userInfoURL = "https://discord.com/api/users/@me";
 
@@ -136,13 +146,13 @@ export class DiscordStrategy<User> extends OAuth2Strategy<
       },
       verify
     );
-    this.scope = scope ?? "identify email";
+    this.scope = scope ?? ["identify", "email"];
     this.prompt = prompt;
   }
 
   protected authorizationParams() {
     let params = new URLSearchParams({
-      scope: this.scope,
+      scope: this.scope.join(' '),
     });
     if (this.prompt) params.set("prompt", this.prompt);
     return params;
@@ -166,5 +176,18 @@ export class DiscordStrategy<User> extends OAuth2Strategy<
     };
 
     return profile;
+  }
+
+  protected async getAccessToken(response: Response): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    extraParams: DiscordExtraParams;
+  }> {
+    let { access_token, refresh_token, scope, ...extraParams } = await response.json();
+    return {
+        accessToken: access_token,
+        refreshToken: refresh_token,
+        extraParams: {...extraParams, scope: scope.split(' ')},
+    };
   }
 }
