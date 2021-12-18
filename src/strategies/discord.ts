@@ -4,6 +4,12 @@ import {
   OAuth2StrategyVerifyCallback,
 } from "./oauth2";
 
+type DiscordScope = "activities.read" | "activities.write" | "applications.builds.read" | "applications.builds.upload" |
+  "applications.commands" | "applications.commands.update" | "applications.entitlements" | "applications.store.update" |
+  "bot" | "connections" | "email" | "gdm.join" | "guilds" | "guilds.join" | "guilds.members.read" | "identify" |
+  "messages.read" | "relationships.read" | "rpc" | "rpc.activities.write" | "rpc.notifications.read" |
+  "rpc.voice.read" | "rpc.voice.write" | "webhook.incoming";
+
 export interface DiscordStrategyOptions {
   clientID: string;
   clientSecret: string;
@@ -14,7 +20,7 @@ export interface DiscordStrategyOptions {
    * See all the possible scopes:
    * @see https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
    */
-  scope?: Array<string>;
+  scope?: Array<DiscordScope>;
   prompt?: "none" | "consent";
 }
 
@@ -95,10 +101,10 @@ export interface DiscordProfile extends OAuth2Profile {
   };
 }
 
-export interface DiscordExtraParams extends Record<string, Array<string> | string | number> {
+export interface DiscordExtraParams extends Record<string, Array<DiscordScope> | string | number> {
   expires_in: 604_800;
   token_type: "Bearer";
-  scope: Array<string>;
+  scope: Array<DiscordScope>;
 }
 
 export class DiscordStrategy<User> extends OAuth2Strategy<
@@ -108,7 +114,7 @@ export class DiscordStrategy<User> extends OAuth2Strategy<
 > {
   name = "discord";
 
-  private scope: Array<string>;
+  private scope: Array<DiscordScope>;
   private prompt?: "none" | "consent";
   private userInfoURL = "https://discord.com/api/users/@me";
 
