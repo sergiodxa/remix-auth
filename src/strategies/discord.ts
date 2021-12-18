@@ -4,6 +4,10 @@ import {
   OAuth2StrategyVerifyCallback,
 } from "./oauth2";
 
+
+/**
+ * @see https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
+ */
 export type DiscordScope = "activities.read" | "activities.write" | "applications.builds.read" | "applications.builds.upload" |
   "applications.commands" | "applications.commands.update" | "applications.entitlements" | "applications.store.update" |
   "bot" | "connections" | "email" | "gdm.join" | "guilds" | "guilds.join" | "guilds.members.read" | "identify" |
