@@ -19,7 +19,7 @@ export class Authenticator<User = unknown> {
    * A map of the configured strategies, the key is the name of the strategy
    * @private
    */
-  private strategies = new Map<string, Strategy<User, any>>();
+  private strategies = new Map<string, Strategy<User, never>>();
 
   public readonly sessionKey: AuthenticateOptions["sessionKey"];
   public readonly sessionErrorKey: AuthenticateOptions["sessionErrorKey"];
@@ -65,7 +65,7 @@ export class Authenticator<User = unknown> {
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)))
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)), "another");
    */
-  use(strategy: Strategy<User, any>, name?: string): Authenticator {
+  use(strategy: Strategy<User, never>, name?: string): Authenticator {
     this.strategies.set(name ?? strategy.name, strategy);
     return this;
   }
