@@ -1,12 +1,10 @@
 import { SessionStorage } from "@remix-run/server-runtime";
-import { Strategy, StrategyOptions } from "../authenticator";
+import { AuthenticateOptions, Strategy } from "../strategy";
 
-export interface CustomStrategyVerifyCallback<User> {
-  (
-    request: Request,
-    sessionStorage: SessionStorage,
-    options: StrategyOptions
-  ): Promise<User>;
+export interface CustomStrategyVerifyCallbackParams {
+  request: Request;
+  sessionStorage: SessionStorage;
+  options: AuthenticateOptions;
 }
 
 /**
@@ -23,20 +21,17 @@ export interface CustomStrategyVerifyCallback<User> {
  *   }
  * ));
  */
-export class CustomStrategy<User> implements Strategy<User> {
+export class CustomStrategy<User> extends Strategy<
+  User,
+  CustomStrategyVerifyCallbackParams
+> {
   name = "custom";
-
-  private verify: CustomStrategyVerifyCallback<User>;
-
-  constructor(verify: CustomStrategyVerifyCallback<User>) {
-    this.verify = verify;
-  }
 
   authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions
+    options: AuthenticateOptions
   ): Promise<User> {
-    return this.verify(request, sessionStorage, options);
+    return this.verify({ request, sessionStorage, options });
   }
 }

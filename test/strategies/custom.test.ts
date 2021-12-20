@@ -22,8 +22,12 @@ describe(CustomStrategy, () => {
     await strategy.authenticate(request, sessionStorage, {
       sessionKey: "user",
     });
-    expect(verify).toHaveBeenCalledWith(request, sessionStorage, {
-      sessionKey: "user",
+    expect(verify).toHaveBeenCalledWith({
+      request,
+      sessionStorage,
+      options: {
+        sessionKey: "user",
+      },
     });
   });
 

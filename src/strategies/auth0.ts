@@ -1,8 +1,6 @@
-import {
-  OAuth2Profile,
-  OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
-} from "./oauth2";
+import { OAuth2StrategyVerifyParams } from ".";
+import { StrategyVerifyCallback } from "..";
+import { OAuth2Profile, OAuth2Strategy } from "./oauth2";
 
 export interface Auth0StrategyOptions {
   domain: string;
@@ -69,7 +67,10 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
 
   constructor(
     options: Auth0StrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, Auth0Profile, Auth0ExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<Auth0Profile, Auth0ExtraParams>
+    >
   ) {
     super(
       {
