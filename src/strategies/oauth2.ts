@@ -40,19 +40,6 @@ export interface OAuth2StrategyVerifyParams<
   profile: Profile;
 }
 
-export interface OAuth2StrategyVerifyCallback<
-  User,
-  Profile extends OAuth2Profile,
-  ExtraParams extends Record<string, unknown> = Record<string, never>
-> {
-  (
-    accessToken: string,
-    refreshToken: string,
-    extraParams: ExtraParams,
-    profile: Profile
-  ): Promise<User>;
-}
-
 /**
  * The OAuth 2.0 authentication strategy authenticates requests using the OAuth
  * 2.0 framework.

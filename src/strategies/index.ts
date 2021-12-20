@@ -8,4 +8,3 @@ export * from "./kcd";
 export * from "./local";
 export * from "./mock";
 export * from "./oauth2";
-export * from "./shopify";

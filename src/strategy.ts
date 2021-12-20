@@ -1,9 +1,4 @@
-import {
-  json,
-  redirect,
-  Session,
-  SessionStorage,
-} from "@remix-run/server-runtime";
+import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
 import { AuthorizationError } from "./error";
 
 /**
@@ -100,7 +95,8 @@ export abstract class Strategy<User, VerifyOptions> {
    */
   protected async failure(
     message: string,
-    session: Session,
+    request: Request,
+    sessionStorage: SessionStorage,
     options: AuthenticateOptions
   ): Promise<never> {
     // if a failureRedirect is not set, we throw a 401 Response or an error
@@ -108,6 +104,10 @@ export abstract class Strategy<User, VerifyOptions> {
       if (options.throwOnError) throw new AuthorizationError(message);
       throw json<{ message: string }>({ message }, 401);
     }
+
+    let session = await sessionStorage.getSession(
+      request.headers.get("Cookie")
+    );
 
     // if we do have a failureRedirect, we redirect to it and set the error
     // in the session errorKey
@@ -127,11 +127,17 @@ export abstract class Strategy<User, VerifyOptions> {
    */
   protected async success(
     user: User,
-    session: Session,
+    request: Request,
+    sessionStorage: SessionStorage,
     options: AuthenticateOptions
   ): Promise<User> {
     // if a successRedirect is not set, we return the user
     if (!options.successRedirect) return user;
+
+    let session = await sessionStorage.getSession(
+      request.headers.get("Cookie")
+    );
+
     // if we do have a successRedirect, we redirect to it and set the user
     // in the session sessionKey
     session.flash(options.sessionKey, user);
