@@ -11,7 +11,8 @@
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
-    "test": "jest --config=config/jest.config.ts --passWithNoTests"
+    "test": "jest --config=config/jest.config.ts --passWithNoTests",
+    "coverage": "npm run test -- --coverage"
   },
   "keywords": [
     "remix",
