@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { CustomStrategy } from "../../src";
+import { CustomStrategy } from "../../src/strategies";
 
 describe(CustomStrategy, () => {
   let verify = jest.fn();

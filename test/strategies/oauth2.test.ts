@@ -4,7 +4,7 @@ import {
   OAuth2Profile,
   OAuth2Strategy,
   OAuth2StrategyVerifyParams,
-} from "../../src";
+} from "../../src/strategies";
 
 enableFetchMocks();
 

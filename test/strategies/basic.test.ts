@@ -1,4 +1,4 @@
-import { BasicStrategy } from "../../src";
+import { BasicStrategy } from "../../src/strategies";
 
 async function testRaisedError(promise: Promise<unknown>, message: string) {
   try {

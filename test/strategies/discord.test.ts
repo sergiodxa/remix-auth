@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { DiscordStrategy } from "../../src";
+import { DiscordStrategy } from "../../src/strategies";
 
 describe(DiscordStrategy, () => {
   let verify = jest.fn();

@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { Auth0Strategy } from "../../src";
+import { Auth0Strategy } from "../../src/strategies";
 
 describe(Auth0Strategy, () => {
   let verify = jest.fn();

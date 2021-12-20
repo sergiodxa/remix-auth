@@ -2,7 +2,8 @@ import {
   createCookieSessionStorage,
   redirect,
 } from "@remix-run/server-runtime";
-import { Authenticator, KCDStrategy } from "../../src";
+import { Authenticator } from "../../src";
+import { KCDStrategy } from "../../src/strategies";
 
 describe(KCDStrategy, () => {
   type User = { id: string; name: string };
