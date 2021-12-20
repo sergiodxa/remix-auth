@@ -1,7 +1,8 @@
+import { StrategyVerifyCallback } from "../strategy";
 import {
   OAuth2Profile,
   OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
+  OAuth2StrategyVerifyParams,
 } from "./oauth2";
 
 export interface GoogleStrategyOptions {
@@ -69,7 +70,10 @@ export class GoogleStrategy<User> extends OAuth2Strategy<
       includeGrantedScopes,
       prompt,
     }: GoogleStrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, GoogleProfile, GoogleExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<GoogleProfile, GoogleExtraParams>
+    >
   ) {
     super(
       {
