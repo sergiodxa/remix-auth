@@ -1,6 +1,10 @@
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
-import { Strategy, StrategyOptions } from "../authenticator";
 import crypto from "../crypto/index";
+import {
+  AuthenticateOptions,
+  Strategy,
+  StrategyVerifyCallback,
+} from "../strategy";
 
 export interface KCDSendEmailOptions<User> {
   emailAddress: string;
@@ -99,18 +103,17 @@ export interface KCDStrategyOptions<User> {
   validateSessionMagicLink?: boolean;
 }
 
-export interface KCDStrategyVerifyCallback<User> {
-  (emailAddress: string): Promise<User>;
+export interface KCDStrategyVerifyParams {
+  email: string;
 }
 
 let verifyEmailAddress: KCDVerifyEmailFunction = async (email) => {
   if (!/.+@.+/.test(email)) throw new Error("A valid email is required.");
 };
 
-export class KCDStrategy<User> implements Strategy<User> {
+export class KCDStrategy<User> extends Strategy<User, KCDStrategyVerifyParams> {
   name = "kcd";
 
-  private verify: KCDStrategyVerifyCallback<User>;
   private emailField = "email";
   private callbackURL: string;
   private sendEmail: KCDSendEmailFunction<User>;
@@ -124,9 +127,9 @@ export class KCDStrategy<User> implements Strategy<User> {
 
   constructor(
     options: KCDStrategyOptions<User>,
-    verify: KCDStrategyVerifyCallback<User>
+    verify: StrategyVerifyCallback<User, KCDStrategyVerifyParams>
   ) {
-    this.verify = verify;
+    super(verify);
     this.sendEmail = options.sendEmail;
     this.callbackURL = options.callbackURL ?? "/magic";
     this.secret = options.secret;
@@ -142,7 +145,7 @@ export class KCDStrategy<User> implements Strategy<User> {
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions
+    options: AuthenticateOptions
   ): Promise<User> {
     let session = await sessionStorage.getSession(
       request.headers.get("Cookie")
@@ -207,7 +210,7 @@ export class KCDStrategy<User> implements Strategy<User> {
         await this.decrypt(magicLink)
       );
       // now that we have the user email we can call verify to get the user
-      user = await this.verify(email);
+      user = await this.verify({ email });
     } catch (error) {
       // if something happens, we should redirect to the failureRedirect
       // and flash the error message, or just throw the error if failureRedirect
@@ -262,13 +265,13 @@ export class KCDStrategy<User> implements Strategy<User> {
     return url.toString();
   }
 
-  private async sendToken(emailAddress: string, domainUrl: string) {
-    let magicLink = await this.getMagicLink(emailAddress, domainUrl);
+  private async sendToken(email: string, domainUrl: string) {
+    let magicLink = await this.getMagicLink(email, domainUrl);
 
-    let user = await this.verify(emailAddress).catch(() => null);
+    let user = await this.verify({ email }).catch(() => null);
 
     await this.sendEmail({
-      emailAddress,
+      emailAddress: email,
       magicLink,
       user,
       domainUrl,
