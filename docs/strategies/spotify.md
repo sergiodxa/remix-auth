@@ -6,7 +6,7 @@ The Spotify strategy is used to authenticate users against an Spotify account. I
 
 ### Create an OAuth application
 
-Follow the steps on [the Spotify documentation](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) to create a new application and get a _Client ID_ and a _Client Secret_.
+Follow the steps on the [Spotify documentation](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) to create a new application and get a _Client ID_ and a _Client Secret_.
 
 ### Create your session storage
 
@@ -74,7 +74,7 @@ export default function Login() {
 ```
 
 ```tsx
-// app/routes/auth/okta.tsx
+// app/routes/auth/spotify.tsx
 import { ActionFunction, LoaderFunction } from "remix";
 import { authenticator } from "~/auth.server";
 export let loader: LoaderFunction = () => redirect("/login");
@@ -84,7 +84,7 @@ export let action: ActionFunction = ({ request }) => {
 ```
 
 ```tsx
-// app/routes/auth/okta/callback.tsx
+// app/routes/auth/spotify/callback.tsx
 import { ActionFunction, LoaderFunction } from "remix";
 import { authenticator } from "~/auth.server";
 export let loader: LoaderFunction = ({ request }) => {
