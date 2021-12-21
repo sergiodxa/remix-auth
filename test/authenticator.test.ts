@@ -2,7 +2,15 @@ import {
   createCookieSessionStorage,
   redirect,
 } from "@remix-run/server-runtime";
-import { Authenticator, MockStrategy } from "../src";
+import { Authenticator, Strategy } from "../src";
+
+class MockStrategy<User> extends Strategy<User, Record<string, never>> {
+  name = "mock";
+
+  authenticate() {
+    return this.verify({});
+  }
+}
 
 describe(Authenticator, () => {
   let sessionStorage = createCookieSessionStorage({

@@ -1,8 +1,9 @@
-import { AuthorizationError } from "../authenticator";
+import { AuthorizationError } from "../error";
+import { StrategyVerifyCallback } from "../strategy";
 import {
   OAuth2Profile,
   OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
+  OAuth2StrategyVerifyParams,
 } from "./oauth2";
 
 export interface GitHubStrategyOptions {
@@ -97,7 +98,10 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
       allowSignup,
       userAgent,
     }: GitHubStrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, GitHubProfile, GitHubExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<GitHubProfile, GitHubExtraParams>
+    >
   ) {
     super(
       {

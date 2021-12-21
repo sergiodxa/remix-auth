@@ -22,7 +22,7 @@ export interface RuleContext<User, Data = unknown> extends LoaderArgs {
  * and the authenticated user (as configured in the Authenticator), and maybe
  * an extra data value.
  *
- * Inside a Rule function you can do any validation to ensure a user to continue
+ * Inside a Rule function you can do any validation to verify a user to continue
  * and return a promise resolving to a boolean value.
  */
 export interface RuleFunction<User, Data = unknown> {

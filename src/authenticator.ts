@@ -1,4 +1,5 @@
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
+import { AuthenticateOptions, Strategy } from "./strategy";
 
 export interface AuthenticateCallback<User> {
   (user: User): Promise<Response>;
@@ -8,53 +9,21 @@ export interface AuthenticateCallback<User> {
  * Extra options for the authenticator.
  */
 export interface AuthenticatorOptions {
-  sessionKey?: string;
+  sessionKey?: AuthenticateOptions["sessionKey"];
+  sessionErrorKey?: AuthenticateOptions["sessionErrorKey"];
+  throwOnError?: AuthenticateOptions["throwOnError"];
 }
-
-/**
- * Extra information from the Authenticator to the strategy
- */
-export interface StrategyOptions {
-  sessionKey: string;
-  successRedirect?: string;
-  failureRedirect?: string;
-}
-
-export interface Strategy<User> {
-  /**
-   * The name of the strategy.
-   * This will be used by the Authenticator to identify and retrieve the
-   * strategy.
-   */
-  name: string;
-
-  /**
-   * The authentication flow of the strategy.
-   *
-   * This method receives the Request to authenticator and the session storage
-   * to use from the Authenticator. It may receive a custom callback.
-   *
-   * At the end of the flow, it will return a Response be use used by the
-   * application. This response could be a redirect or a custom one returned by
-   * the optional callback.
-   */
-  authenticate(
-    request: Request,
-    sessionStorage: SessionStorage,
-    options: StrategyOptions
-  ): Promise<User>;
-}
-
-export class AuthorizationError extends Error {}
 
 export class Authenticator<User = unknown> {
   /**
    * A map of the configured strategies, the key is the name of the strategy
    * @private
    */
-  private strategies = new Map<string, Strategy<User>>();
+  private strategies = new Map<string, Strategy<User, never>>();
 
-  public readonly sessionKey: string;
+  public readonly sessionKey: AuthenticateOptions["sessionKey"];
+  public readonly sessionErrorKey: AuthenticateOptions["sessionErrorKey"];
+  private readonly throwOnError: AuthenticateOptions["throwOnError"];
 
   /**
    * Create a new instance of the Authenticator.
@@ -83,6 +52,8 @@ export class Authenticator<User = unknown> {
     options: AuthenticatorOptions = {}
   ) {
     this.sessionKey = options.sessionKey || "user";
+    this.sessionErrorKey = options.sessionErrorKey || "auth:error";
+    this.throwOnError = options.throwOnError ?? false;
   }
 
   /**
@@ -94,7 +65,7 @@ export class Authenticator<User = unknown> {
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)))
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)), "another");
    */
-  use(strategy: Strategy<User>, name?: string): Authenticator {
+  use(strategy: Strategy<User, never>, name?: string): Authenticator {
     this.strategies.set(name ?? strategy.name, strategy);
     return this;
   }
@@ -134,13 +105,18 @@ export class Authenticator<User = unknown> {
   authenticate(
     strategy: string,
     request: Request,
-    options: Pick<StrategyOptions, "successRedirect" | "failureRedirect"> = {}
+    options: Pick<
+      AuthenticateOptions,
+      "successRedirect" | "failureRedirect" | "throwOnError"
+    > = {}
   ): Promise<User> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
     return strategyObj.authenticate(request.clone(), this.sessionStorage, {
+      throwOnError: this.throwOnError,
       ...options,
       sessionKey: this.sessionKey,
+      sessionErrorKey: this.sessionErrorKey,
     });
   }
 

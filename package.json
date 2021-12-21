@@ -48,9 +48,9 @@
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@remix-run/node": "^1.0.3",
-    "@remix-run/react": "^1.0.0",
-    "@remix-run/server-runtime": "^1.0.0",
+    "@remix-run/node": "^1.1.1",
+    "@remix-run/react": "^1.1.1",
+    "@remix-run/server-runtime": "^1.1.1",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.14",
@@ -76,7 +76,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "remix-utils": "^2.1.0",
+    "remix-utils": "^2.2.0",
     "uuid": "^8.3.2"
   }
 }

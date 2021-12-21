@@ -1,6 +1,10 @@
 import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
 import { v4 as uuid } from "uuid";
-import { Strategy, StrategyOptions } from "../authenticator";
+import {
+  AuthenticateOptions,
+  Strategy,
+  StrategyVerifyCallback,
+} from "../strategy";
 
 export interface OAuth2Profile {
   provider: string;
@@ -26,17 +30,14 @@ export interface OAuth2StrategyOptions {
   callbackURL: string;
 }
 
-export interface OAuth2StrategyVerifyCallback<
-  User,
+export interface OAuth2StrategyVerifyParams<
   Profile extends OAuth2Profile,
   ExtraParams extends Record<string, unknown> = Record<string, never>
 > {
-  (
-    accessToken: string,
-    refreshToken: string,
-    extraParams: ExtraParams,
-    profile: Profile
-  ): Promise<User>;
+  accessToken: string;
+  refreshToken: string;
+  extraParams: ExtraParams;
+  profile: Profile;
 }
 
 /**
@@ -85,8 +86,7 @@ export class OAuth2Strategy<
   User,
   Profile extends OAuth2Profile,
   ExtraParams extends Record<string, unknown> = Record<string, never>
-> implements Strategy<User>
-{
+> extends Strategy<User, OAuth2StrategyVerifyParams<Profile, ExtraParams>> {
   name = "oauth2";
 
   protected authorizationURL: string;
@@ -94,26 +94,28 @@ export class OAuth2Strategy<
   protected clientID: string;
   protected clientSecret: string;
   protected callbackURL: string;
-  protected verify: OAuth2StrategyVerifyCallback<User, Profile, ExtraParams>;
 
   private sessionStateKey = "oauth2:state";
 
   constructor(
     options: OAuth2StrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, Profile, ExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<Profile, ExtraParams>
+    >
   ) {
+    super(verify);
     this.authorizationURL = options.authorizationURL;
     this.tokenURL = options.tokenURL;
     this.clientID = options.clientID;
     this.clientSecret = options.clientSecret;
     this.callbackURL = options.callbackURL;
-    this.verify = verify;
   }
 
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions
+    options: AuthenticateOptions
   ): Promise<User> {
     let url = new URL(request.url);
     let session = await sessionStorage.getSession(
@@ -166,7 +168,12 @@ export class OAuth2Strategy<
 
     // Verify the user and return it, or redirect
     try {
-      user = await this.verify(accessToken, refreshToken, extraParams, profile);
+      user = await this.verify({
+        accessToken,
+        refreshToken,
+        extraParams,
+        profile,
+      });
     } catch (error) {
       let message = (error as Error).message;
       // if we don't have a failureRedirect, we'll just throw a 401 error

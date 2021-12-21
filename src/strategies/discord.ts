@@ -1,7 +1,8 @@
+import { StrategyVerifyCallback } from "../strategy";
 import {
   OAuth2Profile,
   OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
+  OAuth2StrategyVerifyParams,
 } from "./oauth2";
 
 /**
@@ -150,10 +151,9 @@ export class DiscordStrategy<User> extends OAuth2Strategy<
       scope,
       prompt,
     }: DiscordStrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<
+    verify: StrategyVerifyCallback<
       User,
-      DiscordProfile,
-      DiscordExtraParams
+      OAuth2StrategyVerifyParams<DiscordProfile, DiscordExtraParams>
     >
   ) {
     super(
