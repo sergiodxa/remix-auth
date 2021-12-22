@@ -140,7 +140,7 @@ export abstract class Strategy<User, VerifyOptions> {
 
     // if we do have a successRedirect, we redirect to it and set the user
     // in the session sessionKey
-    session.flash(options.sessionKey, user);
+    session.set(options.sessionKey, user);
     throw redirect(options.successRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
