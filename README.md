@@ -49,7 +49,8 @@ export let { getSession, commitSession, destroySession } = sessionStorage;
 
 ```ts
 // app/auth.server.ts
-import { Authenticator, LocalStrategy } from "remix-auth";
+import { Authenticator } from "remix-auth";
+import { LocalStrategy } from "remix-auth/build/strategies/local";
 import { sessionStorage } from "~/session.server";
 import { User, findOrCreateUser } from "~/models/user";
 
