@@ -1,4 +1,5 @@
-import { Authenticator, GitHubStrategy } from "remix-auth";
+import { Authenticator } from "remix-auth";
+import { GitHubStrategy } from "remix-auth-github";
 import { login, User } from "~/models/user";
 import { sessionStorage } from "~/services/session.server";
 
@@ -19,6 +20,6 @@ authenticator.use(
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: "http://localhost:3000/auth/github/callback",
     },
-    async (_, __, ___, profile) => login(profile.emails[0].value)
+    async ({ profile }) => login(profile.emails[0].value)
   )
 );

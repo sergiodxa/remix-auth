@@ -28,7 +28,6 @@ export let loader: LoaderFunction = async ({ request }) => {
 
 export default function Index() {
   let data = useLoaderData<{ user: User; message: string }>();
-
   return (
     <div style={{ textAlign: "center", padding: 20 }}>
       <h2>Welcome to Remix!</h2>
