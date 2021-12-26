@@ -1,6 +1,10 @@
-import fetchMock, { enableFetchMocks } from "jest-fetch-mock";
 import { createCookieSessionStorage, json } from "@remix-run/server-runtime";
-import { OAuth2Profile, OAuth2Strategy } from "../../src";
+import fetchMock, { enableFetchMocks } from "jest-fetch-mock";
+import {
+  OAuth2Profile,
+  OAuth2Strategy,
+  OAuth2StrategyVerifyParams,
+} from "../../src/strategies";
 
 enableFetchMocks();
 
@@ -205,12 +209,12 @@ describe(OAuth2Strategy, () => {
     expect(body.get("grant_type")).toBe("authorization_code");
     expect(body.get("code")).toBe("random-code");
 
-    expect(verify).toHaveBeenLastCalledWith(
-      "random-access-token",
-      "random-refresh-token",
-      { id_token: "random.id.token" },
-      { provider: "oauth2" }
-    );
+    expect(verify).toHaveBeenLastCalledWith({
+      accessToken: "random-access-token",
+      refreshToken: "random-refresh-token",
+      extraParams: { id_token: "random.id.token" },
+      profile: { provider: "oauth2" },
+    } as OAuth2StrategyVerifyParams<OAuth2Profile, { id_token: string }>);
   });
 
   test("should return the result of verify", async () => {

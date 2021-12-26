@@ -1,10 +1,14 @@
 import { json } from "@remix-run/server-runtime";
-import { Strategy } from "../authenticator";
+import { Strategy, StrategyVerifyCallback } from "../strategy";
 
 export interface BasicStrategyOptions {
   realm?: string;
 }
 
+export interface BasicStrategyVerifyCallbackParams {
+  userId: string;
+  password: string;
+}
 export interface BasicStrategyVerifyCallback<User> {
   (userId: string, password: string): Promise<User>;
 }
@@ -33,31 +37,20 @@ export interface BasicStrategyVerifyCallback<User> {
  *
  * For further details on HTTP Basic authentication, refer to [RFC 2617: HTTP Authentication: Basic and Digest Access Authentication](http://tools.ietf.org/html/rfc2617)
  */
-export class BasicStrategy<User> implements Strategy<User> {
+export class BasicStrategy<User> extends Strategy<
+  User,
+  BasicStrategyVerifyCallbackParams
+> {
   name = "basic";
 
   private realm = "Users";
-  private verify: BasicStrategyVerifyCallback<User>;
 
   constructor(
     options: BasicStrategyOptions,
-    verify: BasicStrategyVerifyCallback<User>
-  );
-  constructor(verify: BasicStrategyVerifyCallback<User>);
-  constructor(
-    options: BasicStrategyOptions | BasicStrategyVerifyCallback<User>,
-    verify?: BasicStrategyVerifyCallback<User>
+    verify: StrategyVerifyCallback<User, BasicStrategyVerifyCallbackParams>
   ) {
-    if (typeof options === "function") {
-      this.verify = options;
-    } else if (verify) {
-      this.realm = options.realm || this.realm;
-      this.verify = verify;
-    } else {
-      throw new TypeError(
-        "The verify callback on BasicStrategy must be a function."
-      );
-    }
+    super(verify);
+    this.realm = options.realm || this.realm;
   }
 
   async authenticate(request: Request): Promise<User> {
@@ -97,7 +90,7 @@ export class BasicStrategy<User> implements Strategy<User> {
     }
 
     try {
-      return await this.verify(userId, password);
+      return await this.verify({ userId, password });
     } catch (error) {
       let message = (error as Error).message;
       throw json({ message }, { status: 401, headers: this.headers() });

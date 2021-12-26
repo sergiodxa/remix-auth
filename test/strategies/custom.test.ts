@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { CustomStrategy } from "../../src";
+import { CustomStrategy } from "../../src/strategies";
 
 describe(CustomStrategy, () => {
   let verify = jest.fn();
@@ -22,8 +22,12 @@ describe(CustomStrategy, () => {
     await strategy.authenticate(request, sessionStorage, {
       sessionKey: "user",
     });
-    expect(verify).toHaveBeenCalledWith(request, sessionStorage, {
-      sessionKey: "user",
+    expect(verify).toHaveBeenCalledWith({
+      request,
+      sessionStorage,
+      options: {
+        sessionKey: "user",
+      },
     });
   });
 
