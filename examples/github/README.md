@@ -8,5 +8,5 @@ This example shows how you can use the Remix Auth with the GitHubStrategy.
 
   <img src="/assets/github-new-oauth-app.png" alt="" width="700">
 
-2. Update `.env` with the provided Client ID and the generated Client secret.
+2. Rename `.env.example` to `.env` and update it with the provided Client ID and the generated Client secret.
 3. Run `npm run dev`
