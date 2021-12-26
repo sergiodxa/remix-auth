@@ -1,8 +1,9 @@
-import { AuthorizationError } from "../authenticator";
+import { AuthorizationError } from "../error";
+import { StrategyVerifyCallback } from "../strategy";
 import {
   OAuth2Profile,
   OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
+  OAuth2StrategyVerifyParams,
 } from "./oauth2";
 
 export interface GitHubStrategyOptions {
@@ -11,6 +12,7 @@ export interface GitHubStrategyOptions {
   callbackURL: string;
   scope?: string;
   allowSignup?: boolean;
+  userAgent?: string;
 }
 
 export interface GitHubProfile extends OAuth2Profile {
@@ -84,6 +86,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
 
   private scope: string;
   private allowSignup: boolean;
+  private userAgent: string;
   private userInfoURL = "https://api.github.com/user";
 
   constructor(
@@ -93,8 +96,12 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
       callbackURL,
       scope,
       allowSignup,
+      userAgent,
     }: GitHubStrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, GitHubProfile, GitHubExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<GitHubProfile, GitHubExtraParams>
+    >
   ) {
     super(
       {
@@ -108,6 +115,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
     );
     this.scope = scope ?? "email";
     this.allowSignup = allowSignup ?? true;
+    this.userAgent = userAgent ?? "Remix Auth";
   }
 
   protected authorizationParams() {
@@ -122,6 +130,7 @@ export class GitHubStrategy<User> extends OAuth2Strategy<
       headers: {
         Accept: "application/vnd.github.v3+json",
         Authorization: `token ${accessToken}`,
+        "User-Agent": this.userAgent,
       },
     });
     let data: GitHubProfile["_json"] = await response.json();

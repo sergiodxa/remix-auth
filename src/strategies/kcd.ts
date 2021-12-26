@@ -1,6 +1,10 @@
-import crypto from "crypto";
 import { redirect, SessionStorage } from "@remix-run/server-runtime";
-import { Strategy, StrategyOptions } from "../authenticator";
+import crypto from "../crypto/index";
+import {
+  AuthenticateOptions,
+  Strategy,
+  StrategyVerifyCallback,
+} from "../strategy";
 
 export interface KCDSendEmailOptions<User> {
   emailAddress: string;
@@ -31,7 +35,7 @@ export interface KCDMagicLinkPayload {
    */
   emailAddress: string;
   /**
-   * Whent the magic link was created, as an ISO string. This is used to check
+   * When the magic link was created, as an ISO string. This is used to check
    * the email link is still valid.
    */
   creationDate: string;
@@ -60,7 +64,7 @@ export interface KCDStrategyOptions<User> {
    * email address as a string and return a Promise. The value of the Promise
    * will be ignored, in case of error throw an error.
    *
-   * By default it only test the email agains the RegExp `/.+@.+/`.
+   * By default it only test the email against the RegExp `/.+@.+/`.
    */
   verifyEmailAddress?: KCDVerifyEmailFunction;
   /**
@@ -99,26 +103,22 @@ export interface KCDStrategyOptions<User> {
   validateSessionMagicLink?: boolean;
 }
 
-export interface KCDStrategyVerifyCallback<User> {
-  (emailAddress: string): Promise<User>;
+export interface KCDStrategyVerifyParams {
+  email: string;
 }
 
 let verifyEmailAddress: KCDVerifyEmailFunction = async (email) => {
   if (!/.+@.+/.test(email)) throw new Error("A valid email is required.");
 };
 
-export class KCDStrategy<User> implements Strategy<User> {
+export class KCDStrategy<User> extends Strategy<User, KCDStrategyVerifyParams> {
   name = "kcd";
 
-  private verify: KCDStrategyVerifyCallback<User>;
   private emailField = "email";
   private callbackURL: string;
   private sendEmail: KCDSendEmailFunction<User>;
   private validateEmail: KCDVerifyEmailFunction;
   private secret: string;
-  private algorithm = "aes-256-ctr";
-  private ivLength = 16;
-  private encryptionKey: Buffer;
   private magicLinkSearchParam: string;
   private linkExpirationTime: number;
   private sessionErrorKey: string;
@@ -127,9 +127,9 @@ export class KCDStrategy<User> implements Strategy<User> {
 
   constructor(
     options: KCDStrategyOptions<User>,
-    verify: KCDStrategyVerifyCallback<User>
+    verify: StrategyVerifyCallback<User, KCDStrategyVerifyParams>
   ) {
-    this.verify = verify;
+    super(verify);
     this.sendEmail = options.sendEmail;
     this.callbackURL = options.callbackURL ?? "/magic";
     this.secret = options.secret;
@@ -139,14 +139,13 @@ export class KCDStrategy<User> implements Strategy<User> {
     this.emailField = options.emailField ?? this.emailField;
     this.magicLinkSearchParam = options.magicLinkSearchParam ?? "token";
     this.linkExpirationTime = options.linkExpirationTime ?? 1000 * 60 * 30; // 30 minutes
-    this.encryptionKey = crypto.scryptSync(this.secret, "salt", 32);
     this.validateSessionMagicLink = options.validateSessionMagicLink ?? false;
   }
 
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: StrategyOptions
+    options: AuthenticateOptions
   ): Promise<User> {
     let session = await sessionStorage.getSession(
       request.headers.get("Cookie")
@@ -184,7 +183,7 @@ export class KCDStrategy<User> implements Strategy<User> {
 
         let magicLink = await this.sendToken(emailAddress, domainUrl);
 
-        session.set(this.sessionMagicLinkKey, this.encrypt(magicLink));
+        session.set(this.sessionMagicLinkKey, await this.encrypt(magicLink));
         throw redirect(options.successRedirect, {
           headers: {
             "Set-Cookie": await sessionStorage.commitSession(session),
@@ -206,9 +205,12 @@ export class KCDStrategy<User> implements Strategy<User> {
     try {
       // If we get here, the user clicked on the magic link inside email
       let magicLink = session.get(this.sessionMagicLinkKey) ?? "";
-      let email = this.validateMagicLink(request.url, this.decrypt(magicLink));
+      let email = await this.validateMagicLink(
+        request.url,
+        await this.decrypt(magicLink)
+      );
       // now that we have the user email we can call verify to get the user
-      user = await this.verify(email);
+      user = await this.verify({ email });
     } catch (error) {
       // if something happens, we should redirect to the failureRedirect
       // and flash the error message, or just throw the error if failureRedirect
@@ -253,23 +255,23 @@ export class KCDStrategy<User> implements Strategy<User> {
     };
   }
 
-  private getMagicLink(emailAddress: string, domainUrl: string) {
+  private async getMagicLink(emailAddress: string, domainUrl: string) {
     let payload = this.createMagicLinkPayload(emailAddress);
     let stringToEncrypt = JSON.stringify(payload);
-    let encryptedString = this.encrypt(stringToEncrypt);
+    let encryptedString = await this.encrypt(stringToEncrypt);
     let url = new URL(domainUrl);
     url.pathname = this.callbackURL;
     url.searchParams.set(this.magicLinkSearchParam, encryptedString);
     return url.toString();
   }
 
-  private async sendToken(emailAddress: string, domainUrl: string) {
-    let magicLink = this.getMagicLink(emailAddress, domainUrl);
+  private async sendToken(email: string, domainUrl: string) {
+    let magicLink = await this.getMagicLink(email, domainUrl);
 
-    let user = await this.verify(emailAddress).catch(() => null);
+    let user = await this.verify({ email }).catch(() => null);
 
     await this.sendEmail({
-      emailAddress,
+      emailAddress: email,
       magicLink,
       user,
       domainUrl,
@@ -278,31 +280,12 @@ export class KCDStrategy<User> implements Strategy<User> {
     return magicLink;
   }
 
-  private encrypt(text: string): string {
-    let iv = crypto.randomBytes(this.ivLength);
-    let cipher = crypto.createCipheriv(this.algorithm, this.encryptionKey, iv);
-    let encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
-    return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
+  private async encrypt(value: string): Promise<string> {
+    return await crypto.encrypt(await crypto.generateKey(this.secret), value);
   }
 
-  private decrypt(text: string): string {
-    let [ivPart, encryptedPart] = text.split(":");
-    if (!ivPart || !encryptedPart) {
-      throw new Error("Invalid text.");
-    }
-
-    let iv = Buffer.from(ivPart, "hex");
-    let encryptedText = Buffer.from(encryptedPart, "hex");
-    let decipher = crypto.createDecipheriv(
-      this.algorithm,
-      this.encryptionKey,
-      iv
-    );
-    let decrypted = Buffer.concat([
-      decipher.update(encryptedText),
-      decipher.final(),
-    ]);
-    return decrypted.toString();
+  private async decrypt(value: string): Promise<string> {
+    return await crypto.decrypt(await crypto.generateKey(this.secret), value);
   }
 
   private getMagicLinkCode(link: string) {
@@ -314,7 +297,10 @@ export class KCDStrategy<User> implements Strategy<User> {
     }
   }
 
-  private validateMagicLink(requestUrl: string, sessionMagicLink?: string) {
+  private async validateMagicLink(
+    requestUrl: string,
+    sessionMagicLink?: string
+  ) {
     let linkCode = this.getMagicLinkCode(requestUrl);
     let sessionLinkCode = sessionMagicLink
       ? this.getMagicLinkCode(sessionMagicLink)
@@ -322,7 +308,7 @@ export class KCDStrategy<User> implements Strategy<User> {
 
     let emailAddress, linkCreationDateString, validateSessionMagicLink;
     try {
-      let decryptedString = this.decrypt(linkCode);
+      let decryptedString = await this.decrypt(linkCode);
       let payload = JSON.parse(decryptedString) as KCDMagicLinkPayload;
       emailAddress = payload.emailAddress;
       linkCreationDateString = payload.creationDate;

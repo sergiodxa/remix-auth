@@ -94,7 +94,7 @@ export let loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function Login() {
-  // In the view, we will render our login form and do a POST againt /login to
+  // In the view, we will render our login form and do a POST against /login to
   // trigger our action and authenticate the user, you may also want to change
   // it to use the Form component from Remix in case you provide a custom loading
   // state to your form

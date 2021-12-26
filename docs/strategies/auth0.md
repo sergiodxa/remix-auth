@@ -44,6 +44,7 @@ let auth0Strategy = new Auth0Strategy(
     clientID: "YOUR_CLIENT_ID",
     clientSecret: "YOUR_CLIENT_SECRET",
     callbackURL: "/auth/auth0/callback",
+    audience: "AUDIENCE", // optional
   },
   async (accessToken, refreshToken, profile) => {
     // Get the user data from your DB or API using the tokens and profile

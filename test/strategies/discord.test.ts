@@ -1,7 +1,7 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { ShopifyStrategy } from "../../src";
+import { DiscordStrategy } from "../../src/strategies";
 
-describe(ShopifyStrategy, () => {
+describe(DiscordStrategy, () => {
   let verify = jest.fn();
   let sessionStorage = createCookieSessionStorage({
     cookie: { secrets: ["s3cr3t"] },
@@ -12,19 +12,17 @@ describe(ShopifyStrategy, () => {
   });
 
   test("should allow changing the scope", async () => {
-    let strategy = new ShopifyStrategy(
+    let strategy = new DiscordStrategy(
       {
         clientID: "CLIENT_ID",
         clientSecret: "CLIENT_SECRET",
         callbackURL: "https://example.app/callback",
-        shop: "my-shop.com",
-        scopes: "custom",
-        accessMode: "per-user",
+        scope: "custom",
       },
       verify
     );
 
-    let request = new Request("https://example.app/auth/github");
+    let request = new Request("https://example.app/auth/discord");
 
     try {
       await strategy.authenticate(request, sessionStorage, {
@@ -42,20 +40,45 @@ describe(ShopifyStrategy, () => {
     }
   });
 
-  test("should correctly format the authorization URL", async () => {
-    let strategy = new ShopifyStrategy(
+  test("should have the scope `identify email` as default", async () => {
+    let strategy = new DiscordStrategy(
       {
         clientID: "CLIENT_ID",
         clientSecret: "CLIENT_SECRET",
         callbackURL: "https://example.app/callback",
-        shop: "my-shop.com",
-        scopes: "custom",
-        accessMode: "per-user",
       },
       verify
     );
 
-    let request = new Request("https://example.app/auth/github");
+    let request = new Request("https://example.app/auth/discord");
+
+    try {
+      await strategy.authenticate(request, sessionStorage, {
+        sessionKey: "user",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      let location = error.headers.get("Location");
+
+      if (!location) throw new Error("No redirect header");
+
+      let redirectUrl = new URL(location);
+
+      expect(redirectUrl.searchParams.get("scope")).toBe("identify email");
+    }
+  });
+
+  test("should correctly format the authorization URL", async () => {
+    let strategy = new DiscordStrategy(
+      {
+        clientID: "CLIENT_ID",
+        clientSecret: "CLIENT_SECRET",
+        callbackURL: "https://example.app/callback",
+      },
+      verify
+    );
+
+    let request = new Request("https://example.app/auth/discord");
 
     try {
       await strategy.authenticate(request, sessionStorage, {
@@ -70,10 +93,8 @@ describe(ShopifyStrategy, () => {
 
       let redirectUrl = new URL(location);
 
-      expect(redirectUrl.hostname).toBe("my-shop.com");
-      expect(redirectUrl.pathname).toBe("/admin/oauth/authorize");
-      expect(redirectUrl.searchParams.get("scope")).toBe("custom");
-      expect(redirectUrl.searchParams.get("grant_mode[]")).toBe("per-user");
+      expect(redirectUrl.hostname).toBe("discord.com");
+      expect(redirectUrl.pathname).toBe("/api/oauth2/authorize");
     }
   });
 });

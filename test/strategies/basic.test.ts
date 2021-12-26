@@ -1,4 +1,4 @@
-import { BasicStrategy } from "../../src";
+import { BasicStrategy } from "../../src/strategies";
 
 async function testRaisedError(promise: Promise<unknown>, message: string) {
   try {
@@ -18,13 +18,13 @@ describe(BasicStrategy, () => {
   });
 
   test("should have the name `basic`", () => {
-    let strategy = new BasicStrategy(jest.fn());
+    let strategy = new BasicStrategy({}, jest.fn());
     expect(strategy.name).toBe("basic");
   });
 
   test("should throw a 401 if Authorization was not set", async () => {
     let request = new Request("/auth/basic");
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
 
     await testRaisedError(
       strategy.authenticate(request),
@@ -36,7 +36,7 @@ describe(BasicStrategy, () => {
     let request = new Request("/auth/basic", {
       headers: { Authorization: "invalid" },
     });
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     await testRaisedError(
       strategy.authenticate(request),
       "Invalid Authorization value."
@@ -47,7 +47,7 @@ describe(BasicStrategy, () => {
     let request = new Request("/auth/basic", {
       headers: { Authorization: "Invalid scheme" },
     });
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     await testRaisedError(
       strategy.authenticate(request),
       "Invalid Authorization scheme."
@@ -60,7 +60,7 @@ describe(BasicStrategy, () => {
         Authorization: `Basic ${Buffer.from("credentials").toString("base64")}`,
       },
     });
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     await testRaisedError(
       strategy.authenticate(request),
       "Missing user ID or password."
@@ -73,9 +73,9 @@ describe(BasicStrategy, () => {
         Authorization: `Basic ${Buffer.from("user:pass").toString("base64")}`,
       },
     });
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     await strategy.authenticate(request);
-    expect(verify).toHaveBeenCalledWith("user", "pass");
+    expect(verify).toHaveBeenCalledWith({ userId: "user", password: "pass" });
   });
 
   test("should return with verify result", async () => {
@@ -86,7 +86,7 @@ describe(BasicStrategy, () => {
     });
     let user = { name: "user" };
     verify.mockResolvedValueOnce(user);
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     let result = await strategy.authenticate(request);
     expect(result).toEqual(user);
   });
@@ -111,7 +111,7 @@ describe(BasicStrategy, () => {
     });
     let error = new Error("User not found");
     verify.mockRejectedValueOnce(error);
-    let strategy = new BasicStrategy(verify);
+    let strategy = new BasicStrategy({}, verify);
     await testRaisedError(strategy.authenticate(request), "User not found");
   });
 });

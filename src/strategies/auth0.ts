@@ -1,7 +1,8 @@
+import { StrategyVerifyCallback } from "../strategy";
 import {
   OAuth2Profile,
   OAuth2Strategy,
-  OAuth2StrategyVerifyCallback,
+  OAuth2StrategyVerifyParams,
 } from "./oauth2";
 
 export interface Auth0StrategyOptions {
@@ -10,6 +11,7 @@ export interface Auth0StrategyOptions {
   clientSecret: string;
   callbackURL: string;
   scope?: string;
+  audience?: string;
 }
 
 export interface Auth0ExtraParams extends Record<string, string | number> {
@@ -64,10 +66,14 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
 
   private userInfoURL: string;
   private scope: string;
+  private audience?: string;
 
   constructor(
     options: Auth0StrategyOptions,
-    verify: OAuth2StrategyVerifyCallback<User, Auth0Profile, Auth0ExtraParams>
+    verify: StrategyVerifyCallback<
+      User,
+      OAuth2StrategyVerifyParams<Auth0Profile, Auth0ExtraParams>
+    >
   ) {
     super(
       {
@@ -82,12 +88,18 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
 
     this.userInfoURL = `https://${options.domain}/userinfo`;
     this.scope = options.scope || "openid profile email";
+    this.audience = options.audience;
   }
 
   protected authorizationParams() {
-    return new URLSearchParams({
+    const urlSearchParams: Record<string, string> = {
       scope: this.scope,
-    });
+    };
+    if (this.audience) {
+      urlSearchParams.audience = this.audience;
+    }
+
+    return new URLSearchParams(urlSearchParams);
   }
 
   protected async userProfile(accessToken: string): Promise<Auth0Profile> {

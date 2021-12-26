@@ -1,5 +1,5 @@
 import { createCookieSessionStorage } from "@remix-run/server-runtime";
-import { GoogleStrategy } from "../../src";
+import { GoogleStrategy } from "../../src/strategies";
 
 describe(GoogleStrategy, () => {
   let verify = jest.fn();
