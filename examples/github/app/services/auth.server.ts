@@ -1,4 +1,5 @@
-import { Authenticator, GitHubStrategy } from "remix-auth";
+import { Authenticator } from "remix-auth";
+import { GitHubStrategy } from "remix-auth/build/strategies/github";
 import { login, User } from "~/models/user";
 import { sessionStorage } from "~/services/session.server";
 
