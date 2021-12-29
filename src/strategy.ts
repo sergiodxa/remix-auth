@@ -1,4 +1,9 @@
-import { json, redirect, SessionStorage } from "@remix-run/server-runtime";
+import {
+  AppLoadContext,
+  json,
+  redirect,
+  SessionStorage,
+} from "@remix-run/server-runtime";
 import { AuthorizationError } from "./error";
 
 /**
@@ -30,6 +35,11 @@ export interface AuthenticateOptions {
    * @default true
    */
   throwOnError?: boolean;
+  /**
+   * The context object received by the loader or action.
+   * This can be used by the strategy if needed.
+   */
+  context?: AppLoadContext;
 }
 
 /**
