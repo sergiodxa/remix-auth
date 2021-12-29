@@ -4,9 +4,6 @@
   "description": "Simple Authentication for Remix",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
-  "browser": {
-    "./build/crypto/index.ts": "./build/crypto/browser.ts"
-  },
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
