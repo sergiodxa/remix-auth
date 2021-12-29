@@ -107,7 +107,7 @@ export class Authenticator<User = unknown> {
     request: Request,
     options: Pick<
       AuthenticateOptions,
-      "successRedirect" | "failureRedirect" | "throwOnError"
+      "successRedirect" | "failureRedirect" | "throwOnError" | "context"
     > = {}
   ): Promise<User> {
     const strategyObj = this.strategies.get(strategy);
