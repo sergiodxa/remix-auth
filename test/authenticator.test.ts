@@ -91,6 +91,27 @@ describe(Authenticator, () => {
     }
   });
 
+  test("should redirect after logut", async () => {
+    let user = { id: "123" };
+    let session = await sessionStorage.getSession();
+    session.set("user", user);
+    session.set("strategy", "test");
+
+    let request = new Request("/", {
+      headers: { Cookie: await sessionStorage.commitSession(session) },
+    });
+
+    expect(
+      new Authenticator(sessionStorage, {
+        sessionKey: "user",
+      }).logout(request, { redirectTo: "/login" })
+    ).rejects.toEqual(
+      redirect("/login", {
+        headers: { "Set-Cookie": await sessionStorage.destroySession(session) },
+      })
+    );
+  });
+
   describe("isAuthenticated", () => {
     test("should return the user if it's on the session", async () => {
       let user = { id: "123" };

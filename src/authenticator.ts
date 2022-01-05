@@ -183,4 +183,26 @@ export class Authenticator<User = unknown> {
     if (options.failureRedirect) throw redirect(options.failureRedirect);
     else return null;
   }
+
+  /**
+   * Destroy the user session throw a redirect to another URL.
+   * @example
+   * let action: ActionFunction = async ({ request }) => {
+   *   await authenticator.logout(request, { redirectTo: "/login" });
+   * }
+   */
+  async logout(
+    request: Request,
+    options: { redirectTo: string }
+  ): Promise<void> {
+    let session = await this.sessionStorage.getSession(
+      request.headers.get("Cookie")
+    );
+
+    throw redirect(options.redirectTo, {
+      headers: {
+        "Set-Cookie": await this.sessionStorage.destroySession(session),
+      },
+    });
+  }
 }
