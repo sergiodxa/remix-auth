@@ -22,9 +22,13 @@ export class Authenticator<User = unknown> {
    */
   private strategies = new Map<string, Strategy<User, never>>();
 
-  public readonly sessionKey: AuthenticateOptions["sessionKey"];
-  public readonly sessionErrorKey: AuthenticateOptions["sessionErrorKey"];
-  public readonly sessionStrategyKey: AuthenticateOptions["sessionStrategyKey"];
+  public readonly sessionKey: NonNullable<AuthenticateOptions["sessionKey"]>;
+  public readonly sessionErrorKey: NonNullable<
+    AuthenticateOptions["sessionErrorKey"]
+  >;
+  public readonly sessionStrategyKey: NonNullable<
+    AuthenticateOptions["sessionStrategyKey"]
+  >;
   private readonly throwOnError: AuthenticateOptions["throwOnError"];
 
   /**
