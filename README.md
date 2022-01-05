@@ -6,15 +6,18 @@
 
 ## Features
 
-- Server-Side Authentication.
-- Full TypeScript Support.
-- Strategy-based Authentication.
+- Full **Server-Side** Authentication
+- Complete **TypeScript** Support
+- **Strategy**-based Authentication
+- Easily handle **success and failure**
+- Implement **custom** strategies
+- Supports persisntent **sessions**
 
 ## Overview
 
 Remix Auth is a complete open-source authentication solution for Remix.run applications.
 
-Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
+Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix-based application with minimal setup.
 
 As with Passport.js, it uses the strategy pattern to support the different authentication flows. Each strategy is published individually as a separate npm package.
 
