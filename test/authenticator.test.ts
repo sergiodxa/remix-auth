@@ -1,14 +1,26 @@
 import {
   createCookieSessionStorage,
   redirect,
+  SessionStorage,
 } from "@remix-run/server-runtime";
-import { Authenticator, Strategy } from "../src";
+import { AuthenticateOptions, Authenticator, Strategy } from "../src";
 
 class MockStrategy<User> extends Strategy<User, Record<string, never>> {
   name = "mock";
 
-  authenticate() {
-    return this.verify({});
+  async authenticate(
+    request: Request,
+    sessionStorage: SessionStorage,
+    options: AuthenticateOptions
+  ) {
+    let user = await this.verify({});
+    if (user) return await this.success(user, request, sessionStorage, options);
+    return await this.failure(
+      "Invalid credentials",
+      request,
+      sessionStorage,
+      options
+    );
   }
 }
 
@@ -52,6 +64,31 @@ describe(Authenticator, () => {
     expect(() => authenticator.authenticate("unknown", request)).toThrow(
       "Strategy unknown not found."
     );
+  });
+
+  test("should store the strategy name in the session", async () => {
+    let user = { id: "123" };
+    let session = await sessionStorage.getSession();
+    let request = new Request("/", {
+      headers: { Cookie: await sessionStorage.commitSession(session) },
+    });
+
+    let authenticator = new Authenticator(sessionStorage, {
+      sessionStrategyKey: "strategy-name",
+    });
+    authenticator.use(new MockStrategy(async () => user));
+
+    try {
+      await authenticator.authenticate("mock", request, {
+        successRedirect: "/",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      let cookie = error.headers.get("Set-Cookie");
+      let responseSession = await sessionStorage.getSession(cookie);
+      let strategy = responseSession.get(authenticator.sessionStrategyKey);
+      expect(strategy).toBe("mock");
+    }
   });
 
   describe("isAuthenticated", () => {

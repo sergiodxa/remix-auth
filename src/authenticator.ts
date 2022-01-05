@@ -11,6 +11,7 @@ export interface AuthenticateCallback<User> {
 export interface AuthenticatorOptions {
   sessionKey?: AuthenticateOptions["sessionKey"];
   sessionErrorKey?: AuthenticateOptions["sessionErrorKey"];
+  sessionStrategyKey?: AuthenticateOptions["sessionStrategyKey"];
   throwOnError?: AuthenticateOptions["throwOnError"];
 }
 
@@ -23,6 +24,7 @@ export class Authenticator<User = unknown> {
 
   public readonly sessionKey: AuthenticateOptions["sessionKey"];
   public readonly sessionErrorKey: AuthenticateOptions["sessionErrorKey"];
+  public readonly sessionStrategyKey: AuthenticateOptions["sessionStrategyKey"];
   private readonly throwOnError: AuthenticateOptions["throwOnError"];
 
   /**
@@ -53,6 +55,7 @@ export class Authenticator<User = unknown> {
   ) {
     this.sessionKey = options.sessionKey || "user";
     this.sessionErrorKey = options.sessionErrorKey || "auth:error";
+    this.sessionStrategyKey = options.sessionStrategyKey || "strategy";
     this.throwOnError = options.throwOnError ?? false;
   }
 
@@ -88,17 +91,14 @@ export class Authenticator<User = unknown> {
    * before returning a new Response. In case it's not provided the strategy
    * will return a new Response and set the user to the session.
    * @example
-   * let action: ActionFunction = ({ request }) => {
-   *   return authenticator.authenticate("some", request);
+   * let action: ActionFunction = async ({ request }) => {
+   *   let user = await authenticator.authenticate("some", request);
    * };
    * @example
    * let action: ActionFunction = ({ request }) => {
-   *   return authenticator.authenticate("some", request, async user => {
-   *     let session = await getSession(request.headers.get("Cookie"));
-   *     session.set(authenticator.key, user);
-   *     return redirect("/private", {
-   *       "Set-Cookie": await commitSession(session),
-   *     });
+   *   return authenticator.authenticate("some", request, {
+   *     successRedirect: "/private",
+   *     failureRedirect: "/login",
    *   });
    * };
    */
@@ -117,6 +117,7 @@ export class Authenticator<User = unknown> {
       ...options,
       sessionKey: this.sessionKey,
       sessionErrorKey: this.sessionErrorKey,
+      sessionStrategyKey: this.sessionStrategyKey,
     });
   }
 
