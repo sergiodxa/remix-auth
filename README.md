@@ -165,6 +165,14 @@ if (user) {
 }
 ```
 
+Once the user is ready to leave the application, we can call the `logout` method inside an action.
+
+```ts
+export let action: ActionFunction = async ({ request }) => {
+  await authenticator.logout(request, { redirectTo: "/login" });
+};
+```
+
 ## Advanced Usage
 
 ### Custom redirect URL based on the user
