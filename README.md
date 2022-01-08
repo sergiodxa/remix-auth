@@ -11,7 +11,7 @@
 - **Strategy**-based Authentication
 - Easily handle **success and failure**
 - Implement **custom** strategies
-- Supports persisntent **sessions**
+- Supports persistent **sessions**
 
 ## Overview
 
