@@ -91,7 +91,7 @@ describe(Authenticator, () => {
     }
   });
 
-  test("should redirect after logut", async () => {
+  test("should redirect after logout", async () => {
     let user = { id: "123" };
     let session = await sessionStorage.getSession();
     session.set("user", user);
