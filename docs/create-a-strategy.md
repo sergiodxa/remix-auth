@@ -19,8 +19,8 @@ export interface FormStrategyVerifyCallback<User> {
   (email: string, password: string): Promise<User>;
 }
 
-// You need to tell Strategy how a user object looks like, however you most
-// likely want to use the same object on all your strategies, if you make your
+// You need to tell Strategy how a user object looks like, however you'll most
+// likely want to use the same object for all your strategies, if you make your
 // FormStrategy receive a `User` generic it will inherit it from the
 // Authenticator instance when you use it.
 class FormStrategy<User> implements Strategy<User> {
@@ -113,7 +113,7 @@ And that's it, now you can use it in your routes as you would any other strategy
 
 ## Using on OAuth2
 
-If you want to work with OAuth2 you can use the `OAuth2Strategy` from this package as your base class. This way you wouldn't need to implement the whole OAuth2 flow yourself. The `OAuth2Strategy` will handle the whole flow for you and let you replace parts of it if you want.
+If you want to work with OAuth2 you can use the `OAuth2Strategy` from this package as your base class. This way you won't need to implement the whole OAuth2 flow yourself. The `OAuth2Strategy` will handle the whole flow for you and let you replace parts of it if you want.
 
 Let's see how the `Auth0Strategy` is implemented using the `OAuth2Strategy` as a base.
 
@@ -133,7 +133,7 @@ export interface Auth0StrategyOptions {
   callbackURL: string;
 }
 
-// These interface declare what extra params we will get from Auth0 on the
+// This interface declares what extra params we will get from Auth0 in the
 // verify callback
 export interface Auth0ExtraParams extends Record<string, string | number> {
   id_token: string;
@@ -253,4 +253,4 @@ export class Auth0Strategy<User> extends OAuth2Strategy<
 }
 ```
 
-And that's it, thanks to the `OAuth2Strategy` we don't need to implement the whole OAuth2 flow ourselves and can focus on the unique parts of our strategy which is the user profile and extra params our provider may require us to send.
+And that's it, thanks to the `OAuth2Strategy` we don't need to implement the whole OAuth2 flow ourselves and can focus on the unique parts of our strategy which in this case are the user profile and extra params our provider may require us to send.

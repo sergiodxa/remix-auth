@@ -1,6 +1,6 @@
 # Authenticator
 
-The Authenticator is the most important and the simples part of Remix Auth. This is how you define what strategies to use and how you use them without the need to write any strategy specific code in your routes.
+The Authenticator is the most important and the simplest part of Remix Auth. This is how you define what strategies to use and how you use them without the need to write any strategy specific code in your routes.
 
 ## Usage
 
@@ -60,7 +60,7 @@ export let authenticator = new Authenticator<User>(sessionStorage);
 
 authenticator.use(
   new LocalStrategy({ loginURL: "/login" }, async (username, password) => {
-    // the resutl of this call must follow the User type defined above
+    // the result of this call must follow the User type defined above
     return getUserSomehow(username, password);
   })
 );
@@ -68,7 +68,7 @@ authenticator.use(
 
 ## Setup your routes
 
-This will depend a lot on what strategy you are using, since they may have different requirements, but continuing the example of the `LocalStrategy` we need to create a `/login` route and call our authenticator there.
+This will depend a lot on what strategy you are using since each one may have different requirements. Continuing our example of the `LocalStrategy`, we need to create a `/login` route and call our authenticator there.
 
 ```tsx
 import { ActionFunction, LoaderFunction, Form, redirect, json } from "remix";
@@ -108,4 +108,4 @@ export default function Login() {
 }
 ```
 
-And that's it, you have now setup your first strategy and you can now use it in your routes.
+And that's it, you have now setup your first strategy and can use it in your routes.
