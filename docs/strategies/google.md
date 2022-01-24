@@ -8,10 +8,16 @@ The Google strategy is used to authenticate users against a Google account. It e
 
 Follow the steps on [the Google documentation](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred) to create a new application and get a client ID and secret.
 
+### Install the strategy
+
+```ts
+npm install remix-auth-google --save
+```
+
 ### Create the strategy instance
 
 ```ts
-import { GoogleStrategy } from "remix-auth";
+import { GoogleStrategy } from "remix-auth-google";
 
 let googleStrategy = new GoogleStrategy(
   {
