@@ -1,3 +1,0 @@
-# LocalStrategy
-
-TBD

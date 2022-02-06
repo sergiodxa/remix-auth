@@ -1,3 +1,0 @@
-# ShopifyStrategy
-
-TBD

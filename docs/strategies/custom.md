@@ -1,3 +1,0 @@
-# CustomStrategy
-
-TBD

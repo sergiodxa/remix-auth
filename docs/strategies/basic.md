@@ -1,3 +1,0 @@
-# BasicStrategy
-
-TBD
