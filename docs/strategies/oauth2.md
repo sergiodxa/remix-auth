@@ -1,3 +1,0 @@
-# OAuth2Strategy
-
-TBD
