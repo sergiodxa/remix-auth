@@ -136,7 +136,7 @@ export let action: ActionFunction = async ({ request }) => {
 // dashboard if it is or return null if it's not
 export let loader: LoaderFunction = async ({ request }) => {
   // If the user is already authenticated redirect to /dashboard directly
-  await authenticator.isAuthenticated(request, {
+  return await authenticator.isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
 };
