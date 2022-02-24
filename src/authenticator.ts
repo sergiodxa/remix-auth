@@ -43,7 +43,7 @@ export class Authenticator<User = unknown> {
    *
    * It optionally receives an object with extra options. The supported options
    * are:
-   * - `sessionKey`: The key used to store and red the user in the session storage.
+   * - `sessionKey`: The key used to store and read the user in the session storage.
    * @example
    * import { sessionStorage } from "./session.server";
    * let authenticator = new Authenticator(sessionStorage);
