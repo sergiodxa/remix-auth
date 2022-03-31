@@ -15,7 +15,7 @@ export interface AuthenticatorOptions {
   throwOnError?: AuthenticateOptions["throwOnError"];
 }
 
-export class Authenticator<User = unknown> {
+export class Authenticator<User = unknown, ExtendAuthenticateOptions = {}> {
   /**
    * A map of the configured strategies, the key is the name of the strategy
    * @private
@@ -109,7 +109,7 @@ export class Authenticator<User = unknown> {
   authenticate(
     strategy: string,
     request: Request,
-    options: Pick<
+    options: ExtendAuthenticateOptions & Pick<
       AuthenticateOptions,
       "successRedirect" | "failureRedirect" | "throwOnError" | "context"
     > = {}
