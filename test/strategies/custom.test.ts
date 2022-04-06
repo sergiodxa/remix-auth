@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "@remix-run/server-runtime";
+import { createCookieSessionStorage } from "@remix-run/node";
 import { CustomStrategy } from "../../src/strategies";
 
 describe(CustomStrategy, () => {

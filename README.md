@@ -39,7 +39,7 @@ In this example I'm using the [createCookieSessionStorage](https://remix.run/doc
 
 ```ts
 // app/services/session.server.ts
-import { createCookieSessionStorage } from "remix";
+import { createCookieSessionStorage } from "@remix-run/node";
 
 // export the whole sessionStorage object
 export let sessionStorage = createCookieSessionStorage({

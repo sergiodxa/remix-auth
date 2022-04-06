@@ -26,7 +26,7 @@ We are importing `sessionStorage` from `app/session.server.ts`, in this file you
 You may also want to export only `getSession`, `commitSession` and `destroySession` to use them in your routes.
 
 ```ts
-import { createCookieSessionStorage } from "remix";
+import { createCookieSessionStorage } from "@remix-run/node";
 
 export let sessionStorage = createCookieSessionStorage({
   cookie: {
