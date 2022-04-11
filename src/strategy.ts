@@ -111,6 +111,7 @@ export abstract class Strategy<User, VerifyOptions> {
   public async isAuthenticated(
     request: Request,
     user: User | null,
+    sessionStorage: SessionStorage,
     options:
       | { successRedirect?: never; failureRedirect?: never }
       | { successRedirect: string; failureRedirect?: never }

@@ -183,7 +183,12 @@ export class Authenticator<User = unknown> {
     const strategyObj = this.strategies.get(strategy);
 
     if (strategyObj && strategyObj.isAuthenticated) {
-      return await strategyObj.isAuthenticated(request, user, options);
+      return await strategyObj.isAuthenticated(
+        request,
+        user,
+        this.sessionStorage,
+        options
+      );
     }
 
     if (user) {
