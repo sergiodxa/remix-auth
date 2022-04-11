@@ -100,6 +100,32 @@ export abstract class Strategy<User, VerifyOptions> {
   ): Promise<User>;
 
   /**
+   * The verify authentication flow of the strategy.
+   *
+   * Call this to check if the user is authenticated. It will return a Promise
+   * with the user object or null, you can use this to check if the user is
+   * logged-in or not without triggering the whole authentication flow.
+   *
+   * This method is used by strategies to check if the user is authenticated. And refreshing the user session.
+   */
+  public async isAuthenticated(
+    request: Request,
+    user: User | null,
+    options:
+      | { successRedirect?: never; failureRedirect?: never }
+      | { successRedirect: string; failureRedirect?: never }
+      | { successRedirect?: never; failureRedirect: string } = {}
+  ): Promise<User | null> {
+    if (user) {
+      if (options.successRedirect) throw redirect(options.successRedirect);
+      else return user;
+    }
+
+    if (options.failureRedirect) throw redirect(options.failureRedirect);
+    else return null;
+  }
+
+  /**
    * Throw an AuthorizationError or a redirect to the failureRedirect.
    * @param message The error message to set in the session.
    * @param session The session object to set the error in.

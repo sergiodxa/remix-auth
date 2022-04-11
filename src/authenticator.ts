@@ -179,6 +179,13 @@ export class Authenticator<User = unknown> {
 
     let user: User | null = session.get(this.sessionKey) ?? null;
 
+    const strategy = session?.get(this.sessionStrategyKey || "strategy");
+    const strategyObj = this.strategies.get(strategy);
+
+    if (strategyObj && strategyObj.isAuthenticated) {
+      return await strategyObj.isAuthenticated(request, user, options);
+    }
+
     if (user) {
       if (options.successRedirect) throw redirect(options.successRedirect);
       else return user;

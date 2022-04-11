@@ -1,7 +1,5 @@
-import {
-  createCookieSessionStorage,
-  redirect,
-} from "@remix-run/server-runtime";
+import { redirect } from "@remix-run/server-runtime";
+import { createCookieSessionStorage } from "@remix-run/node";
 import { forbidden, unauthorized } from "remix-utils";
 import { Authenticator, Authorizer } from "../src";
 
