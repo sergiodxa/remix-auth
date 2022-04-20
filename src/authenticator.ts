@@ -167,6 +167,10 @@ export class Authenticator<User = unknown> {
     options: { successRedirect?: never; failureRedirect: string }
   ): Promise<User>;
   async isAuthenticated(
+    request: Request, 
+    options: { successRedirect: string; failureRedirect: string }
+  ): Promise<User>;
+  async isAuthenticated(
     request: Request,
     options:
       | { successRedirect?: never; failureRedirect?: never }
