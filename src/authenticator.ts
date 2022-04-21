@@ -175,7 +175,8 @@ export class Authenticator<User = unknown> {
     options:
       | { successRedirect?: never; failureRedirect?: never }
       | { successRedirect: string; failureRedirect?: never }
-      | { successRedirect?: never; failureRedirect: string } = {}
+      | { successRedirect?: never; failureRedirect: string }
+       = {}
   ): Promise<User | null> {
     let session = await this.sessionStorage.getSession(
       request.headers.get("Cookie")
