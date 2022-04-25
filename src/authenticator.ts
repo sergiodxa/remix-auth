@@ -169,7 +169,7 @@ export class Authenticator<User = unknown> {
   async isAuthenticated(
     request: Request, 
     options: { successRedirect: string; failureRedirect: string }
-  ): Promise<User>;
+  ): Promise<null>;
   async isAuthenticated(
     request: Request,
     options:
