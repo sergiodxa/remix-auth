@@ -89,7 +89,10 @@ export class Authorizer<User = unknown, Data = unknown> {
       if (raise === "redirect") throw redirect(failureRedirect);
       if (raise === "response") {
         if (!rule.name) throw json({ message: "Forbidden" }, { status: 403 });
-        throw json({ message: `Forbidden by policy ${rule.name}` }, { status: 403 });
+        throw json(
+          { message: `Forbidden by policy ${rule.name}` },
+          { status: 403 }
+        );
       }
       if (!rule.name) throw new Error("Forbidden.");
       throw new Error(`Forbidden by policy ${rule.name}`);
