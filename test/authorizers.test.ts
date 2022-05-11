@@ -1,8 +1,8 @@
 import {
   createCookieSessionStorage,
   redirect,
+  json,
 } from "@remix-run/server-runtime";
-import { forbidden, unauthorized } from "remix-utils";
 import { Authenticator, Authorizer } from "../src";
 
 describe(Authorizer, () => {
@@ -56,7 +56,7 @@ describe(Authorizer, () => {
 
     await expect(
       authorizer.authorize({ request, params: { id: "1" }, context: {} })
-    ).rejects.toEqual(unauthorized({ message: "Not authenticated." }));
+    ).rejects.toEqual(json({ message: "Not authenticated." }, { status: 401 }));
   });
 
   test("if user is not logged in an failureRedirect is defined redirect", async () => {
@@ -92,7 +92,7 @@ describe(Authorizer, () => {
 
     await expect(
       authorizer.authorize({ request, params: { id: "1" }, context: {} })
-    ).rejects.toEqual(forbidden({ message: "Forbidden by policy isNotAdmin" }));
+    ).rejects.toEqual(json({ message: "Forbidden by policy isNotAdmin" }, { status: 403 }));
   });
 
   test("if user doesn't pass rule throw a Forbidden response without the policy name if it's an arrow function", async () => {
@@ -109,7 +109,7 @@ describe(Authorizer, () => {
 
     await expect(
       authorizer.authorize({ request, params: { id: "1" }, context: {} })
-    ).rejects.toEqual(forbidden({ message: "Forbidden" }));
+    ).rejects.toEqual(json({ message: "Forbidden" }, { status: 403 }));
   });
 
   test("if user doesn't pass rule and failureRedirect is defined throw a redirect", async () => {

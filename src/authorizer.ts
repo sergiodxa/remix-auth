@@ -1,5 +1,4 @@
-import { LoaderFunction, redirect } from "@remix-run/server-runtime";
-import { forbidden, unauthorized } from "remix-utils";
+import { LoaderFunction, redirect, json } from "@remix-run/server-runtime";
 import { Authenticator } from "./authenticator";
 
 type LoaderArgs = Parameters<LoaderFunction>[0];
@@ -75,7 +74,7 @@ export class Authorizer<User = unknown, Data = unknown> {
 
     if (!user) {
       if (raise === "response") {
-        throw unauthorized({ message: "Not authenticated." });
+        throw json({ message: "Not authenticated." }, { status: 401 });
       }
       if (raise === "redirect") {
         // @ts-expect-error failureRedirect is a string if raise is redirect
@@ -89,8 +88,8 @@ export class Authorizer<User = unknown, Data = unknown> {
       // @ts-expect-error failureRedirect is a string if raise is redirect
       if (raise === "redirect") throw redirect(failureRedirect);
       if (raise === "response") {
-        if (!rule.name) throw forbidden({ message: "Forbidden" });
-        throw forbidden({ message: `Forbidden by policy ${rule.name}` });
+        if (!rule.name) throw json({ message: "Forbidden" }, { status: 403 });
+        throw json({ message: `Forbidden by policy ${rule.name}` }, { status: 403 });
       }
       if (!rule.name) throw new Error("Forbidden.");
       throw new Error(`Forbidden by policy ${rule.name}`);
