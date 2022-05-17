@@ -116,7 +116,7 @@ export class Authenticator<User = unknown> {
   ): Promise<User> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
-    return strategyObj.authenticate(request.clone(), this.sessionStorage, {
+    return strategyObj.authenticate(new Request(request.url, request), this.sessionStorage, {
       throwOnError: this.throwOnError,
       ...options,
       sessionKey: this.sessionKey,
