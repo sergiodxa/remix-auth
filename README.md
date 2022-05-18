@@ -99,7 +99,8 @@ First, create a `/login` page. Here we will render a form to get the email and p
 
 ```tsx
 // app/routes/login.tsx
-import { Form, ActionFunction, LoaderFunction, redirect } from "remix";
+import { Form } from "@remix-run/react"
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node"
 import { authenticator } from "~/auth.server";
 
 // First we create our UI with the form doing a POST and the inputs with the
