@@ -118,7 +118,10 @@ export abstract class Strategy<User, VerifyOptions> {
     // if a failureRedirect is not set, we throw a 401 Response or an error
     if (!options.failureRedirect) {
       if (options.throwOnError) throw new AuthorizationError(message, errors);
-      throw json<{ message: string }>({ message }, 401);
+      throw json<{
+        message: string;
+        errors: AuthorizationErrorErrors | undefined;
+      }>({ message, errors }, 401);
     }
 
     let session = await sessionStorage.getSession(
