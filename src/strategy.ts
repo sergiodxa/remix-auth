@@ -4,7 +4,7 @@ import {
   redirect,
   SessionStorage,
 } from "@remix-run/server-runtime";
-import { AuthorizationError } from "./error";
+import { AuthorizationError, AuthorizationErrorErrors } from "./error";
 
 /**
  * Extra information from the Authenticator to the strategy
@@ -112,12 +112,16 @@ export abstract class Strategy<User, VerifyOptions> {
     message: string,
     request: Request,
     sessionStorage: SessionStorage,
-    options: AuthenticateOptions
+    options: AuthenticateOptions,
+    errors?: AuthorizationErrorErrors
   ): Promise<never> {
     // if a failureRedirect is not set, we throw a 401 Response or an error
     if (!options.failureRedirect) {
-      if (options.throwOnError) throw new AuthorizationError(message);
-      throw json<{ message: string }>({ message }, 401);
+      if (options.throwOnError) throw new AuthorizationError(message, errors);
+      throw json<{
+        message: string;
+        errors: AuthorizationErrorErrors | undefined;
+      }>({ message, errors }, 401);
     }
 
     let session = await sessionStorage.getSession(
