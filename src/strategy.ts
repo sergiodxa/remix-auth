@@ -18,7 +18,7 @@ export interface AuthenticateOptions {
    * In what key of the session the errors will be set.
    * @default "auth:error"
    */
-  sessionErrorKey?: string;
+  sessionErrorKey: string;
   /**
    * The key of the session used to set the strategy used to authenticate the
    * user.
