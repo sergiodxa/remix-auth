@@ -1,4 +1,9 @@
-import { redirect, SessionStorage } from "@remix-run/server-runtime";
+import {
+  isSession,
+  redirect,
+  Session,
+  SessionStorage,
+} from "@remix-run/server-runtime";
 import { AuthenticateOptions, Strategy } from "./strategy";
 
 export interface AuthenticateCallback<User> {
@@ -159,32 +164,32 @@ export class Authenticator<User = unknown> {
    * }
    */
   async isAuthenticated(
-    request: Request,
+    request: Request | Session,
     options?: { successRedirect?: never; failureRedirect?: never }
   ): Promise<User | null>;
   async isAuthenticated(
-    request: Request,
+    request: Request | Session,
     options: { successRedirect: string; failureRedirect?: never }
   ): Promise<null>;
   async isAuthenticated(
-    request: Request,
+    request: Request | Session,
     options: { successRedirect?: never; failureRedirect: string }
   ): Promise<User>;
   async isAuthenticated(
-    request: Request, 
+    request: Request | Session,
     options: { successRedirect: string; failureRedirect: string }
   ): Promise<null>;
   async isAuthenticated(
-    request: Request,
+    request: Request | Session,
     options:
       | { successRedirect?: never; failureRedirect?: never }
       | { successRedirect: string; failureRedirect?: never }
       | { successRedirect?: never; failureRedirect: string }
       | { successRedirect: string; failureRedirect: string } = {}
   ): Promise<User | null> {
-    let session = await this.sessionStorage.getSession(
-      request.headers.get("Cookie")
-    );
+    let session = isSession(request)
+      ? request
+      : await this.sessionStorage.getSession(request.headers.get("Cookie"));
 
     let user: User | null = session.get(this.sessionKey) ?? null;
 
@@ -205,12 +210,12 @@ export class Authenticator<User = unknown> {
    * }
    */
   async logout(
-    request: Request,
+    request: Request | Session,
     options: { redirectTo: string }
   ): Promise<void> {
-    let session = await this.sessionStorage.getSession(
-      request.headers.get("Cookie")
-    );
+    let session = isSession(request)
+      ? request
+      : await this.sessionStorage.getSession(request.headers.get("Cookie"));
 
     throw redirect(options.redirectTo, {
       headers: {
