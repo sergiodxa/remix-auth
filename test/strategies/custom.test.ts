@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from "@remix-run/server-runtime";
+import { createCookieSessionStorage } from "@remix-run/node";
 import { CustomStrategy } from "../../src/strategies";
 
 describe(CustomStrategy, () => {
@@ -21,6 +21,7 @@ describe(CustomStrategy, () => {
     let strategy = new CustomStrategy(verify);
     await strategy.authenticate(request, sessionStorage, {
       sessionKey: "user",
+      sessionErrorKey: "error",
     });
     expect(verify).toHaveBeenCalledWith({
       request,
@@ -36,6 +37,7 @@ describe(CustomStrategy, () => {
     let strategy = new CustomStrategy(verify);
     let response = await strategy.authenticate(request, sessionStorage, {
       sessionKey: "user",
+      sessionErrorKey: "error",
     });
     expect(response).toEqual({ id: "123" });
   });
@@ -46,6 +48,7 @@ describe(CustomStrategy, () => {
     await expect(
       strategy.authenticate(request, sessionStorage, {
         sessionKey: "user",
+        sessionErrorKey: "error",
       })
     ).rejects.toThrow("Something failed.");
   });
