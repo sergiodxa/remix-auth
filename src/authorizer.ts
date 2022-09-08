@@ -1,20 +1,23 @@
-import { LoaderFunction, redirect, json } from "@remix-run/server-runtime";
+import type { DataFunctionArgs } from "@remix-run/server-runtime";
+import { json, redirect } from "@remix-run/server-runtime";
 import { Authenticator } from "./authenticator";
 
-type LoaderArgs = Parameters<LoaderFunction>[0];
+/**
+ * Extra data passed to the Authorizer from the loader or action
+ */
+type AuthorizeArgs<Data> = { data?: Data } & Omit<
+  DataFunctionArgs,
+  "context"
+> & {
+    context?: DataFunctionArgs["context"];
+  };
 
-type AuthorizeArgs<User, Data> = Omit<RuleContext<User, Data>, "user">;
-
-export interface RuleContext<User, Data = unknown> extends LoaderArgs {
+export type RuleContext<User, Data = null> = {
   /**
    * The authenticated user returned by the Authenticator
    */
   user: User;
-  /**
-   * Extra data passed to the Authorizer from the loader or action
-   */
-  data?: Data;
-}
+} & AuthorizeArgs<Data>;
 
 /**
  * A Rule is a function that receives the same arguments of a Loader or Action
@@ -24,9 +27,32 @@ export interface RuleContext<User, Data = unknown> extends LoaderArgs {
  * Inside a Rule function you can do any validation to verify a user to continue
  * and return a promise resolving to a boolean value.
  */
-export interface RuleFunction<User, Data = unknown> {
+export interface RuleFunction<User, Data = null> {
   (context: RuleContext<User, Data>): Promise<boolean>;
 }
+
+type AuthorizeOptionsError = {
+  failureRedirect?: never;
+  raise: "error";
+};
+type AuthorizeOptionsResponse = {
+  failureRedirect?: never;
+  raise: "response";
+};
+type AuthorizeOptionsRedirect = {
+  failureRedirect: string;
+  raise: "redirect";
+};
+type AuthorizeOptionsEmpty = {
+  failureRedirect?: never;
+  raise?: never;
+};
+type AuthorizeOptions<U, D> = (
+  | AuthorizeOptionsError
+  | AuthorizeOptionsRedirect
+  | AuthorizeOptionsResponse
+  | AuthorizeOptionsEmpty
+) & { rules?: RuleFunction<U, D>[] };
 
 export class Authorizer<User = unknown, Data = unknown> {
   constructor(
@@ -34,42 +60,14 @@ export class Authorizer<User = unknown, Data = unknown> {
     private rules: RuleFunction<User, Data>[] = []
   ) {}
 
-  async authorize(
-    args: AuthorizeArgs<User, Data>,
-    options?: {
-      failureRedirect?: never;
-      raise?: "error";
-      rules?: RuleFunction<User, Data>[];
+  async authorize<D extends Data>(
+    args: AuthorizeArgs<D>,
+    { failureRedirect, raise, rules = [] }: AuthorizeOptions<User, D> = {
+      raise: "response",
+      rules: [],
     }
-  ): Promise<User>;
-  async authorize(
-    args: AuthorizeArgs<User, Data>,
-    options?: {
-      failureRedirect?: never;
-      raise?: "response";
-      rules?: RuleFunction<User, Data>[];
-    }
-  ): Promise<User>;
-  async authorize(
-    args: AuthorizeArgs<User, Data>,
-    options: {
-      failureRedirect: string;
-      raise: "redirect";
-      rules?: RuleFunction<User, Data>[];
-    }
-  ): Promise<User>;
-  async authorize(
-    args: AuthorizeArgs<User, Data>,
-    {
-      failureRedirect,
-      raise = "response",
-      rules = [],
-    }: {
-      failureRedirect?: string;
-      raise?: "error" | "response" | "redirect";
-      rules?: RuleFunction<User, Data>[];
-    } = {}
   ): Promise<User> {
+    if (!raise) raise = "response";
     let user = await this.authenticator.isAuthenticated(args.request);
 
     if (!user) {
@@ -77,7 +75,6 @@ export class Authorizer<User = unknown, Data = unknown> {
         throw json({ message: "Not authenticated." }, { status: 401 });
       }
       if (raise === "redirect") {
-        // @ts-expect-error failureRedirect is a string if raise is redirect
         throw redirect(failureRedirect);
       }
       throw new Error("Not authenticated.");
@@ -85,7 +82,6 @@ export class Authorizer<User = unknown, Data = unknown> {
 
     for (let rule of [...this.rules, ...rules]) {
       if (await rule({ user, ...args })) continue;
-      // @ts-expect-error failureRedirect is a string if raise is redirect
       if (raise === "redirect") throw redirect(failureRedirect);
       if (raise === "response") {
         if (!rule.name) throw json({ message: "Forbidden" }, { status: 403 });
