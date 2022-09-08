@@ -1,5 +1,8 @@
-import { createCookieSessionStorage } from "@remix-run/node";
-import { json, redirect } from "@remix-run/server-runtime";
+import {
+  createCookieSessionStorage,
+  redirect,
+  json,
+} from "@remix-run/server-runtime";
 import { Authenticator, Authorizer } from "../src";
 
 describe(Authorizer, () => {
@@ -31,50 +34,35 @@ describe(Authorizer, () => {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
-    let authorizer = new Authorizer<User>(authenticator, [
+    let authorizer = new Authorizer<User, string>(authenticator, [
       async function isAdmin({ user }) {
         return user.role === "admin";
       },
     ]);
 
     await expect(
-      authorizer.authorize({
-        request,
-        params: { id: "1" },
-        context: {},
-        data: "something",
-      })
+      authorizer.authorize({ request, params: { id: "1" }, context: {} })
     ).resolves.toEqual(user);
   });
-
-  async function isAdminWithNumber({ user }: { user: User; data?: number }) {
-    return user.role === "admin";
-  }
 
   test("if user is not logged in throw a Unauthorized response", async () => {
     let request = new Request("/", {});
 
-    let authorizer = new Authorizer(authenticator, [isAdminWithNumber]);
+    let authorizer = new Authorizer<User, string>(authenticator, [
+      async function isAdmin({ user }) {
+        return user.role === "admin";
+      },
+    ]);
 
     await expect(
-      authorizer.authorize(
-        {
-          request,
-          params: { id: "1" },
-          context: {},
-          data: 10,
-        },
-        {
-          rules: [],
-        }
-      )
+      authorizer.authorize({ request, params: { id: "1" }, context: {} })
     ).rejects.toEqual(json({ message: "Not authenticated." }, { status: 401 }));
   });
 
   test("if user is not logged in an failureRedirect is defined redirect", async () => {
     let request = new Request("/", {});
 
-    let authorizer = new Authorizer(authenticator, [
+    let authorizer = new Authorizer<User, string>(authenticator, [
       async function isAdmin({ user }) {
         return user.role === "admin";
       },
@@ -96,7 +84,7 @@ describe(Authorizer, () => {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
-    let authorizer = new Authorizer(authenticator, [
+    let authorizer = new Authorizer<User, string>(authenticator, [
       async function isNotAdmin({ user }) {
         return user.role !== "admin";
       },
@@ -104,9 +92,7 @@ describe(Authorizer, () => {
 
     await expect(
       authorizer.authorize({ request, params: { id: "1" }, context: {} })
-    ).rejects.toEqual(
-      json({ message: "Forbidden by policy isNotAdmin" }, { status: 403 })
-    );
+    ).rejects.toEqual(json({ message: "Forbidden by policy isNotAdmin" }, { status: 403 }));
   });
 
   test("if user doesn't pass rule throw a Forbidden response without the policy name if it's an arrow function", async () => {
@@ -117,7 +103,9 @@ describe(Authorizer, () => {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
-    let authorizer = new Authorizer(authenticator);
+    let authorizer = new Authorizer<User, string>(authenticator, [
+      async ({ user }) => user.role !== "admin",
+    ]);
 
     await expect(
       authorizer.authorize({ request, params: { id: "1" }, context: {} })
@@ -140,7 +128,7 @@ describe(Authorizer, () => {
 
     await expect(
       authorizer.authorize(
-        { request, params: { id: "1" }, context: {}, data: "" },
+        { request, params: { id: "1" }, context: {} },
         { raise: "redirect", failureRedirect: "/login" }
       )
     ).rejects.toEqual(redirect("/login"));
