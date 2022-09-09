@@ -17,7 +17,7 @@ export type RuleContext<User, Data = null> = {
    * The authenticated user returned by the Authenticator
    */
   user: User;
-} & AuthorizeArgs<Data>;
+} & AuthorizeArgs<Data> & { context: DataFunctionArgs["context"] };
 
 /**
  * A Rule is a function that receives the same arguments of a Loader or Action
@@ -81,7 +81,7 @@ export class Authorizer<User = unknown, Data = unknown> {
     }
 
     for (let rule of [...this.rules, ...rules]) {
-      if (await rule({ user, ...args })) continue;
+      if (await rule({ user, ...args, context: args.context ?? {} })) continue;
       if (raise === "redirect") throw redirect(failureRedirect);
       if (raise === "response") {
         if (!rule.name) throw json({ message: "Forbidden" }, { status: 403 });
