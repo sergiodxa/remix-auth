@@ -27,7 +27,7 @@ export interface AuthenticateOptions {
   /**
    * The name used to register the strategy
    */
-  name?: string;
+  name: string;
   /**
    * To what URL redirect in case of a successful authentication.
    * If not defined, it will return the user data.
