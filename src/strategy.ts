@@ -25,6 +25,10 @@ export interface AuthenticateOptions {
    */
   sessionStrategyKey: string;
   /**
+   * The name used to register the strategy
+   */
+  name?: string;
+  /**
    * To what URL redirect in case of a successful authentication.
    * If not defined, it will return the user data.
    */
@@ -158,7 +162,7 @@ export abstract class Strategy<User, VerifyOptions> {
     // if we do have a successRedirect, we redirect to it and set the user
     // in the session sessionKey
     session.set(options.sessionKey, user);
-    session.set(options.sessionStrategyKey, this.name);
+    session.set(options.sessionStrategyKey, options.name ?? this.name);
     throw redirect(options.successRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });

@@ -124,6 +124,7 @@ export class Authenticator<User = unknown> {
       {
         throwOnError: this.throwOnError,
         ...options,
+        name: strategy,
         sessionKey: this.sessionKey,
         sessionErrorKey: this.sessionErrorKey,
         sessionStrategyKey: this.sessionStrategyKey,
