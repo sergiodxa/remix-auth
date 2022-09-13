@@ -27,14 +27,14 @@ export class Authenticator<User = unknown> {
    */
   private strategies = new Map<string, Strategy<User, never>>();
 
-  public readonly sessionKey: NonNullable<AuthenticateOptions["sessionKey"]>;
+  public readonly sessionKey: NonNullable<AuthenticatorOptions["sessionKey"]>;
   public readonly sessionErrorKey: NonNullable<
-    AuthenticateOptions["sessionErrorKey"]
+    AuthenticatorOptions["sessionErrorKey"]
   >;
   public readonly sessionStrategyKey: NonNullable<
     AuthenticateOptions["sessionStrategyKey"]
   >;
-  private readonly throwOnError: AuthenticateOptions["throwOnError"];
+  private readonly throwOnError: AuthenticatorOptions["throwOnError"];
 
   /**
    * Create a new instance of the Authenticator.
@@ -96,9 +96,6 @@ export class Authenticator<User = unknown> {
   /**
    * Call this to authenticate a request using some strategy. You pass the name
    * of the strategy you want to use and the request to authenticate.
-   * The optional callback allows you to do something with the user object
-   * before returning a new Response. In case it's not provided the strategy
-   * will return a new Response and set the user to the session.
    * @example
    * let action: ActionFunction = async ({ request }) => {
    *   let user = await authenticator.authenticate("some", request);
@@ -127,6 +124,7 @@ export class Authenticator<User = unknown> {
       {
         throwOnError: this.throwOnError,
         ...options,
+        name: strategy,
         sessionKey: this.sessionKey,
         sessionErrorKey: this.sessionErrorKey,
         sessionStrategyKey: this.sessionStrategyKey,
@@ -212,7 +210,7 @@ export class Authenticator<User = unknown> {
   async logout(
     request: Request | Session,
     options: { redirectTo: string }
-  ): Promise<void> {
+  ): Promise<never> {
     let session = isSession(request)
       ? request
       : await this.sessionStorage.getSession(request.headers.get("Cookie"));

@@ -23,7 +23,11 @@ export interface AuthenticateOptions {
    * The key of the session used to set the strategy used to authenticate the
    * user.
    */
-  sessionStrategyKey?: string;
+  sessionStrategyKey: string;
+  /**
+   * The name used to register the strategy
+   */
+  name: string;
   /**
    * To what URL redirect in case of a successful authentication.
    * If not defined, it will return the user data.
@@ -102,7 +106,8 @@ export abstract class Strategy<User, VerifyOptions> {
   /**
    * Throw an AuthorizationError or a redirect to the failureRedirect.
    * @param message The error message to set in the session.
-   * @param session The session object to set the error in.
+   * @param request The request to get the cookie out of.
+   * @param sessionStorage The session storage to retrieve the session from.
    * @param options The strategy options.
    * @throws {AuthorizationError} If the throwOnError is set to true.
    * @throws {Response} If the failureRedirect is set or throwOnError is false.
@@ -126,7 +131,7 @@ export abstract class Strategy<User, VerifyOptions> {
 
     // if we do have a failureRedirect, we redirect to it and set the error
     // in the session errorKey
-    session.flash(options.sessionErrorKey || "auth:error", { message });
+    session.flash(options.sessionErrorKey, { message });
     throw redirect(options.failureRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
@@ -135,7 +140,8 @@ export abstract class Strategy<User, VerifyOptions> {
   /**
    * Returns the user data or throw a redirect to the successRedirect.
    * @param user The user data to set in the session.
-   * @param session The session object to set the user in.
+   * @param request The request to get the cookie out of.
+   * @param sessionStorage The session storage to retrieve the session from.
    * @param options The strategy options.
    * @returns {Promise<User>} The user data.
    * @throws {Response} If the successRedirect is set, it will redirect to it.
@@ -156,7 +162,7 @@ export abstract class Strategy<User, VerifyOptions> {
     // if we do have a successRedirect, we redirect to it and set the user
     // in the session sessionKey
     session.set(options.sessionKey, user);
-    session.set(options.sessionStrategyKey || "strategy", this.name);
+    session.set(options.sessionStrategyKey, options.name ?? this.name);
     throw redirect(options.successRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });

@@ -66,7 +66,7 @@ describe(Authenticator, () => {
     );
   });
 
-  test("should store the strategy name in the session", async () => {
+  test("should store the strategy provided name in the session if no custom name provided", async () => {
     let user = { id: "123" };
     let session = await sessionStorage.getSession();
     let request = new Request("/", {
@@ -88,6 +88,30 @@ describe(Authenticator, () => {
       let responseSession = await sessionStorage.getSession(cookie);
       let strategy = responseSession.get(authenticator.sessionStrategyKey);
       expect(strategy).toBe("mock");
+    }
+  });
+  test("should store the provided strategy name in the session", async () => {
+    let user = { id: "123" };
+    let session = await sessionStorage.getSession();
+    let request = new Request("/", {
+      headers: { Cookie: await sessionStorage.commitSession(session) },
+    });
+
+    let authenticator = new Authenticator(sessionStorage, {
+      sessionStrategyKey: "strategy-name",
+    });
+    authenticator.use(new MockStrategy(async () => user), "mock2");
+
+    try {
+      await authenticator.authenticate("mock2", request, {
+        successRedirect: "/",
+      });
+    } catch (error) {
+      if (!(error instanceof Response)) throw error;
+      let cookie = error.headers.get("Set-Cookie");
+      let responseSession = await sessionStorage.getSession(cookie);
+      let strategy = responseSession.get(authenticator.sessionStrategyKey);
+      expect(strategy).toBe("mock2");
     }
   });
 
