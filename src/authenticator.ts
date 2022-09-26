@@ -97,11 +97,11 @@ export class Authenticator<User = unknown> {
    * Call this to authenticate a request using some strategy. You pass the name
    * of the strategy you want to use and the request to authenticate.
    * @example
-   * let action: ActionFunction = async ({ request }) => {
+   * async function action({ request }: ActionArgs) {
    *   let user = await authenticator.authenticate("some", request);
    * };
    * @example
-   * let action: ActionFunction = ({ request }) => {
+   * async function action({ request }: ActionArgs) {
    *   return authenticator.authenticate("some", request, {
    *     successRedirect: "/private",
    *     failureRedirect: "/login",
@@ -137,7 +137,7 @@ export class Authenticator<User = unknown> {
    * with the user object or null, you can use this to check if the user is
    * logged-in or not without triggering the whole authentication flow.
    * @example
-   * let loader: LoaderFunction = async ({ request }) => {
+   * async function loader({ request }: LoaderArgs) {
    *   // if the user is not authenticated, redirect to login
    *   let user = await authenticator.isAuthenticated(request, {
    *     failureRedirect: "/login",
@@ -146,7 +146,7 @@ export class Authenticator<User = unknown> {
    *   return json(privateData);
    * }
    * @example
-   * let loader: LoaderFunction = async ({ request }) => {
+   * async function loader({ request }: LoaderArgs) {
    *   // if the user is authenticated, redirect to /dashboard
    *   await authenticator.isAuthenticated(request, {
    *     successRedirect: "/dashboard"
@@ -154,7 +154,7 @@ export class Authenticator<User = unknown> {
    *   return json(publicData);
    * }
    * @example
-   * let loader: LoaderFunction = async ({ request }) => {
+   * async function loader({ request }: LoaderArgs) {
    *   // manually handle what happens if the user is or not authenticated
    *   let user = await authenticator.isAuthenticated(request);
    *   if (!user) return json(publicData);
@@ -203,7 +203,7 @@ export class Authenticator<User = unknown> {
   /**
    * Destroy the user session throw a redirect to another URL.
    * @example
-   * let action: ActionFunction = async ({ request }) => {
+   * async function action({ request }: ActionArgs) {
    *   await authenticator.logout(request, { redirectTo: "/login" });
    * }
    */

@@ -99,8 +99,9 @@ First, create a `/login` page. Here we will render a form to get the email and p
 
 ```tsx
 // app/routes/login.tsx
-import { Form } from "@remix-run/react"
-import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node"
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { Form } from "@remix-run/react";
 import { authenticator } from "~/services/auth.server";
 
 // First we create our UI with the form doing a POST and the inputs with the
@@ -122,7 +123,7 @@ export default function Screen() {
 
 // Second, we need to export an action function, here we will use the
 // `authenticator.authenticate method`
-export let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   // we call the method with the name of the strategy we want to use and the
   // request object, optionally we pass an object with the URLs we want the user
   // to be redirected to after a success or a failure
@@ -135,7 +136,7 @@ export let action: ActionFunction = async ({ request }) => {
 // Finally, we can export a loader function where we check if the user is
 // authenticated with `authenticator.isAuthenticated` and redirect to the
 // dashboard if it is or return null if it's not
-export let loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   // If the user is already authenticated redirect to /dashboard directly
   return await authenticator.isAuthenticated(request, {
     successRedirect: "/dashboard",
@@ -169,7 +170,7 @@ if (user) {
 Once the user is ready to leave the application, we can call the `logout` method inside an action.
 
 ```ts
-export let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   await authenticator.logout(request, { redirectTo: "/login" });
 };
 ```
@@ -185,7 +186,7 @@ If we do not pass the `successRedirect` option to the `authenticator.authenticat
 Note that we will need to store the user data in the session this way. To ensure we use the correct session key, the authenticator has a `sessionKey` property.
 
 ```ts
-export let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   let user = await authenticator.authenticate("user-pass", request, {
     failureRedirect: "/login",
   });
@@ -234,7 +235,7 @@ Furthermore, we can read the error using that key after a failed authentication.
 
 ```ts
 // in the loader of the login route
-export let loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await authenticator.isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
@@ -267,7 +268,7 @@ Alternatively, we can do it on the action itself.
 ```ts
 import { AuthorizationError } from "remix-auth";
 
-export let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   try {
     return await authenticator.authenticate("user-pass", request, {
       successRedirect: "/dashboard",

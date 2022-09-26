@@ -71,12 +71,13 @@ authenticator.use(
 This will depend a lot on what strategy you are using since each one may have different requirements. Continuing our example of the `LocalStrategy`, we need to create a `/login` route and call our authenticator there.
 
 ```tsx
-import { ActionFunction, LoaderFunction, redirect, json } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { Form } from "@remix-run/react";
 import { authenticator } from "~/auth.server"; // import our authenticator
 import { getSession, commitSession } from "~/session.server";
 
-export let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   // Authenticate the request and redirect to /dashboard if user is
   // authenticated or to /login if it's not
   authenticator.authenticate("local", request, {
@@ -85,7 +86,7 @@ export let action: ActionFunction = async ({ request }) => {
   });
 };
 
-export let loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   // Check if the user is already logged-in (this checks the key user in the session)
   let user = await authenticator.isAuthenticated(request);
   // If the user is logged-in, redirect to the dashboard directly
