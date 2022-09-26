@@ -77,7 +77,7 @@ import { Form } from "@remix-run/react";
 import { authenticator } from "~/auth.server"; // import our authenticator
 import { getSession, commitSession } from "~/session.server";
 
-export let action = async ({ request }: ActionArgs) => {
+export async function action({ request }: ActionArgs) {
   // Authenticate the request and redirect to /dashboard if user is
   // authenticated or to /login if it's not
   authenticator.authenticate("local", request, {
@@ -86,7 +86,7 @@ export let action = async ({ request }: ActionArgs) => {
   });
 };
 
-export let loader = async ({ request }: LoaderArgs) => {
+export async function loader({ request }: LoaderArgs) {
   // Check if the user is already logged-in (this checks the key user in the session)
   let user = await authenticator.isAuthenticated(request);
   // If the user is logged-in, redirect to the dashboard directly
