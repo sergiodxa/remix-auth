@@ -3,7 +3,12 @@ import {
   redirect,
   SessionStorage,
 } from "@remix-run/server-runtime";
-import { AuthenticateOptions, Authenticator, Strategy } from "../src";
+import {
+  AuthenticateOptions,
+  Authenticator,
+  AuthorizationError,
+  Strategy,
+} from "../src";
 
 class MockStrategy<User> extends Strategy<User, Record<string, never>> {
   name = "mock";
@@ -19,7 +24,8 @@ class MockStrategy<User> extends Strategy<User, Record<string, never>> {
       "Invalid credentials",
       request,
       sessionStorage,
-      options
+      options,
+      new Error("Invalid credentials")
     );
   }
 }
@@ -90,6 +96,7 @@ describe(Authenticator, () => {
       expect(strategy).toBe("mock");
     }
   });
+
   test("should store the provided strategy name in the session", async () => {
     let user = { id: "123" };
     let session = await sessionStorage.getSession();
@@ -188,6 +195,27 @@ describe(Authenticator, () => {
           successRedirect: "/dashboard",
         })
       ).rejects.toEqual(response);
+    });
+  });
+
+  describe("authenticate", () => {
+    test("should throw an error if throwOnError is enabled", async () => {
+      let request = new Request("/");
+      let authenticator = new Authenticator(sessionStorage);
+
+      authenticator.use(new MockStrategy(async () => null));
+
+      let error = await authenticator
+        .authenticate("mock", request, {
+          throwOnError: true,
+        })
+        .catch((error) => error);
+
+      expect(error).toEqual(new AuthorizationError("Invalid credentials"));
+
+      expect((error as AuthorizationError).cause).toEqual(
+        new TypeError("Invalid credentials")
+      );
     });
   });
 });

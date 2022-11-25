@@ -117,11 +117,12 @@ export abstract class Strategy<User, VerifyOptions> {
     message: string,
     request: Request,
     sessionStorage: SessionStorage,
-    options: AuthenticateOptions
+    options: AuthenticateOptions,
+    cause?: Error
   ): Promise<never> {
     // if a failureRedirect is not set, we throw a 401 Response or an error
     if (!options.failureRedirect) {
-      if (options.throwOnError) throw new AuthorizationError(message);
+      if (options.throwOnError) throw new AuthorizationError(message, cause);
       throw json<{ message: string }>({ message }, 401);
     }
 
