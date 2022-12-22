@@ -113,6 +113,16 @@ export class Authenticator<User = unknown> {
     request: Request,
     options: Pick<
       AuthenticateOptions,
+      "failureRedirect" | "throwOnError" | "context"
+    > & {
+      successRedirect: AuthenticateOptions["successRedirect"],
+    } = {}
+  ): never;
+  authenticate(
+    strategy: string,
+    request: Request,
+    options: Pick<
+      AuthenticateOptions,
       "successRedirect" | "failureRedirect" | "throwOnError" | "context"
     > = {}
   ): Promise<User> {
