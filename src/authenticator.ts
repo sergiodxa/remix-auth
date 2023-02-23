@@ -115,8 +115,8 @@ export class Authenticator<User = unknown> {
       AuthenticateOptions,
       "failureRedirect" | "throwOnError" | "context"
     > & {
-      successRedirect: AuthenticateOptions["successRedirect"],
-    } = {}
+      successRedirect: AuthenticateOptions["successRedirect"];
+    }
   ): never;
   authenticate(
     strategy: string,
