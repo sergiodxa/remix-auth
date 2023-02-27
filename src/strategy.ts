@@ -51,6 +51,10 @@ export interface AuthenticateOptions {
   context?: AppLoadContext;
 }
 
+export interface LogoutOptions {
+  redirectTo: string;
+}
+
 /**
  * A function which will be called to find the user using the information the
  * strategy got from the request.
@@ -168,4 +172,11 @@ export abstract class Strategy<User, VerifyOptions> {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
   }
+
+  public logout?: (
+    user: User,
+    request: Request,
+    sessionStorage: SessionStorage,
+    options: LogoutOptions
+  ) => Promise<never>;
 }

@@ -4,7 +4,7 @@ import {
   Session,
   SessionStorage,
 } from "@remix-run/server-runtime";
-import { AuthenticateOptions, Strategy } from "./strategy";
+import { AuthenticateOptions, LogoutOptions, Strategy } from "./strategy";
 
 export interface AuthenticateCallback<User> {
   (user: User): Promise<Response>;
@@ -237,11 +237,20 @@ export class Authenticator<User = unknown> {
    */
   async logout(
     request: Request | Session,
-    options: { redirectTo: string }
+    options: LogoutOptions
   ): Promise<never> {
     let session = isSession(request)
       ? request
       : await this.sessionStorage.getSession(request.headers.get("Cookie"));
+
+    let strategyName = session.get(this.sessionStrategyKey);
+    let strategy = this.strategies.get(strategyName);
+
+    let user: User | null = session.get(this.sessionKey) ?? null;
+
+    if (user !== null && typeof strategy?.logout === "function") {
+      return strategy.logout(user, request, this.sessionStorage, options);
+    }
 
     throw redirect(options.redirectTo, {
       headers: {
