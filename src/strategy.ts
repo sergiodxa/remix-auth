@@ -2,6 +2,7 @@ import {
   AppLoadContext,
   json,
   redirect,
+  Session,
   SessionStorage,
 } from "@remix-run/server-runtime";
 import { AuthorizationError } from "./error";
@@ -175,7 +176,7 @@ export abstract class Strategy<User, VerifyOptions> {
 
   public logout?: (
     user: User,
-    request: Request,
+    request: Request | Session,
     sessionStorage: SessionStorage,
     options: LogoutOptions
   ) => Promise<never>;
