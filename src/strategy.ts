@@ -174,10 +174,10 @@ export abstract class Strategy<User, VerifyOptions> {
     });
   }
 
-  public logout?: (
+  public logout?(
     user: User,
     request: Request | Session,
     sessionStorage: SessionStorage,
     options: LogoutOptions
-  ) => Promise<never>;
+  ): Promise<never>;
 }
