@@ -1,0 +1,137 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Twitter Strategy
+
+Remix Auth plugin for Twitter OAuth 1.0a.
+
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ✅          |
+
+## Setup Guide
+
+<Steps>
+### Prerequisites
+* Your app is registered to Twitter and has consumer key and secret issued https://developer.twitter.com/en/docs/authentication/oauth-1-0a/api-key-and-secret
+* Your app has [remix-auth](https://github.com/sergiodxa/remix-auth) set up and `authenticator` is provided:
+  ```typescript
+  // app/services/auth.server.ts
+  export let authenticator = ...;
+  ```
+
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-twitter
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-twitter
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-twitter
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Create the strategy instance
+
+```tsx copy filename="app/services/auth.server.ts"
+import { Authenticator } from "remix-auth";
+import { sessionStorage } from "~/services/session.server";
+import { TwitterStrategy } from "remix-auth-twitter";
+
+export let authenticator = new Authenticator<User>(sessionStorage);
+
+const clientID = process.env.TWITTER_CONSUMER_KEY;
+const clientSecret = process.env.TWITTER_CONSUMER_SECRET;
+if (!clientID || !clientSecret) {
+  throw new Error(
+    "TWITTER_CONSUMER_KEY and TWITTER_CONSUMER_SECRET must be provided"
+  );
+}
+
+authenticator.use(
+  new TwitterStrategy(
+    {
+      clientID,
+      clientSecret,
+      callbackURL: "https://my-app/login/callback",
+      alwaysReauthorize: false, // otherwise, ask for permission every time
+    },
+    // Define what to do when the user is authenticated
+    async ({ accessToken, accessTokenSecret, profile }) => {
+      // profile contains userId and screenName
+
+      // Return a user object to store in sessionStorage.
+      // You can also throw Error to reject the login
+      return await registerUser(accessToken, accessTokenSecret, profile);
+    }
+  ),
+  // each strategy has a name and can be changed to use another one
+  // same strategy multiple times, especially useful for the OAuth2 strategy.
+  "twitter"
+);
+```
+
+### Setup your routes
+
+Follow the [remix-auth docs](https://github.com/sergiodxa/remix-auth#readme) to set up logout flow and `isAuthenticated`.
+
+The log in flow would look like this:
+
+1. User comes to "login" page (e.g. `/login`).
+2. The app will redirect user to Twitter's auth page.
+3. Once user finishes auth, Twitter will redirect user back to your app (e.g. `/login/callback`).
+4. The app will verify the user and let the user login.
+
+To set up the login flow, follow the code below:
+
+```tsx copy filename="app/routes/login.tsx"
+import { ActionFunction } from "remix";
+import { authenticator } from "~/services/auth.server";
+
+// Normally this will redirect user to twitter auth page
+export let action: ActionFunction = async ({ request }) => {
+  await authenticator.authenticate("twitter", request, {
+    successRedirect: "/dashboard", // Destination in case the user is already logged in
+  });
+};
+```
+
+```tsx copy filename="app/routes/login.callback.tsx"
+import { LoaderFunction } from "remix";
+import { authenticator } from "~/services/auth.server";
+
+// This will be called after twitter auth page
+export let loader: LoaderFunction = async ({ request }) => {
+  await authenticator.authenticate("twitter", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login/failure",
+  });
+};
+```
+
+Then let the user do `POST /login`:
+
+```tsx copy
+<Form method="post" action="/login">
+  <button>Login</button>
+</Form>
+```
+
+</Steps>

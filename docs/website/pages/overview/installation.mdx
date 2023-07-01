@@ -1,0 +1,85 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Installation
+
+## Package Setup
+
+<Steps>
+
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Create Session Storage
+
+```ts copy filename="app/services/session.server.ts"
+import { createCookieSessionStorage } from "@remix-run/node";
+
+// export the whole sessionStorage object
+export let sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "_session", // use any name you want here
+    sameSite: "lax", // this helps with CSRF
+    path: "/", // remember to add this so the cookie will work in all routes
+    httpOnly: true, // for security reasons, make this cookie http only
+    secrets: ["s3cr3t"], // replace this with an actual secret
+    secure: process.env.NODE_ENV === "production", // enable this in prod only
+  },
+});
+
+// you can also export the methods individually for your own usage
+export let { getSession, commitSession, destroySession } = sessionStorage;
+```
+
+<Callout type="info">
+  Remix Auth needs a session storage object to store the user session. It can be any object that implements the SessionStorage interface from Remix.
+
+In this example the createCookieSessionStorage function is being used.
+
+</Callout>
+
+### Auth configuration
+
+Now, create a file for the Remix Auth configuration. Here import the Authenticator class and your sessionStorage object.
+
+```ts copy filename="app/services/auth.server.ts"
+import { Authenticator } from "remix-auth";
+import { sessionStorage } from "~/services/session.server";
+
+// Create an instance of the authenticator, pass a generic with what
+// strategies will return and will store in the session
+export let authenticator = new Authenticator<User>(sessionStorage);
+```
+
+<Callout type="info">
+The User type is whatever you will store in the session storage to identify the authenticated user. It can be the complete user data or a string with a token. It is completely configurable.
+
+</Callout>
+
+### Choose a Strategy
+
+You have now created the baselayer for the Remix-Auth package and you will now have to chose one or multiple Auth Strategies
+
+</Steps>

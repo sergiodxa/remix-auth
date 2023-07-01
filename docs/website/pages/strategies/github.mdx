@@ -1,0 +1,105 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Github Strategy
+
+The GitHub strategy is used to authenticate users against a GitHub account. It extends the OAuth2Strategy.
+
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ✅          |
+
+## Setup Guide
+
+<Steps>
+### Create an OAuth application
+
+Follow the steps on [the GitHub documentation](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) to create a new application and get a client ID and secret.
+
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-github
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-github
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-github
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Create the strategy instance
+
+```ts copy filename="app/services/auth.server.ts"
+import { GitHubStrategy } from "remix-auth-github";
+
+let gitHubStrategy = new GitHubStrategy(
+  {
+    clientID: "YOUR_CLIENT_ID",
+    clientSecret: "YOUR_CLIENT_SECRET",
+    callbackURL: "https://example.com/auth/github/callback",
+  },
+  async ({ accessToken, extraParams, profile }) => {
+    // Get the user data from your DB or API using the tokens and profile
+    return User.findOrCreate({ email: profile.emails[0].value });
+  }
+);
+
+authenticator.use(gitHubStrategy);
+```
+
+### Setup your routes
+
+```ts copy filename="app/routes/login.tsx"
+export default function Login() {
+  return (
+    <Form action="/auth/github" method="post">
+      <button>Login with GitHub</button>
+    </Form>
+  );
+}
+```
+
+```ts copy filename="app/routes/auth/github.tsx"
+import type { ActionArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { authenticator } from "~/auth.server";
+
+export async function loader() {
+  return redirect("/login");
+}
+
+export async function action({ request }: ActionArgs) {
+  return authenticator.authenticate("github", request);
+}
+```
+
+```ts copy filename="app/routes/auth/github/callback.tsx"
+import type { LoaderArgs } from "@remix-run/node";
+import { authenticator } from "~/auth.server";
+
+export async function loader({ request }: LoaderArgs) {
+  return authenticator.authenticate("github", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
+}
+```
+
+</Steps>

@@ -1,0 +1,112 @@
+# Advanced Usage
+
+### Custom redirect URL based on the user
+
+Say we have `/dashboard` and `/onboarding` routes, and after the user authenticates, you need to check some value in their data to know if they are onboarded or not.
+
+If we do not pass the `successRedirect` option to the `authenticator.authenticate` method, it will return the user data.
+
+Note that we will need to store the user data in the session this way. To ensure we use the correct session key, the authenticator has a `sessionKey` property.
+
+```ts
+export async function action({ request }: ActionArgs) {
+  let user = await authenticator.authenticate("user-pass", request, {
+    failureRedirect: "/login",
+  });
+
+  // manually get the session
+  let session = await getSession(request.headers.get("cookie"));
+  // and store the user data
+  session.set(authenticator.sessionKey, user);
+
+  // commit the session
+  let headers = new Headers({ "Set-Cookie": await commitSession(session) });
+
+  // and do your validation to know where to redirect the user
+  if (isOnboarded(user)) return redirect("/dashboard", { headers });
+  return redirect("/onboarding", { headers });
+}
+```
+
+### Changing the session key
+
+If we want to change the session key used by Remix Auth to store the user data, we can customize it when creating the `Authenticator` instance.
+
+```ts
+export let authenticator = new Authenticator<AccessToken>(sessionStorage, {
+  sessionKey: "accessToken",
+});
+```
+
+With this, both `authenticate` and `isAuthenticated` will use that key to read or write the user data (in this case, the access token).
+
+If we need to read or write from the session manually, remember always to use the `authenticator.sessionKey` property. If we change the key in the `Authenticator` instance, we will not need to change it in the code.
+
+### Reading authentication errors
+
+When the user cannot authenticate, the error will be set in the session using the `authenticator.sessionErrorKey` property.
+
+We can customize the name of the key when creating the `Authenticator` instance.
+
+```ts
+export let authenticator = new Authenticator<User>(sessionStorage, {
+  sessionErrorKey: "my-error-key",
+});
+```
+
+Furthermore, we can read the error using that key after a failed authentication.
+
+```ts
+// in the loader of the login route
+export async function loader({ request }: LoaderArgs) {
+  await authenticator.isAuthenticated(request, {
+    successRedirect: "/dashboard",
+  });
+  let session = await getSession(request.headers.get("cookie"));
+  let error = session.get(authenticator.sessionErrorKey);
+  return json({ error });
+}
+```
+
+Remember always to use the `authenticator.sessionErrorKey` property. If we change the key in the `Authenticator` instance, we will not need to change it in the code.
+
+### Errors Handling
+
+By default, any error in the authentication process will throw a Response object. If `failureRedirect` is specified, this will always be a redirect response with the error message on the `sessionErrorKey`.
+
+If a `failureRedirect` is not defined, Remix Auth will throw a 401 Unauthorized response with a JSON body containing the error message. This way, we can use the CatchBoundary component of the route to render any error message.
+
+If we want to get an error object inside the action instead of throwing a Response, we can configure the `throwOnError` option to `true`. We can do this when instantiating the `Authenticator` or calling `authenticate`.
+
+If we do it in the `Authenticator,` it will be the default behavior for all the `authenticate` calls.
+
+```ts
+export let authenticator = new Authenticator<User>(sessionStorage, {
+  throwOnError: true,
+});
+```
+
+Alternatively, we can do it on the action itself.
+
+```ts
+import { AuthorizationError } from "remix-auth";
+
+export async function action({ request }: ActionArgs) {
+  try {
+    return await authenticator.authenticate("user-pass", request, {
+      successRedirect: "/dashboard",
+      throwOnError: true,
+    });
+  } catch (error) {
+    // Because redirects work by throwing a Response, you need to check if the
+    // caught error is a response and return it or throw it again
+    if (error instanceof Response) return error;
+    if (error instanceof AuthorizationError) {
+      // here the error is related to the authentication process
+    }
+    // here the error is a generic error that another reason may throw
+  }
+}
+```
+
+If we define both `failureRedirect` and `throwOnError`, the redirect will happen instead of throwing an error.

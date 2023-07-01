@@ -1,0 +1,225 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Twilio Strategy
+
+Uses the [Twilio Verify API](https://www.twilio.com/verify) to validate users via SMS and add simple phone-based auth to a [Remix](https://remix.run) application using [Remix Auth](https://github.com/sergiodxa/remix-auth).
+
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ✅          |
+
+## Setup Guide
+
+<Steps>
+
+### Create an OAuth application
+
+First you need to create a new application in the [Linkedin's developers page](https://developer.linkedin.com/). Then I encourage you to read [this documentation page](https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#prerequisites), it explains how to configure your app and gives you useful information on the auth flow. The app is mandatory in order to obtain a `clientID` and `client secret` to use with the Linkedin's API.
+
+This library is designed to require as little config as possible. There's no need to generate your own codes, validate input, or store anything aside from the user's phone number in your database. If you need more advanced functionality and customizations, check out [remix-auth-otp](https://github.com/dev-xo/remix-auth-otp).
+
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-twilio
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-twilio
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-twilio
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Create the strategy instance
+
+```tsx copy filename="app/services/auth.server.ts"
+import { TwilioStrategy } from "remix-auth-twilio";
+import { sessionStorage } from "./session.server";
+import { User, findOrCreateUser } from "your-db-client";
+
+export let authenticator = new Authenticator<User>(sessionStorage);
+
+const twilioStrategy = new TwilioStrategy(
+  {
+    accountSID: "YOUR_ACCOUNT_SID",
+    authToken: "YOUR_AUTH_TOKEN",
+    serviceSID: "YOUR_SERVICE_SID",
+  },
+  async ({ phone, formData, request }) => {
+    // The user has been authenticated through Twilio.
+    // Get the user data from your DB or API using the formatted phone number.
+    return findOrCreateUser({ phone });
+  }
+);
+
+authenticator.use(twilioStrategy);
+```
+
+### Setup your routes
+
+```tsx copy filename="app/routes/login.tsx"
+import { ActionArgs, DataFunctionArgs, json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { authenticator } from "../auth.server";
+import { sessionStorage } from "../session.server";
+
+export async function action({ request }: ActionArgs) {
+  const formData = await request.clone().formData();
+
+  return authenticator.authenticate("twilio", request, {
+    successRedirect: formData.has("code") ? "/account" : "/login",
+    failureRedirect: "/login",
+  });
+}
+
+export async function loader({ request }: DataFunctionArgs) {
+  await authenticator.isAuthenticated(request, {
+    successRedirect: "/account",
+  });
+
+  const session = await sessionStorage.getSession(
+    request.headers.get("Cookie")
+  );
+
+  const phone = session.get("twilio:phone") ?? null;
+
+  const error = session.get(authenticator.sessionErrorKey);
+
+  return json(
+    { phone, error },
+    {
+      headers: {
+        "Set-Cookie": await sessionStorage.commitSession(session),
+      },
+    }
+  );
+}
+
+export default function LoginPage() {
+  const { phone, error } = useLoaderData<typeof loader>();
+
+  return (
+    <form method="post">
+      {error && <p>Error: {error.message}</p>}
+      {phone ? (
+        <>
+          <label htmlFor="code">Verification code</label>
+          <input
+            type="text"
+            name="code"
+            id="code"
+            autoFocus
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+          <input type="hidden" name="phone" value={phone} />
+        </>
+      ) : (
+        <>
+          <label htmlFor="phone">Phone number</label>
+          <input type="tel" name="phone" id="phone" autoComplete="tel" />
+        </>
+      )}
+    </form>
+  );
+}
+```
+
+```tsx copy filename="app/routes/account.tsx"
+import { DataFunctionArgs, json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { authenticator } from "~/auth.server";
+
+export async function loader({ request }: DataFunctionArgs) {
+  const user = await authenticator.isAuthenticated(request, {
+    failureRedirect: "/login",
+  });
+
+  return json({ user });
+}
+
+export default function AccountPage() {
+  const { user } = useLoaderData<typeof loader>();
+
+  return (
+    <div>
+      <p>Hello, {user.phone}</p>
+      <p>
+        <Link to="/logout">Log out</Link>
+      </p>
+    </div>
+  );
+}
+```
+
+```tsx copy filename="app/routes/logout.tsx"
+import { DataFunctionArgs } from "@remix-run/node";
+import { authenticator } from "~/auth.server";
+
+export async function loader({ request }: DataFunctionArgs) {
+  await authenticator.logout(request, { redirectTo: "/login" });
+}
+
+export default function LogoutPage() {
+  return null;
+}
+```
+
+</Steps>
+
+## Options
+
+```ts
+type TwilioStrategyOptions = {
+  /**
+   * Twilio Account SID
+   */
+  accountSID: string;
+  /**
+   * Twilio Auth Token
+   */
+  authToken: string;
+  /**
+   * Twilio Verify Service SID
+   */
+  serviceSID: string;
+  /**
+   * A function that sends a verification code to the user.
+   */
+  sendCode?: ({ phone }: { phone: string }) => Promise<void>;
+  /**
+   * A function that validates the verification code provided by the user.
+   */
+  validateCode?: ({
+    code,
+    phone,
+  }: {
+    code: string;
+    phone: string;
+  }) => Promise<void>;
+  /**
+   * A function that formats the phone number provided by the user.
+   * This library uses the `phone` package to validate phone numbers.
+   * You can optionally provide your own validation function here.
+   */
+  formatPhoneNumber?: (phone: string) => string;
+};
+```
