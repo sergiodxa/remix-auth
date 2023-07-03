@@ -191,27 +191,55 @@ export class Authenticator<User = unknown> {
    */
   async isAuthenticated(
     request: Request | Session,
-    options?: { successRedirect?: never; failureRedirect?: never }
+    options?: {
+      successRedirect?: never;
+      failureRedirect?: never;
+      headers?: never;
+    }
   ): Promise<User | null>;
   async isAuthenticated(
     request: Request | Session,
-    options: { successRedirect: string; failureRedirect?: never }
+    options: {
+      successRedirect: string;
+      failureRedirect?: never;
+      headers?: HeadersInit;
+    }
   ): Promise<null>;
   async isAuthenticated(
     request: Request | Session,
-    options: { successRedirect?: never; failureRedirect: string }
+    options: {
+      successRedirect?: never;
+      failureRedirect: string;
+      headers?: HeadersInit;
+    }
   ): Promise<User>;
   async isAuthenticated(
     request: Request | Session,
-    options: { successRedirect: string; failureRedirect: string }
+    options: {
+      successRedirect: string;
+      failureRedirect: string;
+      headers?: HeadersInit;
+    }
   ): Promise<null>;
   async isAuthenticated(
     request: Request | Session,
     options:
-      | { successRedirect?: never; failureRedirect?: never }
-      | { successRedirect: string; failureRedirect?: never }
-      | { successRedirect?: never; failureRedirect: string }
-      | { successRedirect: string; failureRedirect: string } = {}
+      | { successRedirect?: never; failureRedirect?: never; headers?: never }
+      | {
+          successRedirect: string;
+          failureRedirect?: never;
+          headers?: HeadersInit;
+        }
+      | {
+          successRedirect?: never;
+          failureRedirect: string;
+          headers?: HeadersInit;
+        }
+      | {
+          successRedirect: string;
+          failureRedirect: string;
+          headers?: HeadersInit;
+        } = {}
   ): Promise<User | null> {
     let session = isSession(request)
       ? request
@@ -220,12 +248,14 @@ export class Authenticator<User = unknown> {
     let user: User | null = session.get(this.sessionKey) ?? null;
 
     if (user) {
-      if (options.successRedirect) throw redirect(options.successRedirect);
-      else return user;
+      if (options.successRedirect) {
+        throw redirect(options.successRedirect, { headers: options.headers });
+      } else return user;
     }
 
-    if (options.failureRedirect) throw redirect(options.failureRedirect);
-    else return null;
+    if (options.failureRedirect) {
+      throw redirect(options.failureRedirect, { headers: options.headers });
+    } else return null;
   }
 
   /**
