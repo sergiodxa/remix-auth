@@ -196,6 +196,27 @@ describe(Authenticator, () => {
         })
       ).rejects.toEqual(response);
     });
+
+    test("should accept headers as an option", async () => {
+      let user = { id: "123" };
+      let session = await sessionStorage.getSession();
+      session.set("user", user);
+
+      let request = new Request("/", {
+        headers: { Cookie: await sessionStorage.commitSession(session) },
+      });
+
+      let response = redirect("/dashboard", {
+        headers: { "X-Custom-Header": "true" },
+      });
+
+      expect(
+        new Authenticator(sessionStorage).isAuthenticated(request, {
+          successRedirect: "/dashboard",
+          headers: { "X-Custom-Header": "true" },
+        })
+      ).rejects.toEqual(response);
+    });
   });
 
   describe("authenticate", () => {
