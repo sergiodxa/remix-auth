@@ -117,7 +117,7 @@ export class Authenticator<User = unknown> {
     > & {
       successRedirect: AuthenticateOptions["successRedirect"];
     }
-  ): never;
+  ): Promise<never>;
   authenticate(
     strategy: string,
     request: Request,
