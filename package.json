@@ -37,20 +37,21 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@remix-run/react": "^1.0.0",
-    "@remix-run/server-runtime": "^1.0.0"
+    "@remix-run/react": "^1.0.0 || ^2.0.0",
+    "@remix-run/server-runtime": "^1.0.0 || ^2.0.0"
   },
   "devDependencies": {
+    "@remix-run/node": "^2.0.1",
+    "@remix-run/react": "^2.0.1",
+    "@remix-run/serve": "^2.0.1",
     "@babel/core": "^7.14.2",
     "@babel/preset-env": "^7.14.1",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@remix-run/node": "^1.1.1",
-    "@remix-run/react": "^1.1.1",
     "@remix-run/server-runtime": "^1.1.1",
     "@types/jest": "^26.0.23",
     "@types/prop-types": "^15.7.4",
-    "@types/react": "^17.0.14",
+    "@types/react": "^18.2.20",
     "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
@@ -68,9 +69,9 @@
     "jest": "^26.6.3",
     "jest-fetch-mock": "^3.0.3",
     "prettier": "^2.3.2",
-    "react": "^17.0.2",
+    "react": "^18.2.0",
     "ts-node": "^9.1.1",
-    "typescript": "^4.3.5"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
     "uuid": "^8.3.2"
