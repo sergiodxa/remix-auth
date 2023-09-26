@@ -37,11 +37,11 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@remix-run/react": "^2.0.1",
-    "@remix-run/server-runtime": "^2.0.1"
+    "@remix-run/react": "^1.0.0 || ^2.0.0",
+    "@remix-run/server-runtime": "^1.0.0 || ^2.0.0"
   },
   "devDependencies": {
-		"@remix-run/node": "^2.0.1",
+    "@remix-run/node": "^2.0.1",
     "@remix-run/react": "^2.0.1",
     "@remix-run/serve": "^2.0.1",
     "@babel/core": "^7.14.2",
