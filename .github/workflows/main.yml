@@ -10,7 +10,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Use Node 14
+      - name: Use Node 18
         uses: actions/setup-node@v1
         with:
           node-version: 18
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Use Node 14
+      - name: Use Node 18
         uses: actions/setup-node@v1
         with:
           node-version: 18
@@ -46,7 +46,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Use Node 14
+      - name: Use Node 18
         uses: actions/setup-node@v1
         with:
           node-version: 18
