@@ -1,8 +1,5 @@
-import {
-  createCookieSessionStorage,
-  redirect,
-  SessionStorage,
-} from "@remix-run/server-runtime";
+import { redirect, SessionStorage } from "@remix-run/server-runtime";
+import { createCookieSessionStorage } from "@remix-run/node";
 import {
   AuthenticateOptions,
   Authenticator,
@@ -40,7 +37,7 @@ describe(Authenticator, () => {
   });
 
   test("should be able to add a new strategy calling use", async () => {
-    let request = new Request("/");
+    let request = new Request("http://.../test");
     let response = new Response("It works!", {
       // @ts-expect-error this should work
       url: "",
@@ -64,7 +61,7 @@ describe(Authenticator, () => {
   });
 
   test("should throw if the strategy was not found", async () => {
-    let request = new Request("/");
+    let request = new Request("http://.../test");
     let authenticator = new Authenticator(sessionStorage);
 
     expect(() => authenticator.authenticate("unknown", request)).toThrow(
@@ -75,7 +72,7 @@ describe(Authenticator, () => {
   test("should store the strategy provided name in the session if no custom name provided", async () => {
     let user = { id: "123" };
     let session = await sessionStorage.getSession();
-    let request = new Request("/", {
+    let request = new Request("http://.../test", {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
@@ -100,7 +97,7 @@ describe(Authenticator, () => {
   test("should store the provided strategy name in the session", async () => {
     let user = { id: "123" };
     let session = await sessionStorage.getSession();
-    let request = new Request("/", {
+    let request = new Request("http://.../test", {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
@@ -128,7 +125,7 @@ describe(Authenticator, () => {
     session.set("user", user);
     session.set("strategy", "test");
 
-    let request = new Request("/", {
+    let request = new Request("http://.../test", {
       headers: { Cookie: await sessionStorage.commitSession(session) },
     });
 
@@ -149,7 +146,7 @@ describe(Authenticator, () => {
       let session = await sessionStorage.getSession();
       session.set("user", user);
 
-      let request = new Request("/", {
+      let request = new Request("http://.../test", {
         headers: { Cookie: await sessionStorage.commitSession(session) },
       });
 
@@ -161,7 +158,7 @@ describe(Authenticator, () => {
     });
 
     test("should return null if user isn't on the session", () => {
-      let request = new Request("/");
+      let request = new Request("http://.../test");
 
       expect(
         new Authenticator(sessionStorage).isAuthenticated(request)
@@ -169,7 +166,7 @@ describe(Authenticator, () => {
     });
 
     test("should throw a redirect if failureRedirect is defined", () => {
-      let request = new Request("/");
+      let request = new Request("http://.../test");
       let response = redirect("/login");
 
       expect(
@@ -184,7 +181,7 @@ describe(Authenticator, () => {
       let session = await sessionStorage.getSession();
       session.set("user", user);
 
-      let request = new Request("/", {
+      let request = new Request("http://.../test", {
         headers: { Cookie: await sessionStorage.commitSession(session) },
       });
 
@@ -202,7 +199,7 @@ describe(Authenticator, () => {
       let session = await sessionStorage.getSession();
       session.set("user", user);
 
-      let request = new Request("/", {
+      let request = new Request("http://.../test", {
         headers: { Cookie: await sessionStorage.commitSession(session) },
       });
 
@@ -221,7 +218,7 @@ describe(Authenticator, () => {
 
   describe("authenticate", () => {
     test("should throw an error if throwOnError is enabled", async () => {
-      let request = new Request("/");
+      let request = new Request("http://.../test");
       let authenticator = new Authenticator(sessionStorage);
 
       authenticator.use(new MockStrategy(async () => null));
