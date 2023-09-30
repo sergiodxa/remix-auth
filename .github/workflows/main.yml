@@ -13,7 +13,7 @@ jobs:
       - name: Use Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 18
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
@@ -31,7 +31,7 @@ jobs:
       - name: Use Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 18
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
@@ -49,7 +49,7 @@ jobs:
       - name: Use Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 18
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
@@ -64,10 +64,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Use Node 14
+      - name: Use Node 18
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 18
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
