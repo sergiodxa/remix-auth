@@ -242,7 +242,7 @@ export async function loader({ request }: LoaderArgs) {
   let error = session.get(authenticator.sessionErrorKey);
   return json({ error }, {
     headers:{
-      'Set-Cookie': await commitSession(session) //You must commit the session whenever you read a flash
+      'Set-Cookie': await commitSession(session) // You must commit the session whenever you read a flash
     }
   });
 };
