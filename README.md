@@ -240,7 +240,11 @@ export async function loader({ request }: LoaderArgs) {
   });
   let session = await getSession(request.headers.get("cookie"));
   let error = session.get(authenticator.sessionErrorKey);
-  return json({ error });
+  return json({ error }, {
+    headers:{
+      'Set-Cookie': await commitSession(session) // You must commit the session whenever you read a flash
+    }
+  });
 };
 ```
 
