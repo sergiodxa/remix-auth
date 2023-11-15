@@ -77,7 +77,7 @@ export class Authenticator<User = unknown> {
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)))
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)), "another");
    */
-  use(strategy: Strategy<User, never>, name?: string): Authenticator {
+  use(strategy: Strategy<User, never>, name?: string): Authenticator<User> {
     this.strategies.set(name ?? strategy.name, strategy);
     return this;
   }
