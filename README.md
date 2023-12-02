@@ -169,7 +169,7 @@ if (user) {
 Once the user is ready to leave the application, we can call the `logout` method inside an action.
 
 ```ts
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   await authenticator.logout(request, { redirectTo: "/login" });
 };
 ```
@@ -185,7 +185,7 @@ If we do not pass the `successRedirect` option to the `authenticator.authenticat
 Note that we will need to store the user data in the session this way. To ensure we use the correct session key, the authenticator has a `sessionKey` property.
 
 ```ts
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   let user = await authenticator.authenticate("user-pass", request, {
     failureRedirect: "/login",
   });
@@ -234,7 +234,7 @@ Furthermore, we can read the error using that key after a failed authentication.
 
 ```ts
 // in the loader of the login route
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await authenticator.isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
@@ -271,7 +271,7 @@ Alternatively, we can do it on the action itself.
 ```ts
 import { AuthorizationError } from "remix-auth";
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   try {
     return await authenticator.authenticate("user-pass", request, {
       successRedirect: "/dashboard",
