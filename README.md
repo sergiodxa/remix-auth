@@ -33,9 +33,9 @@ Also, install one of the strategies. A list of strategies is available in the [C
 
 ## Usage
 
-Remix Auth needs a session storage object to store the user session. It can be any object that implements the [SessionStorage interface from Remix](https://remix.run/docs/en/v1/api/remix#sessions).
+Remix Auth needs a session storage object to store the user session. It can be any object that implements the [SessionStorage interface from Remix](https://remix.run/docs/en/main/utils/sessions#createsessionstorage).
 
-In this example I'm using the [createCookieSessionStorage](https://remix.run/docs/en/v1/api/remix#createcookiesessionstorage) function.
+In this example I'm using the [createCookieSessionStorage](https://remix.run/docs/en/main/utils/sessions#createcookiesessionstorage) function.
 
 ```ts
 // app/services/session.server.ts
