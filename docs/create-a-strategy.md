@@ -123,7 +123,7 @@ import {
   OAuth2Profile,
   OAuth2Strategy,
   OAuth2StrategyVerifyCallback,
-} from "remix-auth";
+} from "remix-auth-oauth2";
 
 // These are the custom options we need from the developer to use the strategy
 export interface Auth0StrategyOptions {
