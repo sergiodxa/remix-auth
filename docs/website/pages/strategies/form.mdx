@@ -1,0 +1,111 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Form Strategy
+
+A Remix Auth strategy to work with any form.
+
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ✅          |
+
+## Setup Guide
+
+<Steps>
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-form
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-form
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-form
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Initialize Form Strategy
+
+```ts copy filename="app/services/auth.server.ts"
+import { FormStrategy } from "remix-auth-form";
+
+// The rest of the code above here...
+
+authenticator.use(
+  new FormStrategy(async ({ form, context }) => {
+    // Here you can use `form` to access and input values from the form.
+    // and also use `context` to access more things from the server
+    let username = form.get("username"); // or email... etc
+    let password = form.get("password");
+
+    // You can validate the inputs however you want
+    invariant(typeof username === "string", "username must be a string");
+    invariant(username.length > 0, "username must not be empty");
+
+    invariant(typeof password === "string", "password must be a string");
+    invariant(password.length > 0, "password must not be empty");
+
+    // And if you have a password you should hash it
+    let hashedPassword = await hash(password);
+
+    // And finally, you can find, or create, the user
+    let user = await findOrCreateUser(username, hashedPassword);
+
+    // And return the user as the Authenticator expects it
+    return user;
+  })
+);
+```
+
+### Authenticate User
+
+In order to authenticate a user, you can use the following inside of an action function:
+
+```ts copy filename="action-route"
+export async function action({ context, request }: ActionArgs) {
+  return await authenticator.authenticate("form", request, {
+    successRedirect: "/",
+    failureRedirect: "/login",
+    context, // optional
+  });
+}
+```
+
+</Steps>
+
+## Passing a pre-read FormData object
+
+Because you may want to do validations or read values from the FormData before calling authenticate, the FormStrategy allows you to pass a FormData object as part of the optional context.
+
+```ts copy filename="action-route"
+export async function action({ context, request }: ActionArgs) {
+  let formData = await request.formData();
+  return await authenticator.authenticate("form", request, {
+    // use formData here
+    successRedirect: formData.get("redirectTo"),
+    failureRedirect: "/login",
+    context: { formData }, // pass pre-read formData here
+  });
+}
+```
+
+<Callout type="info">
+This way, you don't need to clone the request yourself.
+
+</Callout>
