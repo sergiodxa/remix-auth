@@ -41,7 +41,7 @@ export interface AuthenticateOptions {
   /**
    * Set if the strategy should throw an error instead of a Reponse in case of
    * a failed authentication.
-   * @default true
+   * @default false
    */
   throwOnError?: boolean;
   /**
