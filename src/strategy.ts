@@ -2,6 +2,7 @@ import {
   AppLoadContext,
   json,
   redirect,
+  Session,
   SessionStorage,
 } from "@remix-run/server-runtime";
 import { AuthorizationError } from "./error";
@@ -49,6 +50,10 @@ export interface AuthenticateOptions {
    * This can be used by the strategy if needed.
    */
   context?: AppLoadContext;
+}
+
+export interface LogoutOptions {
+  redirectTo: string;
 }
 
 /**
@@ -168,4 +173,11 @@ export abstract class Strategy<User, VerifyOptions> {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
   }
+
+  public logout?(
+    user: User,
+    request: Request | Session,
+    sessionStorage: SessionStorage,
+    options: LogoutOptions
+  ): Promise<never>;
 }
