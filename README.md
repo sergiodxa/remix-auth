@@ -42,7 +42,7 @@ In this example I'm using the [createCookieSessionStorage](https://remix.run/doc
 import { createCookieSessionStorage } from "@remix-run/node";
 
 // export the whole sessionStorage object
-export let sessionStorage = createCookieSessionStorage({
+export const sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "_session", // use any name you want here
     sameSite: "lax", // this helps with CSRF
@@ -54,7 +54,7 @@ export let sessionStorage = createCookieSessionStorage({
 });
 
 // you can also export the methods individually for your own usage
-export let { getSession, commitSession, destroySession } = sessionStorage;
+export const { getSession, commitSession, destroySession } = sessionStorage;
 ```
 
 Now, create a file for the Remix Auth configuration. Here import the `Authenticator` class and your `sessionStorage` object.
@@ -66,7 +66,7 @@ import { sessionStorage } from "~/services/session.server";
 
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return and will store in the session
-export let authenticator = new Authenticator<User>(sessionStorage);
+export const authenticator = new Authenticator<User>(sessionStorage);
 ```
 
 The `User` type is whatever you will store in the session storage to identify the authenticated user. It can be the complete user data or a string with a token. It is completely configurable.
@@ -79,9 +79,9 @@ import { FormStrategy } from "remix-auth-form";
 // Tell the Authenticator to use the form strategy
 authenticator.use(
   new FormStrategy(async ({ form }) => {
-    let email = form.get("email");
-    let password = form.get("password");
-    let user = await login(email, password);
+    const email = form.get("email");
+    const password = form.get("password");
+    const user = await login(email, password);
     // the type of this user must match the type you pass to the Authenticator
     // the strategy will automatically inherit the type if you instantiate
     // directly inside the `use` method
@@ -147,7 +147,7 @@ With this, we have our login page. If we need to get the user data in another ro
 
 ```ts
 // get the user data or redirect to /login if it failed
-let user = await authenticator.isAuthenticated(request, {
+const user = await authenticator.isAuthenticated(request, {
   failureRedirect: "/login",
 });
 
@@ -158,7 +158,7 @@ await authenticator.isAuthenticated(request, {
 
 // get the user or null, and do different things in your loader/action based on
 // the result
-let user = await authenticator.isAuthenticated(request);
+const user = await authenticator.isAuthenticated(request);
 if (user) {
   // here the user is authenticated
 } else {
@@ -186,17 +186,17 @@ Note that we will need to store the user data in the session this way. To ensure
 
 ```ts
 export async function action({ request }: ActionFunctionArgs) {
-  let user = await authenticator.authenticate("user-pass", request, {
+  const user = await authenticator.authenticate("user-pass", request, {
     failureRedirect: "/login",
   });
 
   // manually get the session
-  let session = await getSession(request.headers.get("cookie"));
+  const session = await getSession(request.headers.get("cookie"));
   // and store the user data
   session.set(authenticator.sessionKey, user);
 
   // commit the session
-  let headers = new Headers({ "Set-Cookie": await commitSession(session) });
+  const headers = new Headers({ "Set-Cookie": await commitSession(session) });
 
   // and do your validation to know where to redirect the user
   if (isOnboarded(user)) return redirect("/dashboard", { headers });
@@ -209,7 +209,7 @@ export async function action({ request }: ActionFunctionArgs) {
 If we want to change the session key used by Remix Auth to store the user data, we can customize it when creating the `Authenticator` instance.
 
 ```ts
-export let authenticator = new Authenticator<AccessToken>(sessionStorage, {
+export const authenticator = new Authenticator<AccessToken>(sessionStorage, {
   sessionKey: "accessToken",
 });
 ```
@@ -225,7 +225,7 @@ When the user cannot authenticate, the error will be set in the session using th
 We can customize the name of the key when creating the `Authenticator` instance.
 
 ```ts
-export let authenticator = new Authenticator<User>(sessionStorage, {
+export const authenticator = new Authenticator<User>(sessionStorage, {
   sessionErrorKey: "my-error-key",
 });
 ```
@@ -238,8 +238,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   await authenticator.isAuthenticated(request, {
     successRedirect: "/dashboard",
   });
-  let session = await getSession(request.headers.get("cookie"));
-  let error = session.get(authenticator.sessionErrorKey);
+  const session = await getSession(request.headers.get("cookie"));
+  const error = session.get(authenticator.sessionErrorKey);
   return json({ error }, {
     headers:{
       'Set-Cookie': await commitSession(session) // You must commit the session whenever you read a flash
@@ -261,7 +261,7 @@ If we want to get an error object inside the action instead of throwing a Respon
 If we do it in the `Authenticator,` it will be the default behavior for all the `authenticate` calls.
 
 ```ts
-export let authenticator = new Authenticator<User>(sessionStorage, {
+export const authenticator = new Authenticator<User>(sessionStorage, {
   throwOnError: true,
 });
 ```
