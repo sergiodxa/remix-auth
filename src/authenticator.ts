@@ -273,12 +273,12 @@ export class Authenticator<User = unknown> {
       ? request
       : await this.sessionStorage.getSession(request.headers.get("Cookie"));
 
-    const headers = new Headers(options.headers);
+    let headers = new Headers(options.headers);
     headers.append(
       "Set-Cookie",
       await this.sessionStorage.destroySession(session)
     );
 
-    throw redirect(options.redirectTo, { headers: headers });
+    throw redirect(options.redirectTo, { headers });
   }
 }
