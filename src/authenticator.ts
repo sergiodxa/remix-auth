@@ -267,16 +267,18 @@ export class Authenticator<User = unknown> {
    */
   async logout(
     request: Request | Session,
-    options: { redirectTo: string }
+    options: { redirectTo: string; headers?: HeadersInit }
   ): Promise<never> {
     let session = isSession(request)
       ? request
       : await this.sessionStorage.getSession(request.headers.get("Cookie"));
 
-    throw redirect(options.redirectTo, {
-      headers: {
-        "Set-Cookie": await this.sessionStorage.destroySession(session),
-      },
-    });
+    let headers = new Headers(options.headers);
+    headers.append(
+      "Set-Cookie",
+      await this.sessionStorage.destroySession(session)
+    );
+
+    throw redirect(options.redirectTo, { headers });
   }
 }
