@@ -39,7 +39,7 @@ export interface AuthenticateOptions {
    */
   failureRedirect?: string;
   /**
-   * Set if the strategy should throw an error instead of a Reponse in case of
+   * Set if the strategy should throw an error instead of a Response in case of
    * a failed authentication.
    * @default false
    */
