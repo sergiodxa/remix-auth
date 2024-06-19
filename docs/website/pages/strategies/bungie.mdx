@@ -1,0 +1,132 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Bungie Strategy
+
+This is a [Bungie](https://bungie.net/) strategy for [remix-auth](https://github.com/sergiodxa/remix-auth) library.
+
+This is based off of the Google Strategy from [remix-auth-socials](https://github.com/TheRealFlyingCoder/remix-auth-socials) and the Steam Strategy from [remix-auth-steam](https://github.com/Andreychik32/remix-auth-steam).
+
+<Callout type="info">
+Bungie requires the callback to use `https://` meaning you can't use the default `http://localhost:3000` even for development. The solution that seems to have the least friction and the one I used was the free plan from [ngrok](https://ngrok.com/). You can use any solution you like, but we aware that you can't use just `http://`.
+
+It also seems you can't use `localhost` but may need to use `127.0.0.1` or some domain setup in your hosts file. I didn't test this can not confirm either way. Using ngrok produces a domain name anyway, so if that is a limitation ngrok also solved that.
+
+For the sake of this README I will assume that no matter the solution you use, you have a URL saved to your .env file. You will need to update your cookie to use the domain assigned to your ngrok tunnel, if you use that solution. If you have a URL in .env, you can set it to that.
+
+</Callout>
+
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ❓          |
+
+## Setup Guide
+
+<Steps>
+
+### Install the package
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-bungie
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-bungie
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-bungie
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+### Create the strategy instance
+
+```tsx copy filename="app/services/auth.server.ts"
+import { Authenticator } from "remix-auth";
+import { sessionStorage } from "~/services/session.server";
+import { BungieStrategy } from "remix-auth-bungie";
+import type { BungieProfile } from "remix-auth-bungie";
+
+// you can import User elsewhere to type the profile
+export type User = BungieProfile;
+
+export let authenticator = new Authenticator<User>(sessionStorage);
+
+if (
+  !process.env.BUNGIE_ID ||
+  !process.env.BUNGIE_SECRET ||
+  !process.env.BUNGIE_APIKEY
+) {
+  throw new Error("Bungie ID, Secret and API Key are required");
+}
+
+authenticator.use(
+  new BungieStrategy(
+    {
+      clientID: process.env.BUNGIE_ID,
+      clientSecret: process.env.BUNGIE_SECRET,
+      callbackURL: `https://${process.env.CALLBACK_URL}/auth/callback/bungie`,
+      apiKey: process.env.BUNGIE_APIKEY,
+    },
+    async ({ profile }) => {
+      return profile;
+    }
+  )
+);
+```
+
+### Setup your routes
+
+```tsx copy filename="app/routes/auth/bungie.tsx"
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { authenticator } from "~/services/auth.server";
+
+export let loader: LoaderFunction = () => redirect("/login");
+
+export let action: ActionFunction = ({ request, params }) => {
+  return authenticator.authenticate("bungie", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
+};
+```
+
+```tsx copy filename="app/routes/auth/callback/bungie.tsx"
+import type { LoaderFunction } from "@remix-run/node";
+import { authenticator } from "~/services/auth.server";
+
+export let loader: LoaderFunction = ({ request, params }) => {
+  return authenticator.authenticate("bungie", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
+};
+```
+
+```tsx copy filename="app/routes/auth/linkedin/callback.tsx"
+import { ActionFunction, LoaderFunction } from "remix";
+import { authenticator } from "~/linkedin.server";
+
+export let loader: LoaderFunction = ({ request }) => {
+  return authenticator.authenticate("linkedin", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
+};
+```
+
+</Steps>
