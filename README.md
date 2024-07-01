@@ -21,6 +21,13 @@ Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrot
 
 As with Passport.js, it uses the strategy pattern to support the different authentication flows. Each strategy is published individually as a separate npm package.
 
+## Supported runtimes
+
+| Runtime    | Has Support |
+| ---------- | ----------- |
+| Node.js    | ✅          |
+| Cloudflare | ✅          |
+
 ## Installation
 
 To use it, install it from npm (or yarn):
@@ -56,6 +63,12 @@ export let sessionStorage = createCookieSessionStorage({
 // you can also export the methods individually for your own usage
 export let { getSession, commitSession, destroySession } = sessionStorage;
 ```
+
+> If you are deploying to Cloudflare, you need to import from `@remix-run/cloudflare`:
+> ```
+> import { createCookieSessionStorage } from "@remix-run/cloudflare";
+> ```
+
 
 Now, create a file for the Remix Auth configuration. Here import the `Authenticator` class and your `sessionStorage` object.
 
