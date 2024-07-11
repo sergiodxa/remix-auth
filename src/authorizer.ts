@@ -1,7 +1,5 @@
-import { LoaderFunction, redirect, json } from "@remix-run/server-runtime";
+import { LoaderArgs, redirect, json } from "@remix-run/server-runtime";
 import { Authenticator } from "./authenticator";
-
-type LoaderArgs = Parameters<LoaderFunction>[0];
 
 type AuthorizeArgs<User, Data> = Omit<RuleContext<User, Data>, "user">;
 
