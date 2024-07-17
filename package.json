@@ -5,6 +5,7 @@
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "scripts": {
+    "dev": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "lint": "eslint --ext .ts,.tsx src/",
@@ -74,6 +75,8 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@tanstack/react-router": "^1.45.4",
+    "@tanstack/start": "^1.45.4",
     "uuid": "^8.3.2"
   }
 }

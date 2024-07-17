@@ -1,15 +1,10 @@
-import {
-  AppLoadContext,
-  json,
-  redirect,
-  SessionStorage,
-} from "@remix-run/server-runtime";
+import { Authenticator, SessionStorage } from "./authenticator";
 import { AuthorizationError } from "./error";
 
 /**
  * Extra information from the Authenticator to the strategy
  */
-export interface AuthenticateOptions {
+export interface AuthenticateOptions<TContext> {
   /**
    * The key of the session used to set the user data.
    */
@@ -48,7 +43,7 @@ export interface AuthenticateOptions {
    * The context object received by the loader or action.
    * This can be used by the strategy if needed.
    */
-  context?: AppLoadContext;
+  context?: TContext;
 }
 
 /**
@@ -76,7 +71,7 @@ export interface StrategyVerifyCallback<User, VerifyParams> {
  * These methods helps you return or throw the correct value, response or error
  * from within the strategy `authenticate` method.
  */
-export abstract class Strategy<User, VerifyOptions> {
+export abstract class Strategy<User, VerifyOptions, TContext> {
   /**
    * The name of the strategy.
    * This will be used by the Authenticator to identify and retrieve the
@@ -87,6 +82,8 @@ export abstract class Strategy<User, VerifyOptions> {
   public constructor(
     protected verify: StrategyVerifyCallback<User, VerifyOptions>
   ) {}
+
+  public authenticator!: Authenticator<User>;
 
   /**
    * The authentication flow of the strategy.
@@ -100,7 +97,7 @@ export abstract class Strategy<User, VerifyOptions> {
   public abstract authenticate(
     request: Request,
     sessionStorage: SessionStorage,
-    options: AuthenticateOptions
+    options: AuthenticateOptions<TContext>
   ): Promise<User>;
 
   /**
@@ -117,13 +114,16 @@ export abstract class Strategy<User, VerifyOptions> {
     message: string,
     request: Request,
     sessionStorage: SessionStorage,
-    options: AuthenticateOptions,
+    options: AuthenticateOptions<TContext>,
     cause?: Error
   ): Promise<never> {
     // if a failureRedirect is not set, we throw a 401 Response or an error
     if (!options.failureRedirect) {
       if (options.throwOnError) throw new AuthorizationError(message, cause);
-      throw json<{ message: string }>({ message }, 401);
+      throw this.authenticator.options.json<{ message: string }>(
+        { message },
+        401
+      );
     }
 
     let session = await sessionStorage.getSession(
@@ -133,7 +133,7 @@ export abstract class Strategy<User, VerifyOptions> {
     // if we do have a failureRedirect, we redirect to it and set the error
     // in the session errorKey
     session.flash(options.sessionErrorKey, { message });
-    throw redirect(options.failureRedirect, {
+    throw this.authenticator.options.redirect(options.failureRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
   }
@@ -151,7 +151,7 @@ export abstract class Strategy<User, VerifyOptions> {
     user: User,
     request: Request,
     sessionStorage: SessionStorage,
-    options: AuthenticateOptions
+    options: AuthenticateOptions<TContext>
   ): Promise<User> {
     // if a successRedirect is not set, we return the user
     if (!options.successRedirect) return user;
@@ -164,7 +164,7 @@ export abstract class Strategy<User, VerifyOptions> {
     // in the session sessionKey
     session.set(options.sessionKey, user);
     session.set(options.sessionStrategyKey, options.name ?? this.name);
-    throw redirect(options.successRedirect, {
+    throw this.authenticator.options.redirect(options.successRedirect, {
       headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
     });
   }

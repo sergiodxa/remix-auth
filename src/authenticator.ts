@@ -1,9 +1,4 @@
-import {
-  isSession,
-  redirect,
-  Session,
-  SessionStorage,
-} from "@remix-run/server-runtime";
+import { isSession, Session, SessionStorage } from "@remix-run/server-runtime";
 import { AuthenticateOptions, Strategy } from "./strategy";
 
 export interface AuthenticateCallback<User> {
@@ -13,28 +8,40 @@ export interface AuthenticateCallback<User> {
 /**
  * Extra options for the authenticator.
  */
-export interface AuthenticatorOptions {
-  sessionKey?: AuthenticateOptions["sessionKey"];
-  sessionErrorKey?: AuthenticateOptions["sessionErrorKey"];
-  sessionStrategyKey?: AuthenticateOptions["sessionStrategyKey"];
-  throwOnError?: AuthenticateOptions["throwOnError"];
+export interface PublicAuthenticatorOptions<TUser, TFlash, TContext> {
+  sessionStorage: SessionStorage<TUser, TFlash>;
+  sessionKey?: AuthenticateOptions<TContext>["sessionKey"];
+  sessionErrorKey?: AuthenticateOptions<TContext>["sessionErrorKey"];
+  sessionStrategyKey?: AuthenticateOptions<TContext>["sessionStrategyKey"];
+  throwOnError?: AuthenticateOptions<TContext>["throwOnError"];
 }
 
-export class Authenticator<User = unknown> {
+export interface AuthenticatorImplOptions {
+  redirect: (
+    url: string,
+    options?: { headers?: HeadersInit }
+  ) => Response | Promise<Response>;
+  json: <T>(data: T, status?: number) => Response;
+}
+
+export type AuthenticatorOptions<TUser, TFlash, TContext> =
+  PublicAuthenticatorOptions<TUser, TFlash, TContext> &
+    AuthenticatorImplOptions;
+
+export type AuthenticatorOptionsRequired<TUser, TFlash, TContext> = Required<
+  AuthenticatorOptions<TUser, TFlash, TContext> & AuthenticatorImplOptions
+>;
+
+export class Authenticator<
+  TUser = unknown,
+  TFlash = TUser,
+  TContext = unknown
+> {
   /**
    * A map of the configured strategies, the key is the name of the strategy
    * @private
    */
-  private strategies = new Map<string, Strategy<User, never>>();
-
-  public readonly sessionKey: NonNullable<AuthenticatorOptions["sessionKey"]>;
-  public readonly sessionErrorKey: NonNullable<
-    AuthenticatorOptions["sessionErrorKey"]
-  >;
-  public readonly sessionStrategyKey: NonNullable<
-    AuthenticateOptions["sessionStrategyKey"]
-  >;
-  private readonly throwOnError: AuthenticatorOptions["throwOnError"];
+  private strategies = new Map<string, Strategy<TUser, never, TContext>>();
 
   /**
    * Create a new instance of the Authenticator.
@@ -58,15 +65,17 @@ export class Authenticator<User = unknown> {
    *   sessionKey: "token",
    * });
    */
-  constructor(
-    private sessionStorage: SessionStorage,
-    options: AuthenticatorOptions = {}
-  ) {
-    this.sessionKey = options.sessionKey || "user";
-    this.sessionErrorKey = options.sessionErrorKey || "auth:error";
-    this.sessionStrategyKey = options.sessionStrategyKey || "strategy";
-    this.throwOnError = options.throwOnError ?? false;
+  constructor(options: AuthenticatorOptions<TUser, TFlash, TContext>) {
+    this.options = {
+      ...options,
+      sessionKey: options.sessionKey || "user",
+      sessionErrorKey: options.sessionErrorKey || "auth:error",
+      sessionStrategyKey: options.sessionStrategyKey || "strategy",
+      throwOnError: options.throwOnError ?? false,
+    };
   }
+
+  options: AuthenticatorOptionsRequired<TUser, TFlash, TContext>;
 
   /**
    * Call this method with the Strategy, the optional name allows you to setup
@@ -77,7 +86,7 @@ export class Authenticator<User = unknown> {
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)))
    *  .use(new SomeStrategy({}, (user) => Promise.resolve(user)), "another");
    */
-  use(strategy: Strategy<User, never>, name?: string): Authenticator<User> {
+  use(strategy: Strategy<TUser, never, TContext>, name?: string) {
     this.strategies.set(name ?? strategy.name, strategy);
     return this;
   }
@@ -88,7 +97,7 @@ export class Authenticator<User = unknown> {
    * @example
    * authenticator.unuse("another").unuse("some");
    */
-  unuse(name: string): Authenticator {
+  unuse(name: string) {
     this.strategies.delete(name);
     return this;
   }
@@ -112,50 +121,50 @@ export class Authenticator<User = unknown> {
     strategy: string,
     request: Request,
     options: Pick<
-      AuthenticateOptions,
+      AuthenticateOptions<TContext>,
       "failureRedirect" | "throwOnError" | "context"
     > & {
-      successRedirect: AuthenticateOptions["successRedirect"];
+      successRedirect: AuthenticateOptions<TContext>["successRedirect"];
     }
   ): Promise<never>;
   authenticate(
     strategy: string,
     request: Request,
     options: Pick<
-      AuthenticateOptions,
+      AuthenticateOptions<TContext>,
       "successRedirect" | "throwOnError" | "context"
     > & {
-      failureRedirect: AuthenticateOptions["failureRedirect"];
+      failureRedirect: AuthenticateOptions<TContext>["failureRedirect"];
     }
-  ): Promise<User>;
+  ): Promise<TUser>;
   authenticate(
     strategy: string,
     request: Request,
     options?: Pick<
-      AuthenticateOptions,
+      AuthenticateOptions<TContext>,
       "successRedirect" | "failureRedirect" | "throwOnError" | "context"
     >
-  ): Promise<User>;
+  ): Promise<TUser>;
   authenticate(
     strategy: string,
     request: Request,
     options: Pick<
-      AuthenticateOptions,
+      AuthenticateOptions<TContext>,
       "successRedirect" | "failureRedirect" | "throwOnError" | "context"
     > = {}
-  ): Promise<User> {
+  ): Promise<TUser> {
     const strategyObj = this.strategies.get(strategy);
     if (!strategyObj) throw new Error(`Strategy ${strategy} not found.`);
     return strategyObj.authenticate(
       new Request(request.url, request),
-      this.sessionStorage,
+      this.options.sessionStorage,
       {
-        throwOnError: this.throwOnError,
+        throwOnError: this.options.throwOnError,
         ...options,
         name: strategy,
-        sessionKey: this.sessionKey,
-        sessionErrorKey: this.sessionErrorKey,
-        sessionStrategyKey: this.sessionStrategyKey,
+        sessionKey: this.options.sessionKey,
+        sessionErrorKey: this.options.sessionErrorKey,
+        sessionStrategyKey: this.options.sessionStrategyKey,
       }
     );
   }
@@ -196,7 +205,7 @@ export class Authenticator<User = unknown> {
       failureRedirect?: never;
       headers?: never;
     }
-  ): Promise<User | null>;
+  ): Promise<TUser | null>;
   async isAuthenticated(
     request: Request | Session,
     options: {
@@ -212,7 +221,7 @@ export class Authenticator<User = unknown> {
       failureRedirect: string;
       headers?: HeadersInit;
     }
-  ): Promise<User>;
+  ): Promise<TUser>;
   async isAuthenticated(
     request: Request | Session,
     options: {
@@ -240,21 +249,27 @@ export class Authenticator<User = unknown> {
           failureRedirect: string;
           headers?: HeadersInit;
         } = {}
-  ): Promise<User | null> {
+  ): Promise<TUser | null> {
     let session = isSession(request)
       ? request
-      : await this.sessionStorage.getSession(request.headers.get("Cookie"));
+      : await this.options.sessionStorage.getSession(
+          request.headers.get("Cookie")
+        );
 
-    let user: User | null = session.get(this.sessionKey) ?? null;
+    let user: TUser | null = session.get(this.options.sessionKey) ?? null;
 
     if (user) {
       if (options.successRedirect) {
-        throw redirect(options.successRedirect, { headers: options.headers });
+        throw this.options.redirect(options.successRedirect, {
+          headers: options.headers,
+        });
       } else return user;
     }
 
     if (options.failureRedirect) {
-      throw redirect(options.failureRedirect, { headers: options.headers });
+      throw this.options.redirect(options.failureRedirect, {
+        headers: options.headers,
+      });
     } else return null;
   }
 
@@ -266,19 +281,22 @@ export class Authenticator<User = unknown> {
    * }
    */
   async logout(
-    request: Request | Session,
+    request: Request | Session<TUser, TFlash>,
     options: { redirectTo: string; headers?: HeadersInit }
   ): Promise<never> {
     let session = isSession(request)
       ? request
-      : await this.sessionStorage.getSession(request.headers.get("Cookie"));
+      : await this.options.sessionStorage.getSession(
+          request.headers.get("Cookie")
+        );
 
     let headers = new Headers(options.headers);
+
     headers.append(
       "Set-Cookie",
-      await this.sessionStorage.destroySession(session)
+      await this.options.sessionStorage.destroySession(session)
     );
 
-    throw redirect(options.redirectTo, { headers });
+    throw this.options.redirect(options.redirectTo, { headers });
   }
 }

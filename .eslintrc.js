@@ -23,6 +23,7 @@ module.exports = {
     "prefer-const": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "no-unused-vars": "off",
     "no-var": "off",
     "unicorn/no-null": "off",
