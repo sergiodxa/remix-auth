@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "sergiodxa"
+    assignees:
+      - "sergiodxa"
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "sergiodxa"
+    assignees:
+      - "sergiodxa"

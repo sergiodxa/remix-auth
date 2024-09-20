@@ -2,15 +2,15 @@
 
 ## Setup
 
-Create an environment variable called `REMIX_TOKEN` with your [Remix install token](https://remix.run/dashboard).
+Run `bun install` to install the dependencies.
 
-Run `npm install` to install the dependencies.
+Run the tests with `bun test`.
 
-Run the tests with `npm run test`.
+Run the code quality checker with `bun run quality`.
 
-Run the linter with `npm run lint`.
+Run the typechecker with `bun run typecheck`.
 
-Run the typechecker with `npm run typecheck`.
+Run the exports checker with `bun run exports`.
 
 ## Create a Strategy
 

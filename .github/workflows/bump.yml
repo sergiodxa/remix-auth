@@ -4,36 +4,34 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Semver type of new version (major / minor / patch)'
+        description: "Type of version to bump"
         required: true
         type: choice
         options:
-        - major
-        - minor
-        - patch
+          - major
+          - minor
+          - patch
 
 jobs:
   bump-version:
     name: Bump version
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
-      - name: Setup Git
-        run: |
+          node-version: "lts/*"
+
+      - run: |
           git config user.name 'Sergio Xalambrí'
           git config user.email 'hello@sergiodxa.com'
-      - name: bump version
-        run: npm version ${{ github.event.inputs.version }}
 
-      - name: Push latest version
-        run: git push origin main --follow-tags
+      - run: npm version ${{ github.event.inputs.version }}
+      - run: bun run quality:fix
+      - run: git push origin main --follow-tags
