@@ -38,23 +38,17 @@
 		"uuid": "^10.0.0"
 	},
 	"peerDependencies": {
-		"@remix-run/react": "^1.0.0 || ^2.0.0",
 		"@remix-run/server-runtime": "^1.0.0 || ^2.0.0"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.16.4",
-		"@babel/preset-react": "^7.13.13",
 		"@biomejs/biome": "^1.8.3",
-		"@remix-run/node": "^2.0.1",
-		"@remix-run/react": "^2.0.1",
-		"@remix-run/serve": "^2.0.1",
-		"@remix-run/server-runtime": "^2.0.1",
+		"@remix-run/node": "^2.12.1",
+		"@remix-run/server-runtime": "^1.0.0 || ^2.0.0",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.6",
-		"@types/react": "^18.2.20",
 		"@types/uuid": "^10.0.0",
 		"consola": "^3.2.3",
-		"react": "^18.2.0",
 		"typedoc": "^0.26.5",
 		"typedoc-plugin-mdn-links": "^3.2.6",
 		"typescript": "^5.5.4"
