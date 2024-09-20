@@ -73,8 +73,9 @@ export class Authenticator<User = unknown> {
 	): Promise<User> {
 		const obj = this.strategies.get(strategy);
 		if (!obj) throw new ReferenceError(`Strategy ${strategy} not found.`);
-		return obj.authenticate(new Request(request.url, request), this.cookie, {
+		return obj.authenticate(new Request(request.url, request), {
 			...options,
+			cookie: this.cookie,
 			name: strategy,
 		});
 	}
