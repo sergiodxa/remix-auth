@@ -1,0 +1,171 @@
+import { Callout, Steps } from "nextra-theme-docs";
+
+# Quickstart Guide
+
+<Steps>
+### Create Session Storage
+
+```tsx copy filename="app/services/session.server.ts"
+import { createCookieSessionStorage } from "@remix-run/node";
+
+// export the whole sessionStorage object
+export let sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "_session", // use any name you want here
+    sameSite: "lax", // this helps with CSRF
+    path: "/", // remember to add this so the cookie will work in all routes
+    httpOnly: true, // for security reasons, make this cookie http only
+    secrets: ["s3cr3t"], // replace this with an actual secret
+    secure: process.env.NODE_ENV === "production", // enable this in prod only
+  },
+});
+
+// you can also export the methods individually for your own usage
+export let { getSession, commitSession, destroySession } = sessionStorage;
+```
+
+### Create Authenticator instance
+
+```tsx copy filename="app/services/auth.server.ts"
+// app/services/auth.server.ts
+import { Authenticator } from "remix-auth";
+import { sessionStorage } from "~/services/session.server";
+
+// Create an instance of the authenticator, pass a generic with what
+// strategies will return and will store in the session
+export let authenticator = new Authenticator<User>(sessionStorage);
+```
+
+### Install [Form Strategy](http://localhost:3000/stratgies/form)
+
+In this example, we will use the FormStrategy to check the documentation of the strategy you want to use to see any configuration you may need.
+
+import { Tab, Tabs } from "nextra-theme-docs";
+
+{/* prettier-ignore-start */}
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab>
+    ```bash copy
+    npm install remix-auth-form
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    yarn add remix-auth-form
+    ```
+  </Tab>
+  <Tab>
+    ```bash copy 
+    pnpm install remix-auth-form
+    ```
+  </Tab>
+</Tabs>
+
+{/* prettier-ignore-end */}
+
+```tsx copy filename="app/services/auth.server.ts"
+import { FormStrategy } from "remix-auth-form";
+
+// Tell the Authenticator to use the form strategy
+authenticator.use(
+  new FormStrategy(async ({ form }) => {
+    let email = form.get("email");
+    let password = form.get("password");
+    let user = await login(email, password);
+    // the type of this user must match the type you pass to the Authenticator
+    // the strategy will automatically inherit the type if you instantiate
+    // directly inside the `use` method
+    return user;
+  }),
+  // each strategy has a name and can be changed to use another one
+  // same strategy multiple times, especially useful for the OAuth2 strategy.
+  "user-pass"
+);
+```
+
+Now that at least one strategy is registered, it is time to set up the routes.
+
+### Routes Setup
+
+First, create a /login page. Here we will render a form to get the email and password of the user and use Remix Auth to authenticate the user.
+
+```tsx copy filename="app/routes/login.tsx"
+// app/routes/login.tsx
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { Form } from "@remix-run/react";
+import { authenticator } from "~/services/auth.server";
+
+// First we create our UI with the form doing a POST and the inputs with the
+// names we are going to use in the strategy
+export default function Screen() {
+  return (
+    <Form method="post">
+      <input type="email" name="email" required />
+      <input
+        type="password"
+        name="password"
+        autoComplete="current-password"
+        required
+      />
+      <button>Sign In</button>
+    </Form>
+  );
+}
+
+// Second, we need to export an action function, here we will use the
+// `authenticator.authenticate method`
+export async function action({ request }: ActionArgs) {
+  // we call the method with the name of the strategy we want to use and the
+  // request object, optionally we pass an object with the URLs we want the user
+  // to be redirected to after a success or a failure
+  return await authenticator.authenticate("user-pass", request, {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  });
+}
+
+// Finally, we can export a loader function where we check if the user is
+// authenticated with `authenticator.isAuthenticated` and redirect to the
+// dashboard if it is or return null if it's not
+export async function loader({ request }: LoaderArgs) {
+  // If the user is already authenticated redirect to /dashboard directly
+  return await authenticator.isAuthenticated(request, {
+    successRedirect: "/dashboard",
+  });
+}
+```
+
+With this, we have our login page. If we need to get the user data in another route of the application, we can use the authenticator.isAuthenticated method passing the request this way:
+
+```tsx copy
+// get the user data or redirect to /login if it failed
+let user = await authenticator.isAuthenticated(request, {
+  failureRedirect: "/login",
+});
+
+// if the user is authenticated, redirect to /dashboard
+await authenticator.isAuthenticated(request, {
+  successRedirect: "/dashboard",
+});
+
+// get the user or null, and do different things in your loader/action based on
+// the result
+let user = await authenticator.isAuthenticated(request);
+if (user) {
+  // here the user is authenticated
+} else {
+  // here the user is not authenticated
+}
+```
+
+Once the user is ready to leave the application, we can call the logout method inside an action.
+
+```tsx copy
+export async function action({ request }: ActionArgs) {
+  await authenticator.logout(request, { redirectTo: "/login" });
+}
+```
+
+</Steps>
