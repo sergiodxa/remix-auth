@@ -35,7 +35,7 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"uuid": "^10.0.0"
+		"uuid": "^11.0.2"
 	},
 	"peerDependencies": {
 		"@remix-run/react": "^1.0.0 || ^2.0.0",
