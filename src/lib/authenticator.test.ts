@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createCookieSessionStorage } from "@remix-run/node";
-import { SessionStorage, redirect } from "@remix-run/server-runtime";
+import {
+	SessionStorage,
+	createCookieSessionStorage,
+	redirect,
+} from "react-router";
+
 import {
 	AuthenticateOptions,
 	Authenticator,

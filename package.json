@@ -38,17 +38,13 @@
 		"uuid": "^11.0.2"
 	},
 	"peerDependencies": {
-		"@remix-run/react": "^1.0.0 || ^2.0.0",
-		"@remix-run/server-runtime": "^1.0.0 || ^2.0.0"
+		"react-router": "^7.0.0"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.17.0",
 		"@babel/preset-react": "^7.13.13",
 		"@biomejs/biome": "^1.8.3",
-		"@remix-run/node": "^2.0.1",
-		"@remix-run/react": "^2.0.1",
-		"@remix-run/serve": "^2.0.1",
-		"@remix-run/server-runtime": "^2.0.1",
+		"react-router": "^7.0.1",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.6",
 		"@types/react": "^18.2.20",
