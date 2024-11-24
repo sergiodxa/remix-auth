@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createCookie } from "@remix-run/node";
+import { createCookie } from "react-router";
 import { Authenticator } from "./index.js";
 import { Strategy } from "./strategy.js";
 

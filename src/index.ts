@@ -1,4 +1,4 @@
-import type { Cookie } from "@remix-run/server-runtime";
+import type { Cookie } from "react-router";
 import type { Strategy } from "./strategy.js";
 
 export class Authenticator<User = unknown> {

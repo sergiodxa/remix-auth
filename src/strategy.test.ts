@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createCookie } from "@remix-run/node";
+import { createCookie } from "react-router";
 import { z } from "zod";
 import { Strategy } from "./strategy";
 

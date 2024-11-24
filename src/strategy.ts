@@ -1,4 +1,4 @@
-import type { AppLoadContext, Cookie } from "@remix-run/server-runtime";
+import type { AppLoadContext, Cookie } from "react-router";
 
 export namespace Strategy {
 	/**
