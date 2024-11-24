@@ -3,7 +3,7 @@ import {
 	type SessionStorage,
 	isSession,
 	redirect,
-} from "@remix-run/server-runtime";
+} from "react-router";
 import { type AuthenticateOptions, Strategy } from "./strategy.js";
 
 export type AuthenticateCallback<User> = (user: User) => Promise<Response>;
