@@ -2,22 +2,20 @@
 
 # Remix Auth
 
-### Simple Authentication for [Remix](https://remix.run/)
+### Simple Authentication for [Remix](https://remix.run) and [React Router](https://reactrouter.com) apps.
 
 ## Features
 
 - Full **Server-Side** Authentication
 - Complete **TypeScript** Support
 - **Strategy**-based Authentication
-- Easily handle **success and failure**
 - Implement **custom** strategies
-- Supports persistent **sessions**
 
 ## Overview
 
-Remix Auth is a complete open-source authentication solution for Remix.run applications.
+Remix Auth is a complete open-source authentication solution for Remix and React Router applications.
 
-Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix-based application with minimal setup.
+Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix or React Router based application with minimal setup.
 
 As with Passport.js, it uses the strategy pattern to support the different authentication flows. Each strategy is published individually as a separate npm package.
 
@@ -31,45 +29,20 @@ npm install remix-auth
 
 Also, install one of the strategies. A list of strategies is available in the [Community Strategies discussion](https://github.com/sergiodxa/remix-auth/discussions/111).
 
+> [!TIP]
+> Check in the strategies what versions of Remix Auth they support, as they may not be updated to the latest version.
+
 ## Usage
 
-Remix Auth needs a session storage object to store the user session. It can be any object that implements the [SessionStorage interface from Remix](https://remix.run/docs/en/main/utils/sessions#createsessionstorage).
-
-In this example I'm using the [createCookieSessionStorage](https://remix.run/docs/en/main/utils/sessions#createcookiesessionstorage) function.
+Import the `Authenticator` class and instantiate with a generic type that will be the type of the user data you will get from the strategies.
 
 ```ts
-// app/services/session.server.ts
-import { createCookieSessionStorage } from "@remix-run/node";
-
-// export the whole sessionStorage object
-export let sessionStorage = createCookieSessionStorage({
-  cookie: {
-    name: "_session", // use any name you want here
-    sameSite: "lax", // this helps with CSRF
-    path: "/", // remember to add this so the cookie will work in all routes
-    httpOnly: true, // for security reasons, make this cookie http only
-    secrets: ["s3cr3t"], // replace this with an actual secret
-    secure: process.env.NODE_ENV === "production", // enable this in prod only
-  },
-});
-
-// you can also export the methods individually for your own usage
-export let { getSession, commitSession, destroySession } = sessionStorage;
-```
-
-Now, create a file for the Remix Auth configuration. Here import the `Authenticator` class and your `sessionStorage` object.
-
-```ts
-// app/services/auth.server.ts
-import { Authenticator } from "remix-auth";
-import { sessionStorage } from "~/services/session.server";
-
 // Create an instance of the authenticator, pass a generic with what
-// strategies will return and will store in the session
-export let authenticator = new Authenticator<User>(sessionStorage);
+// strategies will return
+export let authenticator = new Authenticator<User>();
 ```
 
-The `User` type is whatever you will store in the session storage to identify the authenticated user. It can be the complete user data or a string with a token. It is completely configurable.
+The `User` type is whatever your strategies will give you after identifying the authenticated user. It can be the complete user data, or a string with a token. It is completely up to you.
 
 After that, register the strategies. In this example, we will use the [FormStrategy](https://github.com/sergiodxa/remix-auth-form) to check the documentation of the strategy you want to use to see any configuration you may need.
 
@@ -81,11 +54,10 @@ authenticator.use(
   new FormStrategy(async ({ form }) => {
     let email = form.get("email");
     let password = form.get("password");
-    let user = await login(email, password);
     // the type of this user must match the type you pass to the Authenticator
     // the strategy will automatically inherit the type if you instantiate
     // directly inside the `use` method
-    return user;
+    return await login(email, password);
   }),
   // each strategy has a name and can be changed to use another one
   // same strategy multiple times, especially useful for the OAuth2 strategy.
@@ -93,15 +65,16 @@ authenticator.use(
 );
 ```
 
-Now that at least one strategy is registered, it is time to set up the routes.
+Once we have at least one strategy registered, it is time to set up the routes.
 
 First, create a `/login` page. Here we will render a form to get the email and password of the user and use Remix Auth to authenticate the user.
 
 ```tsx
-// app/routes/login.tsx
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form } from "react-router";
 import { authenticator } from "~/services/auth.server";
+
+// Import this from correct place for your route
+import type { Route } from "./+types";
 
 // First we create our UI with the form doing a POST and the inputs with the
 // names we are going to use in the strategy
@@ -122,78 +95,43 @@ export default function Screen() {
 
 // Second, we need to export an action function, here we will use the
 // `authenticator.authenticate method`
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   // we call the method with the name of the strategy we want to use and the
-  // request object, optionally we pass an object with the URLs we want the user
-  // to be redirected to after a success or a failure
-  return await authenticator.authenticate("user-pass", request, {
-    successRedirect: "/dashboard",
-    failureRedirect: "/login",
+  // request object
+  let user = await authenticator.authenticate("user-pass", request);
+
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  session.set("user", user);
+
+  throw redirect("/", {
+    headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
   });
-};
+}
 
-// Finally, we can export a loader function where we check if the user is
-// authenticated with `authenticator.isAuthenticated` and redirect to the
-// dashboard if it is or return null if it's not
-export async function loader({ request }: LoaderFunctionArgs) {
-  // If the user is already authenticated redirect to /dashboard directly
-  return await authenticator.isAuthenticated(request, {
-    successRedirect: "/dashboard",
-  });
-};
-```
-
-With this, we have our login page. If we need to get the user data in another route of the application, we can use the `authenticator.isAuthenticated` method passing the request this way:
-
-```ts
-// get the user data or redirect to /login if it failed
-let user = await authenticator.isAuthenticated(request, {
-  failureRedirect: "/login",
-});
-
-// if the user is authenticated, redirect to /dashboard
-await authenticator.isAuthenticated(request, {
-  successRedirect: "/dashboard",
-});
-
-// get the user or null, and do different things in your loader/action based on
-// the result
-let user = await authenticator.isAuthenticated(request);
-if (user) {
-  // here the user is authenticated
-} else {
-  // here the user is not authenticated
+// Finally, we need to export a loader function to check if the user is already
+// authenticated and redirect them to the dashboard
+export async function loader({ request }: Route.LoaderArgs) {
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  let user = session.get("user");
+  if (user) throw redirect("/dashboard");
+  return data(null);
 }
 ```
 
-Once the user is ready to leave the application, we can call the `logout` method inside an action.
-
-```ts
-export async function action({ request }: ActionFunctionArgs) {
-  await authenticator.logout(request, { redirectTo: "/login" });
-};
-```
+The sessionStorage can be created using React Router's session storage hepler, is up to you to decide what session storage mechanism you want to use, or how you plan to keep the user data after authentication, maybe you just need a plain cookie.
 
 ## Advanced Usage
 
-### Custom redirect URL based on the user
+### Redirect the user to different routes based on their data
 
 Say we have `/dashboard` and `/onboarding` routes, and after the user authenticates, you need to check some value in their data to know if they are onboarded or not.
 
-If we do not pass the `successRedirect` option to the `authenticator.authenticate` method, it will return the user data.
-
-Note that we will need to store the user data in the session this way. To ensure we use the correct session key, the authenticator has a `sessionKey` property.
-
 ```ts
-export async function action({ request }: ActionFunctionArgs) {
-  let user = await authenticator.authenticate("user-pass", request, {
-    failureRedirect: "/login",
-  });
+export async function action({ request }: Route.ActionArgs) {
+  let user = await authenticator.authenticate("user-pass", request);
 
-  // manually get the session
-  let session = await getSession(request.headers.get("cookie"));
-  // and store the user data
-  session.set(authenticator.sessionKey, user);
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  session.set("user", user);
 
   // commit the session
   let headers = new Headers({ "Set-Cookie": await commitSession(session) });
@@ -201,92 +139,218 @@ export async function action({ request }: ActionFunctionArgs) {
   // and do your validation to know where to redirect the user
   if (isOnboarded(user)) return redirect("/dashboard", { headers });
   return redirect("/onboarding", { headers });
-};
+}
 ```
 
-### Changing the session key
+### Handle errors
 
-If we want to change the session key used by Remix Auth to store the user data, we can customize it when creating the `Authenticator` instance.
-
-```ts
-export let authenticator = new Authenticator<AccessToken>(sessionStorage, {
-  sessionKey: "accessToken",
-});
-```
-
-With this, both `authenticate` and `isAuthenticated` will use that key to read or write the user data (in this case, the access token).
-
-If we need to read or write from the session manually, remember always to use the `authenticator.sessionKey` property. If we change the key in the `Authenticator` instance, we will not need to change it in the code.
-
-### Reading authentication errors
-
-When the user cannot authenticate, the error will be set in the session using the `authenticator.sessionErrorKey` property.
-
-We can customize the name of the key when creating the `Authenticator` instance.
+In case of error, the authenticator and the strategy will simply throw an error. You can catch it and handle it as you wish.
 
 ```ts
-export let authenticator = new Authenticator<User>(sessionStorage, {
-  sessionErrorKey: "my-error-key",
-});
-```
-
-Furthermore, we can read the error using that key after a failed authentication.
-
-```ts
-// in the loader of the login route
-export async function loader({ request }: LoaderFunctionArgs) {
-  await authenticator.isAuthenticated(request, {
-    successRedirect: "/dashboard",
-  });
-  let session = await getSession(request.headers.get("cookie"));
-  let error = session.get(authenticator.sessionErrorKey);
-  return json({ error }, {
-    headers:{
-      'Set-Cookie': await commitSession(session) // You must commit the session whenever you read a flash
-    }
-  });
-};
-```
-
-Remember always to use the `authenticator.sessionErrorKey` property. If we change the key in the `Authenticator` instance, we will not need to change it in the code.
-
-### Errors Handling
-
-By default, any error in the authentication process will throw a Response object. If `failureRedirect` is specified, this will always be a redirect response with the error message on the `sessionErrorKey`.
-
-If a `failureRedirect` is not defined, Remix Auth will throw a 401 Unauthorized response with a JSON body containing the error message. This way, we can use the CatchBoundary component of the route to render any error message.
-
-If we want to get an error object inside the action instead of throwing a Response, we can configure the `throwOnError` option to `true`. We can do this when instantiating the `Authenticator` or calling `authenticate`.
-
-If we do it in the `Authenticator,` it will be the default behavior for all the `authenticate` calls.
-
-```ts
-export let authenticator = new Authenticator<User>(sessionStorage, {
-  throwOnError: true,
-});
-```
-
-Alternatively, we can do it on the action itself.
-
-```ts
-import { AuthorizationError } from "remix-auth";
-
 export async function action({ request }: ActionFunctionArgs) {
   try {
-    return await authenticator.authenticate("user-pass", request, {
-      successRedirect: "/dashboard",
-      throwOnError: true,
-    });
+    return await authenticator.authenticate("user-pass", request);
   } catch (error) {
-    // Because redirects work by throwing a Response, you need to check if the
-    // caught error is a response and return it or throw it again
-    if (error instanceof Response) return error;
-    if (error instanceof AuthorizationError) {
-      // here the error is related to the authentication process
+    if (error instanceof Error) {
+      // here the error related to the authentication process
     }
-    // here the error is a generic error that another reason may throw
+
+    throw error; // Re-throw other values or unhandled errors
   }
-};
+}
 ```
 
-If we define both `failureRedirect` and `throwOnError`, the redirect will happen instead of throwing an error.
+> [!TIP]
+> Some strategies may throw a redirect response, this is common on OAuth2/OIDC flows as they need to redirect the user to the identity provider and then back to the application, ensure you re-throw anything that's not a handled error
+> Use `if (error instanceof Response) throw error;` at the beginning of the catch block to re-throw any response first in case you want to handle it differently.
+
+### Logout the user
+
+Because you're in charge of keeping the user data after login, how you handle the logout will depend on that. You can simply remove the user data from the session, or you can create a new session, or you can even invalidate the session.
+
+```ts
+export async function action({ request }: ActionFunctionArgs) {
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  return redirect("/login", {
+    headers: { "Set-Cookie": await sessionStorage.destroySession(session) },
+  });
+}
+```
+
+### Protect a route
+
+To protect a route, you can use the `loader` function to check if the user is authenticated. If not, you can redirect them to the login page.
+
+```ts
+export async function loader({ request }: Route.LoaderArgs) {
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  let user = session.get("user");
+  if (!user) throw redirect("/login");
+  return null;
+}
+```
+
+This is outside the scope of Remix Auth as where you store the user data depends on your application.
+
+A simple way could be to create an `authenticate` helper.
+
+```ts
+export async function authenticate(request: Request, returnTo?: string) {
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+  let user = session.get("user");
+  if (user) return user;
+  if (returnTo) session.set("returnTo", returnTo);
+  throw redirect("/login", {
+    headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+  });
+}
+```
+
+Then in your loaders and actions call that:
+
+```ts
+export async function loader({ request }: Route.LoaderArgs) {
+  let user = await authenticate(request, "/dashboard");
+  // use the user data here
+}
+```
+
+### Create a strategy
+
+All strategies extends the `Strategy` abstract class exported by Remix Auth. You can create your own strategies by extending this class and implementing the `authenticate` method.
+
+```ts
+import { Strategy } from "remix-auth/strategy";
+
+export namespace MyStrategy {
+  export interface VerifyOptions {
+    // The values you will pass to the verify function
+  }
+}
+
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  async authenticate(
+    request: Request,
+    options: Strategy.AuthenticateOptions
+  ): Promise<User> {
+    // Your logic here
+  }
+}
+```
+
+At some point of your `authenticate` method, you will need to call `this.verify(options)` to call the `verify` function the application defined.
+
+```ts
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  async authenticate(
+    request: Request,
+    options: Strategy.AuthenticateOptions
+  ): Promise<User> {
+    return await this.verify({
+      /* your options here */
+    });
+  }
+}
+```
+
+The options will depend on the second generic you pass to the `Strategy` class.
+
+What you want to pass to the `verify` method is up to you and what your authentication flow needs.
+
+#### Store intermediate state
+
+If your strategy needs to store intermediate state, you can use override the `contructor` method to expect a `Cookie` object, or even a `SessionStorage` object.
+
+```ts
+import { SetCookie } from "@mjackson/headers";
+
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  constructor(
+    protected cookieName: string,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(
+    request: Request,
+    options: Strategy.AuthenticateOptions
+  ): Promise<User> {
+    let header = new SetCookie({
+      name: this.cookieName,
+      value: "some value",
+      // more options
+    });
+    // More code
+  }
+}
+```
+
+The result of `header.toString()` will be a string you have to send to the browser using the `Set-Cookie` header, this can be done by throwing a redirect with the header.
+
+```ts
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  constructor(
+    protected cookieName: string,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(
+    request: Request,
+    options: Strategy.AuthenticateOptions
+  ): Promise<User> {
+    let header = new SetCookie({
+      name: this.cookieName,
+      value: "some value",
+      // more options
+    });
+    throw redirect("/some-route", {
+      headers: { "Set-Cookie": header.toString() },
+    });
+  }
+}
+```
+
+Then you can read the value in the next request using the `Cookie` object from the `@mjackson/headers` package.
+
+```ts
+import { Cookie } from "@mjackson/headers";
+
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  constructor(
+    protected cookieName: string,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(
+    request: Request,
+    options: Strategy.AuthenticateOptions
+  ): Promise<User> {
+    let cookie = new Cookie(request.headers.get("cookie") ?? "");
+    let value = cookie.get(this.cookieName);
+    // More code
+  }
+}
+```
+
+## License
+
+See [LICENSE](./LICENSE).
+
+## Author
+
+- [Sergio Xalambrí](https://sergiodxa.com)
