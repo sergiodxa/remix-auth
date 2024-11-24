@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createCookie } from "react-router";
+import { type Cookie, createCookie } from "react-router";
 import { z } from "zod";
 import { Strategy } from "./strategy";
 
@@ -39,11 +39,18 @@ describe(SimpleStrategy.name, () => {
 class CookieStrategy extends Strategy<User, VerifyOptions> {
 	name = "cookie";
 
+	constructor(
+		protected cookie: Cookie,
+		verify: Strategy.VerifyFunction<User, VerifyOptions>,
+	) {
+		super(verify);
+	}
+
 	public async authenticate(
 		request: Request,
-		{ cookie }: Strategy.AuthenticateOptions,
+		_: Strategy.AuthenticateOptions,
 	): Promise<User> {
-		let data = await cookie.parse(request.headers.get("Cookie"));
+		let data = await this.cookie.parse(request.headers.get("Cookie"));
 		let userId = z.string().nullable().parse(data);
 		if (!userId) throw new Error("Invalid credentials");
 		return this.verify({ userId });
@@ -54,27 +61,31 @@ describe(CookieStrategy.name, () => {
 	let cookie = createCookie("auth", { secrets: ["s3cr3t"] });
 
 	test("#constructor", () => {
-		let strategy = new CookieStrategy(async ({ userId }) => Number(userId));
+		let strategy = new CookieStrategy(cookie, async ({ userId }) =>
+			Number(userId),
+		);
 		expect(strategy).toBeInstanceOf(Strategy);
 	});
 
 	test("#authenticate (success)", async () => {
-		let strategy = new CookieStrategy(async ({ userId }) => Number(userId));
+		let strategy = new CookieStrategy(cookie, async ({ userId }) =>
+			Number(userId),
+		);
 		let request = new Request("http://remix.auth/test", {
 			headers: { Cookie: await cookie.serialize("1") },
 		});
 
-		expect(
-			strategy.authenticate(request, { name: "cookie", cookie }),
-		).resolves.toBe(1);
+		expect(strategy.authenticate(request, { name: "cookie" })).resolves.toBe(1);
 	});
 
 	test("#authenticate (failure)", async () => {
-		let strategy = new CookieStrategy(async ({ userId }) => Number(userId));
+		let strategy = new CookieStrategy(cookie, async ({ userId }) =>
+			Number(userId),
+		);
 		let request = new Request("http://remix.auth/test");
 
-		expect(() =>
-			strategy.authenticate(request, { name: "cookie", cookie }),
-		).toThrow("Invalid credentials");
+		expect(() => strategy.authenticate(request, { name: "cookie" })).toThrow(
+			"Invalid credentials",
+		);
 	});
 });

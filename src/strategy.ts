@@ -1,38 +1,4 @@
-import type { AppLoadContext, Cookie } from "react-router";
-
-export namespace Strategy {
-	/**
-	 * Extra information from the Authenticator to the strategy
-	 */
-	export interface AuthenticateOptions {
-		/**
-		 * The name used to register the strategy
-		 */
-		name: string;
-		/**
-		 * A cookie that can be used by the strategy to store data in case it has
-		 * to redirect the user to another page before the authentication is done.
-		 */
-		cookie: Cookie;
-		/**
-		 * The context object received by the loader or action.
-		 * This can be used by the strategy if needed.
-		 */
-		context?: AppLoadContext;
-	}
-
-	/**
-	 * A function which will be called to find the user using the information the
-	 * strategy got from the request.
-	 *
-	 * @param params The params from the strategy.
-	 * @returns The user data.
-	 * @throws {AuthorizationError} If the user was not found. Any other error will be ignored and thrown again by the strategy.
-	 */
-	export type VerifyCallback<User, VerifyParams> = (
-		params: VerifyParams,
-	) => Promise<User>;
-}
+import type { AppLoadContext } from "react-router";
 
 /**
  * The Strategy class is the base class every strategy should extend.
@@ -50,7 +16,7 @@ export abstract class Strategy<User, VerifyOptions> {
 	public abstract name: string;
 
 	public constructor(
-		protected verify: Strategy.VerifyCallback<User, VerifyOptions>,
+		protected verify: Strategy.VerifyFunction<User, VerifyOptions>,
 	) {}
 
 	/**
@@ -66,4 +32,33 @@ export abstract class Strategy<User, VerifyOptions> {
 		request: Request,
 		options: Strategy.AuthenticateOptions,
 	): Promise<User>;
+}
+
+export namespace Strategy {
+	/**
+	 * Extra information from the Authenticator to the strategy
+	 */
+	export interface AuthenticateOptions {
+		/**
+		 * The name used to register the strategy
+		 */
+		name: string;
+		/**
+		 * The context object received by the loader or action.
+		 * This can be used by the strategy if needed.
+		 */
+		context?: AppLoadContext;
+	}
+
+	/**
+	 * A function which will be called to find the user using the information the
+	 * strategy got from the request.
+	 *
+	 * @param params The params from the strategy.
+	 * @returns The user data.
+	 * @throws {AuthorizationError} If the user was not found. Any other error will be ignored and thrown again by the strategy.
+	 */
+	export type VerifyFunction<User, VerifyParams> = (
+		params: VerifyParams,
+	) => Promise<User>;
 }

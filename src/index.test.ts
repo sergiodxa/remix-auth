@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { createCookie } from "react-router";
 import { Authenticator } from "./index.js";
 import { Strategy } from "./strategy.js";
 
@@ -13,18 +12,16 @@ class MockStrategy<User> extends Strategy<User, Record<string, never>> {
 	}
 }
 
-const cookie = createCookie("auth", { secrets: ["s3cr3t"] });
-
 describe(Authenticator.name, () => {
 	beforeEach(() => mock.restore());
 
 	test("#constructor", () => {
-		let auth = new Authenticator(cookie);
+		let auth = new Authenticator();
 		expect(auth).toBeInstanceOf(Authenticator);
 	});
 
 	test("#use", () => {
-		let auth = new Authenticator(cookie);
+		let auth = new Authenticator();
 
 		expect(auth.use(new MockStrategy(async () => ({ id: 1 })))).toBe(auth);
 
@@ -34,9 +31,7 @@ describe(Authenticator.name, () => {
 	});
 
 	test("#unuse", () => {
-		let auth = new Authenticator(cookie).use(
-			new MockStrategy(async () => null),
-		);
+		let auth = new Authenticator().use(new MockStrategy(async () => null));
 
 		expect(auth.unuse("mock")).toBe(auth);
 
@@ -47,7 +42,7 @@ describe(Authenticator.name, () => {
 	});
 
 	test("#authenticate", async () => {
-		let auth = new Authenticator(cookie).use(
+		let auth = new Authenticator().use(
 			new MockStrategy(async () => ({ id: 1 })),
 		);
 
