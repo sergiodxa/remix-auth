@@ -35,16 +35,16 @@
 		"./package.json": "./package.json"
 	},
 	"dependencies": {
-		"uuid": "^10.0.0"
+		"uuid": "^11.0.2"
 	},
 	"peerDependencies": {
-		"@remix-run/server-runtime": "^1.0.0 || ^2.0.0"
+		"react-router": "^7.0.0"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.16.4",
+		"@arethetypeswrong/cli": "^0.17.0",
+		"@babel/preset-react": "^7.13.13",
 		"@biomejs/biome": "^1.8.3",
-		"@remix-run/node": "^2.12.1",
-		"@remix-run/server-runtime": "^1.0.0 || ^2.0.0",
+		"react-router": "^7.0.1",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.6",
 		"@types/uuid": "^10.0.0",
