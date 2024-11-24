@@ -47,9 +47,7 @@ describe(Authenticator.name, () => {
 		);
 
 		expect(
-			await auth.authenticate("mock", new Request("http://remix.auth/test"), {
-				context: {},
-			}),
+			await auth.authenticate("mock", new Request("http://remix.auth/test")),
 		).toEqual({ id: 1 });
 	});
 });

@@ -53,16 +53,9 @@ export class Authenticator<User = unknown> {
 	 *   let user = await auth.authenticate("some", request, { context });
 	 * };
 	 */
-	authenticate(
-		strategy: string,
-		request: Request,
-		options: Pick<Strategy.AuthenticateOptions, "context"> = {},
-	): Promise<User> {
+	authenticate(strategy: string, request: Request): Promise<User> {
 		let instance = this.strategies.get(strategy);
 		if (!instance) throw new ReferenceError(`Strategy ${strategy} not found.`);
-		return instance.authenticate(new Request(request.url, request), {
-			...options,
-			name: strategy,
-		});
+		return instance.authenticate(new Request(request.url, request));
 	}
 }

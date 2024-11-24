@@ -2,7 +2,7 @@
 
 # Remix Auth
 
-### Simple Authentication for [React Router v7](https://reactrouter.com)
+### Simple Authentication for [Remix](https://remix.run) and [React Router](https://reactrouter.com) apps.
 
 ## Features
 
@@ -13,9 +13,9 @@
 
 ## Overview
 
-Remix Auth is a complete open-source authentication solution for Remix applications.
+Remix Auth is a complete open-source authentication solution for Remix and React Router applications.
 
-Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix-based application with minimal setup.
+Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix or React Router based application with minimal setup.
 
 As with Passport.js, it uses the strategy pattern to support the different authentication flows. Each strategy is published individually as a separate npm package.
 
@@ -142,7 +142,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 ```
 
-### Handle rrrors
+### Handle errors
 
 In case of error, the authenticator and the strategy will simply throw an error. You can catch it and handle it as you wish.
 
@@ -266,11 +266,13 @@ What you want to pass to the `verify` method is up to you and what your authenti
 If your strategy needs to store intermediate state, you can use override the `contructor` method to expect a `Cookie` object, or even a `SessionStorage` object.
 
 ```ts
+import { SetCookie } from "@mjackson/headers";
+
 export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
   name = "my-strategy";
 
   constructor(
-    protected cookie: Cookie,
+    protected cookieName: string,
     verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
   ) {
     super(verify);
@@ -280,20 +282,24 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
     request: Request,
     options: Strategy.AuthenticateOptions
   ): Promise<User> {
-    let setCookieHeader = await this.cookie.serialize("some value");
+    let header = new SetCookie({
+      name: this.cookieName,
+      value: "some value",
+      // more options
+    });
     // More code
   }
 }
 ```
 
-The result of `this.cookie.serialize` will be a string you have to send to the browser using the `Set-Cookie` header, this can be done by throwing a redirect with the header.
+The result of `header.toString()` will be a string you have to send to the browser using the `Set-Cookie` header, this can be done by throwing a redirect with the header.
 
 ```ts
 export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
   name = "my-strategy";
 
   constructor(
-    protected cookie: Cookie,
+    protected cookieName: string,
     verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
   ) {
     super(verify);
@@ -303,22 +309,28 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
     request: Request,
     options: Strategy.AuthenticateOptions
   ): Promise<User> {
-    let setCookieHeader = await this.cookie.serialize("some value");
+    let header = new SetCookie({
+      name: this.cookieName,
+      value: "some value",
+      // more options
+    });
     throw redirect("/some-route", {
-      headers: { "Set-Cookie": setCookieHeader },
+      headers: { "Set-Cookie": header.toString() },
     });
   }
 }
 ```
 
-Then you can read the value in the next request using the `this.cookie` object.
+Then you can read the value in the next request using the `Cookie` object from the `@mjackson/headers` package.
 
 ```ts
+import { Cookie } from "@mjackson/headers";
+
 export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
   name = "my-strategy";
 
   constructor(
-    protected cookie: Cookie,
+    protected cookieName: string,
     verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
   ) {
     super(verify);
@@ -328,13 +340,12 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
     request: Request,
     options: Strategy.AuthenticateOptions
   ): Promise<User> {
-    let value = await this.cookie.parse(request.headers.get("cookie"));
+    let cookie = new Cookie(request.headers.get("cookie") ?? "");
+    let value = cookie.get(this.cookieName);
     // More code
   }
 }
 ```
-
-Note that the result of `this.cookie.parse` is typed as `any` by React Router, so you may want to use a library like [Zod](https://zod.dev) to validate the value before using it.
 
 ## License
 

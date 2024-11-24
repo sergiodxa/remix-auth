@@ -1,5 +1,3 @@
-import type { AppLoadContext } from "react-router";
-
 /**
  * The Strategy class is the base class every strategy should extend.
  *
@@ -22,34 +20,16 @@ export abstract class Strategy<User, VerifyOptions> {
 	/**
 	 * The authentication flow of the strategy.
 	 *
-	 * This method receives the Request to authenticator and the session storage
-	 * to use from the Authenticator. It may receive a custom callback.
+	 * This method receives the Request from the authenticator we want to
+	 * authenticate.
 	 *
-	 * At the end of the flow, it will return a Response to be used by the
+	 * At the end of the flow, it will return a the User data to be used by the
 	 * application.
 	 */
-	public abstract authenticate(
-		request: Request,
-		options: Strategy.AuthenticateOptions,
-	): Promise<User>;
+	public abstract authenticate(request: Request): Promise<User>;
 }
 
 export namespace Strategy {
-	/**
-	 * Extra information from the Authenticator to the strategy
-	 */
-	export interface AuthenticateOptions {
-		/**
-		 * The name used to register the strategy
-		 */
-		name: string;
-		/**
-		 * The context object received by the loader or action.
-		 * This can be used by the strategy if needed.
-		 */
-		context?: AppLoadContext;
-	}
-
 	/**
 	 * A function which will be called to find the user using the information the
 	 * strategy got from the request.

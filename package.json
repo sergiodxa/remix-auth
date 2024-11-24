@@ -1,9 +1,6 @@
 {
 	"name": "remix-auth",
 	"version": "3.7.0",
-	"description": "Simple Authentication for Remix",
-	"license": "MIT",
-	"funding": ["https://github.com/sponsors/sergiodxa"],
 	"author": {
 		"name": "Sergio Xalambrí",
 		"email": "hello+oss@sergiodxa.com",
@@ -13,10 +10,33 @@
 		"url": "https://github.com/sergiodxa/remix-auth",
 		"type": "git"
 	},
-	"homepage": "https://github.com/sergiodxa/remix-auth",
+	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.17.0",
+		"@biomejs/biome": "^1.8.3",
+		"@mjackson/headers": "^0.8.0",
+		"@total-typescript/tsconfig": "^1.0.4",
+		"@types/bun": "^1.1.6",
+		"react-router": "^7.0.1",
+		"typedoc": "^0.26.5",
+		"typedoc-plugin-mdn-links": "^3.2.6",
+		"typescript": "^5.5.4"
+	},
+	"exports": {
+		".": "./build/index.js",
+		"./strategy": "./build/strategy.js",
+		"./package.json": "./package.json"
+	},
 	"bugs": {
 		"url": "https://github.com/sergiodxa/remix-auth/issues"
 	},
+	"description": "Simple Authentication for Remix and React Router",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"files": ["build", "src", "package.json", "README.md"],
+	"funding": ["https://github.com/sponsors/sergiodxa"],
+	"homepage": "https://github.com/sergiodxa/remix-auth",
+	"license": "MIT",
 	"scripts": {
 		"build": "tsc",
 		"typecheck": "tsc --noEmit",
@@ -25,34 +45,5 @@
 		"exports": "bun run ./scripts/exports.ts"
 	},
 	"sideEffects": false,
-	"type": "module",
-	"engines": {
-		"node": ">=20.0.0"
-	},
-	"files": ["build", "src", "package.json", "README.md"],
-	"exports": {
-		".": "./build/index.js",
-		"./strategy": "./build/strategy.js",
-		"./package.json": "./package.json"
-	},
-	"dependencies": {
-		"uuid": "^11.0.2"
-	},
-	"peerDependencies": {
-		"react-router": "^7.0.0"
-	},
-	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.17.0",
-		"@babel/preset-react": "^7.13.13",
-		"@biomejs/biome": "^1.8.3",
-		"react-router": "^7.0.1",
-		"@total-typescript/tsconfig": "^1.0.4",
-		"@types/bun": "^1.1.6",
-		"@types/uuid": "^10.0.0",
-		"consola": "^3.2.3",
-		"typedoc": "^0.26.5",
-		"typedoc-plugin-mdn-links": "^3.2.6",
-		"typescript": "^5.5.4",
-		"zod": "^3.23.8"
-	}
+	"type": "module"
 }
