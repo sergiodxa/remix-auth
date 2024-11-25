@@ -17,7 +17,7 @@
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.6",
 		"typedoc": "^0.26.5",
-		"typedoc-plugin-mdn-links": "^3.2.6",
+		"typedoc-plugin-mdn-links": "^4.0.1",
 		"typescript": "^5.5.4"
 	},
 	"exports": {
