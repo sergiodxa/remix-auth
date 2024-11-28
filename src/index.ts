@@ -42,19 +42,25 @@ export class Authenticator<User = unknown> {
 	}
 
 	/**
+	 * Call this method with the name of a strategy you want to get.
+	 * It returns the Strategy instance or null if the strategy is not found.
+	 * @param name
+	 * @returns
+	 */
+	get(name: string) {
+		return this.strategies.get(name) ?? null;
+	}
+
+	/**
 	 * Call this to authenticate a request using some strategy. You pass the name
 	 * of the strategy you want to use and the request to authenticate.
 	 * @example
 	 * async function action({ request }: ActionFunctionArgs) {
-	 *   let user = await auth.authenticate("some", request);
-	 * };
-	 * @example
-	 * async function action({ request, context }: ActionFunctionArgs) {
-	 *   let user = await auth.authenticate("some", request, { context });
+	 *   let user = await auth.authenticate("strategy-name", request);
 	 * };
 	 */
 	authenticate(strategy: string, request: Request): Promise<User> {
-		let instance = this.strategies.get(strategy);
+		let instance = this.get(strategy);
 		if (!instance) throw new ReferenceError(`Strategy ${strategy} not found.`);
 		return instance.authenticate(new Request(request.url, request));
 	}

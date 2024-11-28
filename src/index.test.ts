@@ -50,4 +50,11 @@ describe(Authenticator.name, () => {
 			await auth.authenticate("mock", new Request("http://remix.auth/test")),
 		).toEqual({ id: 1 });
 	});
+
+	test("#get", () => {
+		let auth = new Authenticator();
+		let strategy = new MockStrategy(async () => ({ id: 1 }));
+		expect(auth.use(strategy)).toBe(auth);
+		expect(auth.get("mock")).toBe(strategy);
+	});
 });
