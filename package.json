@@ -16,7 +16,7 @@
 		"@mjackson/headers": "^0.8.0",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.6",
-		"typedoc": "^0.26.5",
+		"typedoc": "^0.27.1",
 		"typedoc-plugin-mdn-links": "^4.0.1",
 		"typescript": "^5.5.4"
 	},
