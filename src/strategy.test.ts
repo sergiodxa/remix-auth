@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Cookie, SetCookie } from "@mjackson/headers";
+import { Cookie } from "@mjackson/headers";
 import { Strategy } from "./strategy";
 
 type User = number;
