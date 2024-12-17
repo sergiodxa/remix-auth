@@ -147,7 +147,7 @@ export async function action({ request }: Route.ActionArgs) {
 In case of error, the authenticator and the strategy will simply throw an error. You can catch it and handle it as you wish.
 
 ```ts
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   try {
     return await authenticator.authenticate("user-pass", request);
   } catch (error) {
@@ -169,7 +169,7 @@ export async function action({ request }: ActionFunctionArgs) {
 Because you're in charge of keeping the user data after login, how you handle the logout will depend on that. You can simply remove the user data from the session, or you can create a new session, or you can even invalidate the session.
 
 ```ts
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   let session = await sessionStorage.getSession(request.headers.get("cookie"));
   return redirect("/login", {
     headers: { "Set-Cookie": await sessionStorage.destroySession(session) },
