@@ -11,13 +11,14 @@
 		"type": "git"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.17.0",
+		"@arethetypeswrong/cli": "^0.17.1",
 		"@biomejs/biome": "^1.8.3",
 		"@mjackson/headers": "^0.8.0",
 		"@total-typescript/tsconfig": "^1.0.4",
-		"@types/bun": "^1.1.6",
-		"typedoc": "^0.27.1",
-		"typedoc-plugin-mdn-links": "^4.0.1",
+		"@types/bun": "^1.1.14",
+		"msw": "^2.7.0",
+		"typedoc": "^0.27.5",
+		"typedoc-plugin-mdn-links": "^4.0.5",
 		"typescript": "^5.5.4"
 	},
 	"exports": {
