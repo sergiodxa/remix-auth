@@ -13,7 +13,7 @@
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.17.1",
 		"@biomejs/biome": "^1.8.3",
-		"@mjackson/headers": "^0.8.0",
+		"@mjackson/headers": "^0.9.0",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.14",
 		"msw": "^2.7.0",
