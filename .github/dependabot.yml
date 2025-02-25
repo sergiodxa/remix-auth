@@ -1,4 +1,5 @@
 version: 2
+enable-beta-ecosystems: true
 
 updates:
   - package-ecosystem: "github-actions"
@@ -10,7 +11,7 @@ updates:
     assignees:
       - "sergiodxa"
 
-  - package-ecosystem: npm
+  - package-ecosystem: bun
     directory: /
     schedule:
       interval: "weekly"
