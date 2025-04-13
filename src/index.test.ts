@@ -10,6 +10,10 @@ class MockStrategy<User> extends Strategy<User, Record<string, never>> {
 		if (user) return user;
 		throw new Error("Invalid credentials");
 	}
+
+	custom() {
+		return "custom";
+	}
 }
 
 describe(Authenticator.name, () => {
@@ -53,8 +57,14 @@ describe(Authenticator.name, () => {
 
 	test("#get", () => {
 		let auth = new Authenticator();
+
 		let strategy = new MockStrategy(async () => ({ id: 1 }));
-		expect(auth.use(strategy)).toBe(auth);
-		expect(auth.get("mock")).toBe(strategy);
+		auth.use(strategy);
+
+		let getted = auth.get<MockStrategy<{ id: number }>>("mock");
+
+		expect(getted).toBe(strategy);
+		// biome-ignore lint/style/noNonNullAssertion: It's a test
+		expect(getted!.custom()).toBe("custom");
 	});
 });

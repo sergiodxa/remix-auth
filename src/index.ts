@@ -47,8 +47,8 @@ export class Authenticator<User = unknown> {
 	 * @param name
 	 * @returns
 	 */
-	get(name: string) {
-		return this.strategies.get(name) ?? null;
+	get<S extends Strategy<User, never>>(name: string): S | null {
+		return (this.strategies.get(name) as S) ?? null;
 	}
 
 	/**
