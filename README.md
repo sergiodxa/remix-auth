@@ -21,13 +21,19 @@ As with Passport.js, it uses the strategy pattern to support the different authe
 
 ## Installation
 
-To use it, install it from npm (or yarn):
-
 ```bash
 npm install remix-auth
 ```
 
-Also, install one of the strategies. A list of strategies is available in the [Community Strategies discussion](https://github.com/sergiodxa/remix-auth/discussions/111).
+## Supported Authentication Methods
+
+Remix Auth supports various authentication methods through its strategy system. Here are some popular strategies:
+
+- [Form Strategy](https://github.com/sergiodxa/remix-auth-form) - Username/password form-based authentication
+- [OAuth 2.0](https://github.com/sergiodxa/remix-auth-oauth2) - Generic OAuth 2.0 authentication
+- [GitHub](https://github.com/sergiodxa/remix-auth-github) - GitHub authentication
+
+For a complete list of community-maintained strategies, check the [Community Strategies discussion](https://github.com/sergiodxa/remix-auth/discussions/111).
 
 > [!TIP]
 > Check in the strategies what versions of Remix Auth they support, as they may not be updated to the latest version.
@@ -37,9 +43,33 @@ Also, install one of the strategies. A list of strategies is available in the [C
 Import the `Authenticator` class and instantiate with a generic type that will be the type of the user data you will get from the strategies.
 
 ```ts
+// app/services/auth.server.ts
+import { Authenticator } from "remix-auth";
+import { createCookieSessionStorage } from "react-router";
+
+// Define your user type
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  // ... other user properties
+};
+
+// Create a session storage
+export const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "__session",
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    secrets: ["s3cr3t"], // replace this with an actual secret
+    secure: process.env.NODE_ENV === "production",
+  },
+});
+
 // Create an instance of the authenticator, pass a generic with what
 // strategies will return
-export let authenticator = new Authenticator<User>();
+export const authenticator = new Authenticator<User>();
 ```
 
 The `User` type is whatever your strategies will give you after identifying the authenticated user. It can be the complete user data, or a string with a token. It is completely up to you.
@@ -47,20 +77,33 @@ The `User` type is whatever your strategies will give you after identifying the 
 After that, register the strategies. In this example, we will use the [FormStrategy](https://github.com/sergiodxa/remix-auth-form) to check the documentation of the strategy you want to use to see any configuration you may need.
 
 ```ts
+// app/services/auth.server.ts
 import { FormStrategy } from "remix-auth-form";
+import { Authenticator } from "remix-auth";
+
+// Your authentication logic (replace with your actual DB/API calls)
+async function login(email: string, password: string): Promise<User> {
+  // Verify credentials
+  // Return user data or throw an error
+}
 
 // Tell the Authenticator to use the form strategy
 authenticator.use(
   new FormStrategy(async ({ form }) => {
-    let email = form.get("email");
-    let password = form.get("password");
-    // the type of this user must match the type you pass to the Authenticator
-    // the strategy will automatically inherit the type if you instantiate
-    // directly inside the `use` method
+    const email = form.get("email") as string;
+    const password = form.get("password") as string;
+
+    if (!email || !password) {
+      throw new Error("Email and password are required");
+    }
+
+    // the type of this user must match the type you pass to the
+    // Authenticator the strategy will automatically inherit the type if
+    // you instantiate directly inside the `use` method
     return await login(email, password);
   }),
-  // each strategy has a name and can be changed to use another one
-  // same strategy multiple times, especially useful for the OAuth2 strategy.
+  // each strategy has a name and can be changed to use the same strategy
+  // multiple times, especially useful for the OAuth2 strategy.
   "user-pass"
 );
 ```
@@ -70,42 +113,76 @@ Once we have at least one strategy registered, it is time to set up the routes.
 First, create a `/login` page. Here we will render a form to get the email and password of the user and use Remix Auth to authenticate the user.
 
 ```tsx
-import { Form } from "react-router";
-import { authenticator } from "~/services/auth.server";
+// app/routes/login.tsx or equivalent route file
+import { Form, useActionData, data, redirect } from "react-router";
+import { authenticator, sessionStorage } from "~/services/auth.server";
 
 // Import this from correct place for your route
 import type { Route } from "./+types";
 
-// First we create our UI with the form doing a POST and the inputs with the
-// names we are going to use in the strategy
-export default function Screen() {
+// First we create our UI with the form doing a POST and the inputs with
+// the names we are going to use in the strategy
+export default function Component({ actionData }: Route.ComponentProps) {
   return (
-    <Form method="post">
-      <input type="email" name="email" required />
-      <input
-        type="password"
-        name="password"
-        autoComplete="current-password"
-        required
-      />
-      <button>Sign In</button>
-    </Form>
+    <div>
+      <h1>Login</h1>
+
+      {actionData?.error ? (
+        <div className="error">{actionData.error}</div>
+      ) : null}
+
+      <Form method="post">
+        <div>
+          <label htmlFor="email">Email</label>
+          <input type="email" name="email" id="email" required />
+        </div>
+
+        <div>
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+
+        <button type="submit">Sign In</button>
+      </Form>
+    </div>
   );
 }
 
 // Second, we need to export an action function, here we will use the
-// `authenticator.authenticate method`
+// `authenticator.authenticate` method
 export async function action({ request }: Route.ActionArgs) {
-  // we call the method with the name of the strategy we want to use and the
-  // request object
-  let user = await authenticator.authenticate("user-pass", request);
+  try {
+    // we call the method with the name of the strategy we want to use and the
+    // request object
+    let user = await authenticator.authenticate("user-pass", request);
 
-  let session = await sessionStorage.getSession(request.headers.get("cookie"));
-  session.set("user", user);
+    let session = await sessionStorage.getSession(
+      request.headers.get("cookie")
+    );
 
-  throw redirect("/", {
-    headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
-  });
+    session.set("user", user);
+
+    // Redirect to the home page after successful login
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await sessionStorage.commitSession(session),
+      },
+    });
+  } catch (error) {
+    // Return validation errors or authentication errors
+    if (error instanceof Error) {
+      return json({ error: error.message });
+    }
+
+    // Re-throw any other errors (including redirects)
+    throw error;
+  }
 }
 
 // Finally, we need to export a loader function to check if the user is already
@@ -113,8 +190,12 @@ export async function action({ request }: Route.ActionArgs) {
 export async function loader({ request }: Route.LoaderArgs) {
   let session = await sessionStorage.getSession(request.headers.get("cookie"));
   let user = session.get("user");
-  if (user) throw redirect("/dashboard");
-  return data(null);
+
+  // If the user is already authenticated redirect to the dashboard
+  if (user) return redirect("/dashboard");
+
+  // Otherwise return null to render the login page
+  return json(null);
 }
 ```
 
