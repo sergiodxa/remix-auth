@@ -4,6 +4,10 @@
 
 ### Simple Authentication for [Remix](https://remix.run) and [React Router](https://reactrouter.com) apps.
 
+## Support the Project
+
+If you find Remix Auth useful, please consider [sponsoring the project](https://github.com/sponsors/sergiodxa). Your support helps maintain this stable, production-ready library!
+
 ## Features
 
 - Full **Server-Side** Authentication
