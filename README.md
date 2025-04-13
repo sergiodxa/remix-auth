@@ -317,10 +317,7 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
     super(verify);
   }
 
-  async authenticate(
-    request: Request,
-    options: Strategy.AuthenticateOptions
-  ): Promise<User> {
+  async authenticate(request: Request): Promise<User> {
     let header = new SetCookie({
       name: this.cookieName,
       value: "some value",
@@ -348,16 +345,15 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
     super(verify);
   }
 
-  async authenticate(
-    request: Request,
-    options: Strategy.AuthenticateOptions
-  ): Promise<User> {
+  async authenticate(request: Request): Promise<User> {
     let cookie = new Cookie(request.headers.get("cookie") ?? "");
     let value = cookie.get(this.cookieName);
     // More code
   }
 }
 ```
+
+#### Accept Autn
 
 ## License
 
