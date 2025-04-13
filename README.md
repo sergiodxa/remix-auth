@@ -353,7 +353,55 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
 }
 ```
 
-#### Accept Autn
+#### Use AsyncLocalStorage to pass extra data to authenticate
+
+If you need more than the request object to authenticate the user, you can use the `AsyncLocalStorage` API to pass data to the `authenticate` method.
+
+```ts
+import { AsyncLocalStorage } from "async_hooks";
+
+export const asyncLocalStorage = new AsyncLocalStorage<{
+  someValue: string;
+  // more values
+}>();
+
+export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
+  name = "my-strategy";
+
+  constructor(
+    protected cookieName: string,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(request: Request): Promise<User> {
+    let store = asyncLocalStorage.getStore();
+    if (!store) throw new Error("Failed to get AsyncLocalStorage store");
+    let { someValue } = store;
+    // More code
+  }
+}
+```
+
+Then you can set the value in the `authenticate` method.
+
+```ts
+export async function action({ request }: Route.ActionArgs) {
+  // Set the value in the AsyncLocalStorage
+  let user = await asyncLocalStorage.run({ someValue: "some value" }, () =>
+    authenticator.authenticate("user-pass", request)
+  );
+
+  let session = await sessionStorage.getSession(request.headers.get("cookie"));
+
+  session.set("user", user);
+
+  return redirect("/dashboard", {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
+}
+```
 
 ## License
 
