@@ -223,6 +223,10 @@ All strategies extends the `Strategy` abstract class exported by Remix Auth. You
 import { Strategy } from "remix-auth/strategy";
 
 export namespace MyStrategy {
+  export interface ConstructorOptions {
+    // The values you will pass to the constructor
+  }
+
   export interface VerifyOptions {
     // The values you will pass to the verify function
   }
@@ -231,11 +235,15 @@ export namespace MyStrategy {
 export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
   name = "my-strategy";
 
-  async authenticate(
-    request: Request,
-    options: Strategy.AuthenticateOptions
-  ): Promise<User> {
-    // Your logic here
+  constructor(
+    protected options: MyStrategy.ConstructorOptions,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(request: Request): Promise<User> {
+    // Your logic here, you can use `this.options` to get constructor options
   }
 }
 ```
@@ -246,12 +254,16 @@ At some point of your `authenticate` method, you will need to call `this.verify(
 export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
   name = "my-strategy";
 
-  async authenticate(
-    request: Request,
-    options: Strategy.AuthenticateOptions
-  ): Promise<User> {
+  constructor(
+    protected options: MyStrategy.ConstructorOptions,
+    verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>
+  ) {
+    super(verify);
+  }
+
+  async authenticate(request: Request): Promise<User> {
     return await this.verify({
-      /* your options here */
+      /* your verify options here */
     });
   }
 }
@@ -263,7 +275,7 @@ What you want to pass to the `verify` method is up to you and what your authenti
 
 #### Store intermediate state
 
-If your strategy needs to store intermediate state, you can use override the `contructor` method to expect a `Cookie` object, or even a `SessionStorage` object.
+If your strategy needs to store intermediate state, you can override the `contructor` method to expect a `Cookie` object, or even a `SessionStorage` object.
 
 ```ts
 import { SetCookie } from "@mjackson/headers";
