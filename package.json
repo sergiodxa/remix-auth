@@ -11,7 +11,7 @@
 		"type": "git"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.17.1",
+		"@arethetypeswrong/cli": "^0.18.1",
 		"@biomejs/biome": "^1.8.3",
 		"@mjackson/headers": "^0.10.0",
 		"@total-typescript/tsconfig": "^1.0.4",
