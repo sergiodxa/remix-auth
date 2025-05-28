@@ -118,7 +118,7 @@ First, create a `/login` page. Here we will render a form to get the email and p
 
 ```tsx
 // app/routes/login.tsx or equivalent route file
-import { Form, useActionData, data, redirect } from "react-router";
+import { Form, data, redirect } from "react-router";
 import { authenticator, sessionStorage } from "~/services/auth.server";
 
 // Import this from correct place for your route
