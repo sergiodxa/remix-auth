@@ -12,7 +12,7 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.18.1",
-		"@biomejs/biome": "^1.8.3",
+		"@biomejs/biome": "^2.0.5",
 		"@mjackson/headers": "^0.11.1",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.14",
