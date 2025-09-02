@@ -26,7 +26,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bunx typedoc
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: "./docs"
       - uses: actions/deploy-pages@v4
