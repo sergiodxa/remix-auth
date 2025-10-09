@@ -21,14 +21,23 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
 
-  quality:
-    name: Code Quality
+  linter:
+    name: Linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bun run quality
+      - run: bun run lint
+
+  format:
+    name: Code Formatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run format
 
   test:
     name: Tests
