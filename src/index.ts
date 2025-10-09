@@ -48,7 +48,6 @@ export class Authenticator<
    * @param request - The request object to authenticate
    * @param ...args - Additional arguments required by the strategy's authenticate method
    * @returns Promise resolving to the session data
-   * @throws {ReferenceError} If the specified strategy is not found
    *
    * @example
    * async function action({ request }: ActionFunctionArgs) {
@@ -67,7 +66,6 @@ export class Authenticator<
     ...args: Parameters<StrategyRecord[StrategyName]["authenticate"]>
   ): Promise<Authenticator.StrategySessionData<StrategyRecord>> {
     const strategy = this.#strategies[strategyName];
-    if (!strategy) throw new ReferenceError("Unknown authentication strategy");
     return strategy.authenticate.apply(
       strategy,
       args as Parameters<StrategyRecord[StrategyName]["authenticate"]>,
