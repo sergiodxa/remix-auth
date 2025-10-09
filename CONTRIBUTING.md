@@ -11,7 +11,7 @@ Thank you for your interest in contributing. This is an open-source but personal
 If you find a bug, please open an issue. To help me help you, include:
 
 - **Reproduction**: A minimal reproduction repository or code snippet.
-- **Environment**: `remix-auth` version, strategy package and version (if relevant), Remix/React Router version, Node version, Bun version, OS.
+- **Environment**: Package version, related dependencies and versions, runtime version, OS.
 - **Steps**: Exact steps to reproduce.
 - **Expected vs actual**: What you expected, what happened instead.
 - **Logs**: Relevant stack traces or console output.
@@ -55,14 +55,19 @@ Please do not open public issues for security reports. Email me at `hello+oss@se
 - Reference issues: "Fixes #123" when applicable.
 - Avoid adding dependencies unless discussed.
 
+## Maintenance Notes
+
+- I may prioritize sponsor-impacting issues/PRs, but non-sponsored contributions are welcome and appreciated.
+- Large or breaking changes should be discussed first to avoid wasted effort.
+
 ## Creating a Strategy
 
-Strategies are published as separate packages. Official strategies:
+Strategies are published as separate packages. Official Remix Auth strategies:
 
 - [FormStrategy](https://github.com/sergiodxa/remix-auth-form)
 - [OAuth2Strategy](https://github.com/sergiodxa/remix-auth-oauth2)
 
-If you build a custom strategy and want to share it, please publish it yourself. Recommended checklist:
+If you build a custom Remix Auth strategy and want to share it, please publish it yourself. Recommended checklist:
 
 - **Types**: Ship full TypeScript typings.
 - **ESM**: Export ESM and point `exports` correctly.
@@ -71,8 +76,3 @@ If you build a custom strategy and want to share it, please publish it yourself.
 - **Tests**: Cover happy-path and failure cases.
 - **Compatibility**: Note supported Remix/React Router versions and Node runtime.
 - **Minimal deps**: Keep dependencies minimal and well-justified.
-
-## Maintenance Notes
-
-- I may prioritize sponsor-impacting issues/PRs, but non-sponsored contributions are welcome and appreciated.
-- Large or breaking changes should be discussed first to avoid wasted effort.
