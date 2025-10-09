@@ -1,49 +1,56 @@
 {
-	"name": "remix-auth",
-	"version": "4.2.0",
-	"author": {
-		"name": "Sergio Xalambrí",
-		"email": "hello+oss@sergiodxa.com",
-		"url": "https://sergiodxa.com"
-	},
-	"repository": {
-		"url": "https://github.com/sergiodxa/remix-auth",
-		"type": "git"
-	},
-	"devDependencies": {
-		"@arethetypeswrong/cli": "^0.18.1",
-		"@biomejs/biome": "^2.0.5",
-		"@mjackson/headers": "^0.11.1",
-		"@total-typescript/tsconfig": "^1.0.4",
-		"@types/bun": "^1.1.14",
-		"msw": "^2.7.0",
-		"typedoc": "^0.28.0",
-		"typedoc-plugin-mdn-links": "^5.0.1",
-		"typescript": "^5.5.4"
-	},
-	"exports": {
-		".": "./build/index.js",
-		"./strategy": "./build/strategy.js",
-		"./package.json": "./package.json"
-	},
-	"bugs": {
-		"url": "https://github.com/sergiodxa/remix-auth/issues"
-	},
-	"description": "Simple Authentication for Remix and React Router",
-	"engines": {
-		"node": ">=20.0.0"
-	},
-	"files": ["build", "src", "package.json", "README.md"],
-	"funding": ["https://github.com/sponsors/sergiodxa"],
-	"homepage": "https://github.com/sergiodxa/remix-auth",
-	"license": "MIT",
-	"scripts": {
-		"build": "tsc",
-		"typecheck": "tsc --noEmit",
-		"quality": "biome check .",
-		"quality:fix": "biome check . --write --unsafe",
-		"exports": "bun run ./scripts/exports.ts"
-	},
-	"sideEffects": false,
-	"type": "module"
+  "name": "remix-auth",
+  "version": "4.2.0",
+  "author": {
+    "name": "Sergio Xalambrí",
+    "email": "hello+oss@sergiodxa.com",
+    "url": "https://sergiodxa.com"
+  },
+  "repository": {
+    "url": "https://github.com/sergiodxa/remix-auth",
+    "type": "git"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.1",
+    "@mjackson/headers": "^0.11.1",
+    "@total-typescript/tsconfig": "^1.0.4",
+    "@types/bun": "^1.1.14",
+    "msw": "^2.7.0",
+    "oxlint": "^1.22.0",
+    "typedoc": "^0.28.0",
+    "typedoc-plugin-mdn-links": "^5.0.1",
+    "typescript": "^5.5.4"
+  },
+  "exports": {
+    ".": "./build/index.js",
+    "./strategy": "./build/strategy.js",
+    "./package.json": "./package.json"
+  },
+  "bugs": {
+    "url": "https://github.com/sergiodxa/remix-auth/issues"
+  },
+  "description": "Simple Authentication for Remix and React Router",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "build",
+    "src",
+    "package.json",
+    "README.md"
+  ],
+  "funding": [
+    "https://github.com/sponsors/sergiodxa"
+  ],
+  "homepage": "https://github.com/sergiodxa/remix-auth",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "exports": "bun run ./scripts/exports.ts"
+  },
+  "sideEffects": false,
+  "type": "module"
 }
