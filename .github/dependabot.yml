@@ -6,8 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    reviewers:
-      - "sergiodxa"
     assignees:
       - "sergiodxa"
 
@@ -15,7 +13,5 @@ updates:
     directory: /
     schedule:
       interval: "weekly"
-    reviewers:
-      - "sergiodxa"
     assignees:
       - "sergiodxa"
