@@ -44,20 +44,13 @@ For a complete list of community-maintained strategies, check the [Community Str
 
 ## Usage
 
-Import the `Authenticator` class and instantiate with a generic type that will be the type of the user data you will get from the strategies.
+Import the `Authenticator` class and instantiate it with your authentication strategies.
 
 ```ts
 // app/services/auth.server.ts
 import { Authenticator } from "remix-auth";
+import { FormStrategy } from "remix-auth-form";
 import { createCookieSessionStorage } from "react-router";
-
-// Define your user type
-type User = {
-	id: string;
-	email: string;
-	name: string;
-	// ... other user properties
-};
 
 // Create a session storage
 export const sessionStorage = createCookieSessionStorage({
@@ -71,46 +64,50 @@ export const sessionStorage = createCookieSessionStorage({
 	},
 });
 
-// Create an instance of the authenticator, pass a generic with what
-// strategies will return
-export const authenticator = new Authenticator<User>();
-```
-
-The `User` type is whatever your strategies will give you after identifying the authenticated user. It can be the complete user data, or a string with a token. It is completely up to you.
-
-After that, register the strategies. In this example, we will use the [FormStrategy](https://github.com/sergiodxa/remix-auth-form) to check the documentation of the strategy you want to use to see any configuration you may need.
-
-```ts
-// app/services/auth.server.ts
-import { FormStrategy } from "remix-auth-form";
-import { Authenticator } from "remix-auth";
-
 // Your authentication logic (replace with your actual DB/API calls)
-async function login(email: string, password: string): Promise<User> {
-	// Verify credentials
-	// Return user data or throw an error
+async function login(email: string, password: string) {
+	// Verify credentials and return user data or throw an error
+	const user = await db.user.findUnique({ where: { email } });
+	if (!user || !(await bcrypt.compare(password, user.password))) {
+		throw new Error("Invalid email or password");
+	}
+
+	return {
+		id: user.id,
+		email: user.email,
+		name: user.name,
+		// ... other user properties
+	};
 }
 
-// Tell the Authenticator to use the form strategy
-authenticator.use(
-	new FormStrategy(async ({ form }) => {
-		const email = form.get("email") as string;
-		const password = form.get("password") as string;
+// Create an instance of the authenticator with your strategies
+export const authenticator = new Authenticator({
+	strategies: {
+		// Form strategy for username/password authentication
+		"user-pass": new FormStrategy(async ({ form }) => {
+			const email = form.get("email") as string;
+			const password = form.get("password") as string;
 
-		if (!email || !password) {
-			throw new Error("Email and password are required");
-		}
+			if (!email || !password) {
+				throw new Error("Email and password are required");
+			}
 
-		// the type of this user must match the type you pass to the
-		// Authenticator the strategy will automatically inherit the type if
-		// you instantiate directly inside the `use` method
-		return await login(email, password);
-	}),
-	// each strategy has a name and can be changed to use the same strategy
-	// multiple times, especially useful for the OAuth2 strategy.
-	"user-pass",
-);
+			// The return type will be automatically inferred from your login function
+			return await login(email, password);
+		}),
+
+		// You can add multiple strategies with different names
+		// This is useful for having different authentication flows
+	},
+});
+
+// Infer the session data type from the authenticator
+export type SessionData = Authenticator.infer<typeof authenticator>;
 ```
+
+The `SessionData` type is automatically inferred from your strategies using `Authenticator.infer<typeof authenticator>`. This ensures type safety and eliminates the need to manually define the session data type. The type will be whatever your strategies return after identifying the authenticated user - it can be the complete user data, a string with a token, or any other data structure you need.
+
+Each strategy is registered with a name (the key in the strategies object), which is used to identify it during the authentication process. You can use the same strategy multiple times with different names, which is especially useful for OAuth2 strategies.
 
 Once we have at least one strategy registered, it is time to set up the routes.
 
@@ -164,13 +161,13 @@ export async function action({ request }: Route.ActionArgs) {
 	try {
 		// we call the method with the name of the strategy we want to use and the
 		// request object
-		let user = await authenticator.authenticate("user-pass", request);
+		let sessionData = await authenticator.authenticate("user-pass", request);
 
 		let session = await sessionStorage.getSession(
 			request.headers.get("cookie"),
 		);
 
-		session.set("user", user);
+		session.set("user", sessionData);
 
 		// Redirect to the home page after successful login
 		return redirect("/", {
@@ -213,16 +210,18 @@ Say we have `/dashboard` and `/onboarding` routes, and after the user authentica
 
 ```ts
 export async function action({ request }: Route.ActionArgs) {
-	let user = await authenticator.authenticate("user-pass", request);
+	let sessionData = await authenticator.authenticate("user-pass", request);
 
 	let session = await sessionStorage.getSession(request.headers.get("cookie"));
-	session.set("user", user);
+	session.set("user", sessionData);
 
 	// commit the session
-	let headers = new Headers({ "Set-Cookie": await commitSession(session) });
+	let headers = new Headers({
+		"Set-Cookie": await sessionStorage.commitSession(session),
+	});
 
 	// and do your validation to know where to redirect the user
-	if (isOnboarded(user)) return redirect("/dashboard", { headers });
+	if (isOnboarded(sessionData)) return redirect("/dashboard", { headers });
 	return redirect("/onboarding", { headers });
 }
 ```
@@ -280,9 +279,12 @@ This is outside the scope of Remix Auth as where you store the user data depends
 A simple way could be to create an `authenticate` helper.
 
 ```ts
-export async function authenticate(request: Request, returnTo?: string) {
+export async function authenticate(
+	request: Request,
+	returnTo?: string,
+): Promise<SessionData> {
 	let session = await sessionStorage.getSession(request.headers.get("cookie"));
-	let user = session.get("user");
+	let user = session.get("user") as SessionData | null;
 	if (user) return user;
 	if (returnTo) session.set("returnTo", returnTo);
 	throw redirect("/login", {
@@ -295,14 +297,14 @@ Then in your loaders and actions call that:
 
 ```ts
 export async function loader({ request }: Route.LoaderArgs) {
-	let user = await authenticate(request, "/dashboard");
-	// use the user data here
+	let sessionData = await authenticate(request, "/dashboard");
+	// use the session data here
 }
 ```
 
 ### Create a strategy
 
-All strategies extends the `Strategy` abstract class exported by Remix Auth. You can create your own strategies by extending this class and implementing the `authenticate` method.
+All strategies extend the `Strategy` abstract class exported by Remix Auth. You can create your own strategies by extending this class and implementing the `authenticate` method.
 
 ```ts
 import { Strategy } from "remix-auth/strategy";
@@ -312,51 +314,109 @@ export namespace MyStrategy {
 		// The values you will pass to the constructor
 	}
 
-	export interface VerifyOptions {
-		// The values you will pass to the verify function
+	export interface CallbackOptions {
+		// The values you will pass to the callback function
 	}
 }
 
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
-
+export class MyStrategy<SessionData> extends Strategy<
+	SessionData,
+	MyStrategy.CallbackOptions
+> {
 	constructor(
 		protected options: MyStrategy.ConstructorOptions,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
+		callback: Strategy.CallbackFunction<
+			SessionData,
+			MyStrategy.CallbackOptions
+		>,
 	) {
-		super(verify);
+		super(callback);
 	}
 
-	async authenticate(request: Request): Promise<User> {
+	async authenticate(request: Request): Promise<SessionData> {
 		// Your logic here, you can use `this.options` to get constructor options
-	}
-}
-```
-
-At some point of your `authenticate` method, you will need to call `this.verify(options)` to call the `verify` function the application defined.
-
-```ts
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
-
-	constructor(
-		protected options: MyStrategy.ConstructorOptions,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
-	) {
-		super(verify);
-	}
-
-	async authenticate(request: Request): Promise<User> {
-		return await this.verify({
-			/* your verify options here */
+		// Extract data from the request and call the callback
+		return await this.callback({
+			/* your callback options here */
 		});
 	}
 }
 ```
 
+At some point in your `authenticate` method, you will need to call `this.callback(options)` to call the callback function the application defined.
+
 The options will depend on the second generic you pass to the `Strategy` class.
 
-What you want to pass to the `verify` method is up to you and what your authentication flow needs.
+What you want to pass to the `callback` method is up to you and what your authentication flow needs.
+
+#### Strategy with extra authenticate parameters
+
+You can also create strategies that accept additional parameters in their `authenticate` method. This is useful when you need to pass extra configuration or options at authentication time.
+
+```ts
+export class LoginStrategy<SessionData> extends Strategy<
+	SessionData,
+	LoginStrategy.CallbackOptions
+> {
+	constructor(
+		callback: Strategy.CallbackFunction<
+			SessionData,
+			LoginStrategy.CallbackOptions
+		>,
+	) {
+		super(callback);
+	}
+
+	async authenticate(
+		request: Request,
+		usernameField: string,
+		passwordField = "password",
+	): Promise<SessionData> {
+		let formData = await request.formData();
+
+		return await this.callback({
+			form: formData,
+			fields: {
+				username: usernameField,
+				password: passwordField,
+			},
+		});
+	}
+}
+
+export namespace LoginStrategy {
+	export interface CallbackOptions {
+		form: FormData;
+		fields: { username: string; password: string };
+	}
+}
+```
+
+When using this strategy, you can pass the extra parameters to the authenticate method:
+
+```ts
+// In your authenticator setup
+const authenticator = new Authenticator({
+	strategies: {
+		login: new LoginStrategy(async ({ form, fields }) => {
+			const username = form.get(fields.username) as string;
+			const password = form.get(fields.password) as string;
+
+			if (username && password) {
+				return await findUserByCredentials(username, password);
+			}
+			throw new Error("Invalid login data");
+		}),
+	},
+});
+
+// In your route action
+export async function action({ request }: Route.ActionArgs) {
+	// Pass the username field name as an extra parameter
+	let sessionData = await authenticator.authenticate("login", request, "email");
+	// ... rest of your logic
+}
+```
 
 #### Store intermediate state
 
@@ -365,20 +425,21 @@ If your strategy needs to store intermediate state, you can override the `contru
 ```ts
 import { SetCookie } from "@mjackson/headers";
 
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
-
+export class MyStrategy<SessionData> extends Strategy<
+	SessionData,
+	MyStrategy.CallbackOptions
+> {
 	constructor(
 		protected cookieName: string,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
+		callback: Strategy.CallbackFunction<
+			SessionData,
+			MyStrategy.CallbackOptions
+		>,
 	) {
-		super(verify);
+		super(callback);
 	}
 
-	async authenticate(
-		request: Request,
-		options: Strategy.AuthenticateOptions,
-	): Promise<User> {
+	async authenticate(request: Request): Promise<SessionData> {
 		let header = new SetCookie({
 			name: this.cookieName,
 			value: "some value",
@@ -392,17 +453,21 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
 The result of `header.toString()` will be a string you have to send to the browser using the `Set-Cookie` header, this can be done by throwing a redirect with the header.
 
 ```ts
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
-
+export class MyStrategy<SessionData> extends Strategy<
+	SessionData,
+	MyStrategy.CallbackOptions
+> {
 	constructor(
 		protected cookieName: string,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
+		callback: Strategy.CallbackFunction<
+			SessionData,
+			MyStrategy.CallbackOptions
+		>,
 	) {
-		super(verify);
+		super(callback);
 	}
 
-	async authenticate(request: Request): Promise<User> {
+	async authenticate(request: Request): Promise<SessionData> {
 		let header = new SetCookie({
 			name: this.cookieName,
 			value: "some value",
@@ -420,17 +485,21 @@ Then you can read the value in the next request using the `Cookie` object from t
 ```ts
 import { Cookie } from "@mjackson/headers";
 
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
-
+export class MyStrategy<SessionData> extends Strategy<
+	SessionData,
+	MyStrategy.CallbackOptions
+> {
 	constructor(
 		protected cookieName: string,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
+		callback: Strategy.CallbackFunction<
+			SessionData,
+			MyStrategy.CallbackOptions
+		>,
 	) {
-		super(verify);
+		super(callback);
 	}
 
-	async authenticate(request: Request): Promise<User> {
+	async authenticate(request: Request): Promise<SessionData> {
 		let cookie = new Cookie(request.headers.get("cookie") ?? "");
 		let value = cookie.get(this.cookieName);
 		// More code
@@ -438,52 +507,76 @@ export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
 }
 ```
 
-#### Use AsyncLocalStorage to pass extra data to authenticate
+#### Use AsyncLocalStorage to pass context data to strategy callbacks
 
-If you need more than the request object to authenticate the user, you can use the `AsyncLocalStorage` API to pass data to the `authenticate` method.
+If you need to pass additional context data from your middleware, loader, or action functions to your strategy callbacks (such as a database instance, request context, or user preferences), you can use the `AsyncLocalStorage` API. This is particularly useful when you want to avoid tight coupling between your strategies and specific database or service implementations.
 
 ```ts
 import { AsyncLocalStorage } from "async_hooks";
 
+// Define the context data you want to pass to strategies
 export const asyncLocalStorage = new AsyncLocalStorage<{
-	someValue: string;
-	// more values
+	db: DatabaseInstance;
+	requestId: string;
+	// ... other context values
 }>();
 
-export class MyStrategy<User> extends Strategy<User, MyStrategy.VerifyOptions> {
-	name = "my-strategy";
+// In your strategy callback, access the context
+export const authenticator = new Authenticator({
+	strategies: {
+		"user-pass": new FormStrategy(async ({ form }) => {
+			const email = form.get("email") as string;
+			const password = form.get("password") as string;
 
-	constructor(
-		protected cookieName: string,
-		verify: Strategy.VerifyFunction<User, MyStrategy.VerifyOptions>,
-	) {
-		super(verify);
-	}
+			if (!email || !password) {
+				throw new Error("Email and password are required");
+			}
 
-	async authenticate(request: Request): Promise<User> {
-		let store = asyncLocalStorage.getStore();
-		if (!store) throw new Error("Failed to get AsyncLocalStorage store");
-		let { someValue } = store;
-		// More code
-	}
-}
+			// Access the context from AsyncLocalStorage
+			const store = asyncLocalStorage.getStore();
+			if (!store) throw new Error("Authentication context not available");
+
+			const { db, requestId } = store;
+
+			// Use the database instance from context
+			const user = await db.user.findUnique({ where: { email } });
+			if (!user || !(await bcrypt.compare(password, user.password))) {
+				throw new Error("Invalid email or password");
+			}
+
+			// Log with request ID for debugging
+			console.log(`User ${user.id} authenticated for request ${requestId}`);
+
+			return {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+			};
+		}),
+	},
+});
 ```
 
-Then you can set the value in the `authenticate` method.
+Then you can set the context in your route functions:
 
 ```ts
 export async function action({ request }: Route.ActionArgs) {
-	// Set the value in the AsyncLocalStorage
-	let user = await asyncLocalStorage.run({ someValue: "some value" }, () =>
+	// Set up the context for the authentication
+	const context = {
+		db: getDatabaseInstance(),
+		requestId: generateRequestId(),
+	};
+
+	// Run authentication with the context
+	let sessionData = await asyncLocalStorage.run(context, () =>
 		authenticator.authenticate("user-pass", request),
 	);
 
 	let session = await sessionStorage.getSession(request.headers.get("cookie"));
-
-	session.set("user", user);
+	session.set("user", sessionData);
 
 	return redirect("/dashboard", {
-		headers: { "Set-Cookie": await commitSession(session) },
+		headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
 	});
 }
 ```
