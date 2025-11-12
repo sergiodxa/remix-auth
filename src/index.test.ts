@@ -1,20 +1,8 @@
 import { describe, test, expect } from "bun:test";
 import { Authenticator } from "./index.js";
 import { Strategy } from "./strategy.js";
-
-class FormStrategy<SessionData> extends Strategy<
-	SessionData,
-	FormStrategy.CallbackOptions
-> {
-	async authenticate(request: Request): Promise<SessionData> {
-		let formData = await request.formData();
-		return await this.callback(formData);
-	}
-}
-
-namespace FormStrategy {
-	export type CallbackOptions = FormData;
-}
+import { FormStrategy } from "./strategies/form.js";
+import { OAuth2Strategy } from "./strategies/oauth2.js";
 
 class LoginStrategy<SessionData> extends Strategy<
 	SessionData,
@@ -51,7 +39,7 @@ namespace LoginStrategy {
 describe(Authenticator, () => {
 	const auth = new Authenticator({
 		strategies: {
-			form: new FormStrategy(async (form) => {
+			form: new FormStrategy(async ({ form }) => {
 				let username = form.get("username") as string;
 				let password = form.get("password") as string;
 
@@ -66,6 +54,17 @@ describe(Authenticator, () => {
 				if (username && password) return { userId: "124" };
 				throw new Error("Invalid signup data");
 			}),
+
+			oauth2: new OAuth2Strategy(
+				{
+					clientId: "your-client-id",
+					clientSecret: "your-client-secret",
+					redirectURI: "https://your-app.com/auth/callback",
+					tokenEndpoint: "https://provider.com/oauth/token",
+					authorizationEndpoint: "https://provider.com/oauth/authorize",
+				},
+				async ({ tokens }) => tokens.accessToken(),
+			),
 		},
 	});
 
@@ -102,5 +101,6 @@ describe(Authenticator, () => {
 	test("access strategies", () => {
 		expect(auth.strategies.form).toBeInstanceOf(FormStrategy);
 		expect(auth.strategies.login).toBeInstanceOf(LoginStrategy);
+		expect(auth.strategies.oauth2).toBeInstanceOf(OAuth2Strategy);
 	});
 });
