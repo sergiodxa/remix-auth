@@ -23,7 +23,22 @@ export class StateStore {
 	states = new Set<string>();
 	codeVerifiers = new Map<string, string>();
 
+	/**
+	 * The current state value to be serialized in the next toString() call.
+	 * This is set by the set() method and represents the state for the current
+	 * authentication flow. Each OAuth2Strategy creates its own StateStore
+	 * instance per authentication request, so there's no risk of race conditions
+	 * between concurrent authentication flows.
+	 */
 	state: string | undefined;
+
+	/**
+	 * The current code verifier to be serialized in the next toString() call.
+	 * This is set by the set() method and corresponds to the current state.
+	 * Each OAuth2Strategy creates its own StateStore instance per authentication
+	 * request, so there's no risk of race conditions between concurrent
+	 * authentication flows.
+	 */
 	codeVerifier: string | undefined;
 
 	constructor(params = new URLSearchParams()) {
@@ -35,7 +50,17 @@ export class StateStore {
 	}
 
 	/**
-	 * Append a new state and code verifier to the store
+	 * Append a new state and code verifier to the store.
+	 *
+	 * This method sets the instance properties `state` and `codeVerifier` which
+	 * will be used by the next toString() call to serialize the current state.
+	 * It also adds the state and verifier to the collection properties (states
+	 * Set and codeVerifiers Map) for validation purposes.
+	 *
+	 * Note: The instance properties track the "current" state being set. Since
+	 * each OAuth2 authentication flow creates its own StateStore instance and
+	 * calls set() followed immediately by toString() in the same request, there
+	 * is no risk of race conditions between concurrent authentication flows.
 	 */
 	set(state: string, verifier?: string) {
 		this.state = state;
@@ -61,9 +86,23 @@ export class StateStore {
 	}
 
 	/**
-	 * Convert the store to a string
+	 * Convert the store to a string.
 	 *
-	 * This is useful when we need to store the store in a cookie
+	 * This method serializes only the current state and code verifier (set via
+	 * the set() method) into a URL-encoded string suitable for storing in a
+	 * cookie.
+	 *
+	 * The serialization includes:
+	 * - A "state" parameter with the current state value
+	 * - A parameter with the state as the key and the code verifier as the value
+	 *
+	 * Note: This method only serializes the instance properties (state and
+	 * codeVerifier), not the entire collection of states/verifiers. This is
+	 * intentional as each OAuth2 flow creates its own StateStore instance and
+	 * only needs to serialize its own state.
+	 *
+	 * @returns A URL-encoded string representation of the current state and code
+	 * verifier, or an empty string if either is not set.
 	 */
 	toString() {
 		if (!this.state) return "";
