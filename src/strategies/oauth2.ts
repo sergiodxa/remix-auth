@@ -209,7 +209,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 	}
 
 	/**
-	 * Users the token revocation endpoint of the identity provider to revoke the
+	 * Uses the token revocation endpoint of the identity provider to revoke the
 	 * access token and make it invalid.
 	 *
 	 * @param token The access token to revoke
@@ -235,7 +235,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 	 *
 	 * @param uri The URI of the issuer, this can be a full URL or just the domain
 	 * @param options The rest of the options to pass to the OAuth2Strategy constructor, clientId, clientSecret, redirectURI, and scopes are required.
-	 * @param callback The verify function to use with the OAuth2Strategy instance
+	 * @param callback The callback function to use with the OAuth2Strategy instance
 	 * @returns A new OAuth2Strategy instance
 	 * @example
 	 * ```ts

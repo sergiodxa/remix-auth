@@ -135,7 +135,7 @@ describe(OAuth2Strategy.name, () => {
 		);
 
 		expect(strategy.authenticate(request)).rejects.toThrowError(
-			new ReferenceError("State in URL doesn't match state in cookie."),
+			new RangeError("State in URL doesn't match state in cookie."),
 		);
 	});
 
