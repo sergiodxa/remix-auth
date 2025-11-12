@@ -7,87 +7,35 @@ import type { Strategy } from "./strategy.js";
  * requests. Each strategy is registered with a name, which is used to identify
  * it during the authentication process.
  *
- * @typeParam User - The type of user object that will be returned after authentication
+ * @param StrategyRecord - A record of strategies where the key is the strategy name and the value is the strategy instance
  *
  * @example
- * ```ts
  * import { Authenticator } from "remix-auth";
  * import { FormStrategy } from "remix-auth-form";
  *
  * // Create an instance of the authenticator
- * const authenticator = new Authenticator<User>();
+ * const authenticator = new Authenticator({
+ *   strategies: {
+ *    login: new FormStrategy(async ({ form }) => {
+ *       // Implement your authentication logic here
+ *       return findUserByCredentials(form);
+ *    }),
+ *   },
+ * });
  *
- * // Register a strategy
- * authenticator.use(new FormStrategy(async ({ form }) => {
- *   // Implement your authentication logic here
- *   return findUserByCredentials(form);
- * }));
- * ```
+ * let sessionData = await authenticator.authenticate("login", request);
  */
-export class Authenticator<User = unknown> {
+export class Authenticator<
+	StrategyRecord extends Record<string, Strategy<any, any>>,
+> {
 	/**
-	 * A map of the configured strategies, where the key is the name of the
-	 * strategy and the value is the strategy instance
-	 * @private
+	 * A readonly record of the configured strategies, where the key is the name
+	 * of the strategy and the value is the strategy instance
 	 */
-	private strategies = new Map<string, Strategy<User, never>>();
+	#strategies: Readonly<StrategyRecord>;
 
-	/**
-	 * Registers an authentication strategy with the authenticator.
-	 *
-	 * @param strategy - The strategy instance to register
-	 * @param name - Optional custom name for the strategy. If not provided, the strategy's name property will be used
-	 * @returns The authenticator instance for method chaining
-	 *
-	 * @example
-	 * ```ts
-	 * // Register with default name
-	 * auth.use(new FormStrategy(verify));
-	 *
-	 * // Register with custom name
-	 * auth.use(new FormStrategy(verify), "admin-form");
-	 * ```
-	 */
-	use(strategy: Strategy<User, never>, name?: string): Authenticator<User> {
-		this.strategies.set(name ?? strategy.name, strategy);
-		return this;
-	}
-
-	/**
-	 * Removes a previously registered strategy from the authenticator.
-	 *
-	 * @param name - The name of the strategy to remove
-	 * @returns The authenticator instance for method chaining
-	 *
-	 * @example
-	 * ```ts
-	 * // Remove a strategy
-	 * auth.unuse("form");
-	 *
-	 * // Chain multiple removals
-	 * auth.unuse("form").unuse("oauth2");
-	 * ```
-	 */
-	unuse(name: string): Authenticator {
-		this.strategies.delete(name);
-		return this;
-	}
-
-	/**
-	 * Retrieves a registered strategy by name.
-	 *
-	 * @param name - The name of the strategy to retrieve
-	 * @returns The strategy instance if found, null otherwise
-	 * @typeParam S - The specific strategy type to cast to
-	 *
-	 * @example
-	 * ```ts
-	 * // Get a strategy
-	 * const formStrategy = auth.get<FormStrategy>("form");
-	 * ```
-	 */
-	get<S extends Strategy<User, never>>(name: string): S | null {
-		return (this.strategies.get(name) as S) ?? null;
+	constructor(options: { strategies: StrategyRecord }) {
+		this.#strategies = Object.freeze(options.strategies);
 	}
 
 	/**
@@ -98,26 +46,72 @@ export class Authenticator<User = unknown> {
 	 *
 	 * @param strategy - The name of the strategy to use for authentication
 	 * @param request - The request object to authenticate
-	 * @returns Promise resolving to the authenticated user
-	 * @throws {ReferenceError} If the specified strategy is not found
+	 * @param ...args - Additional arguments required by the strategy's authenticate method
+	 * @returns Promise resolving to the session data
 	 *
 	 * @example
-	 * ```ts
 	 * async function action({ request }: ActionFunctionArgs) {
 	 *   try {
-	 *     const user = await auth.authenticate("form", request);
-	 *     // User is authenticated, do something with the user data
+	 *     const sessionData = await auth.authenticate("login", request);
+	 *     // User is authenticated, do something with the session data
 	 *     return redirect("/dashboard");
 	 *   } catch (error) {
 	 *     // Handle authentication error
 	 *     return json({ error: error.message });
 	 *   }
 	 * }
-	 * ```
 	 */
-	authenticate(strategy: string, request: Request): Promise<User> {
-		let instance = this.get(strategy);
-		if (!instance) throw new ReferenceError(`Strategy ${strategy} not found.`);
-		return instance.authenticate(new Request(request.url, request));
+	async authenticate<StrategyName extends keyof StrategyRecord>(
+		strategyName: StrategyName,
+		...args: Parameters<StrategyRecord[StrategyName]["authenticate"]>
+	): Promise<Authenticator.StrategySessionData<StrategyRecord>> {
+		const strategy = this.#strategies[strategyName];
+		return strategy.authenticate.apply(
+			strategy,
+			args as Parameters<StrategyRecord[StrategyName]["authenticate"]>,
+		);
 	}
+
+	/**
+	 * Retrieves a readonly record of all registered strategies.
+	 * Useful if the strategy exposes additional methods.
+	 * @example
+	 * let loginStrategy = auth.strategies.login;
+	 */
+	get strategies() {
+		return this.#strategies;
+	}
+}
+
+export namespace Authenticator {
+	/**
+	 * Infers the session data type from a record of strategies.
+	 *
+	 * This utility type extracts the session data type associated with the
+	 * strategies in the provided record. It is useful for ensuring type safety
+	 * when working with authenticated session data.
+	 *
+	 * @typeParam SR - A record of strategies from which to infer the session data type
+	 *
+	 * @example
+	 * type SessionData = Authenticator.StrategySessionData<typeof auth.strategies>;
+	 */
+	export type StrategySessionData<
+		SR extends Record<string, Strategy<any, any>>,
+	> = SR[keyof SR] extends Strategy<infer SD, any> ? SD : never;
+
+	/**
+	 * Infers the session data type from an Authenticator instance.
+	 *
+	 * This utility type extracts the session data type associated with the
+	 * strategies registered in the Authenticator. It is useful for ensuring
+	 * type safety when working with authenticated session data.
+	 *
+	 * @typeParam T - The Authenticator instance from which to infer the session data type
+	 *
+	 * @example
+	 * type SessionData = Authenticator.infer<typeof auth>;
+	 */
+	export type infer<T> =
+		T extends Authenticator<infer SR> ? StrategySessionData<SR> : never;
 }

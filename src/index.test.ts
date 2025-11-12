@@ -1,70 +1,106 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { Authenticator } from "./index.js";
 import { Strategy } from "./strategy.js";
+import { FormStrategy } from "./strategies/form.js";
+import { OAuth2Strategy } from "./strategies/oauth2.js";
 
-class MockStrategy<User> extends Strategy<User, Record<string, never>> {
-	name = "mock";
-
-	async authenticate() {
-		let user = await this.verify({});
-		if (user) return user;
-		throw new Error("Invalid credentials");
-	}
-
-	custom() {
-		return "custom";
+class LoginStrategy<SessionData> extends Strategy<
+	SessionData,
+	LoginStrategy.CallbackOptions
+> {
+	async authenticate(
+		request: Request,
+		usernameField: string,
+		passwordField = "password",
+	): Promise<SessionData> {
+		let formData = await request.formData();
+		return await this.callback({
+			form: formData,
+			fields: {
+				username: usernameField,
+				password: passwordField,
+			},
+		});
 	}
 }
 
-describe(Authenticator.name, () => {
-	beforeEach(() => mock.restore());
+namespace LoginStrategy {
+	export interface CallbackOptions {
+		form: FormData;
+		fields: { username: string; password: string };
+	}
 
-	test("#constructor", () => {
-		let auth = new Authenticator();
-		expect(auth).toBeInstanceOf(Authenticator);
+	export interface AuthenticateOptions {
+		usernameField: string;
+		passwordField: string;
+	}
+}
+
+describe(Authenticator, () => {
+	const auth = new Authenticator({
+		strategies: {
+			form: new FormStrategy(async ({ form }) => {
+				let username = form.get("username") as string;
+				let password = form.get("password") as string;
+
+				if (username && password) return { userId: "124" };
+				throw new Error("Invalid signup data");
+			}),
+
+			login: new LoginStrategy(async ({ form, fields }) => {
+				let username = form.get(fields.username) as string;
+				let password = form.get(fields.password) as string;
+
+				if (username && password) return { userId: "124" };
+				throw new Error("Invalid signup data");
+			}),
+
+			oauth2: new OAuth2Strategy(
+				{
+					clientId: "your-client-id",
+					clientSecret: "your-client-secret",
+					redirectURI: "https://your-app.com/auth/callback",
+					tokenEndpoint: "https://provider.com/oauth/token",
+					authorizationEndpoint: "https://provider.com/oauth/authorize",
+				},
+				async ({ tokens }) => tokens.accessToken(),
+			),
+		},
 	});
 
-	test("#use", () => {
-		let auth = new Authenticator();
+	test("authenticate without options", async () => {
+		let formData = new FormData();
+		formData.append("username", "user");
+		formData.append("password", "pass");
 
-		expect(auth.use(new MockStrategy(async () => ({ id: 1 })))).toBe(auth);
+		let request = new Request("https://example.com/form", {
+			method: "POST",
+			body: formData,
+		});
 
-		expect(
-			auth.authenticate("mock", new Request("http://remix.auth/test")),
-		).resolves.toEqual({ id: 1 });
+		let sessionData = await auth.authenticate("form", request);
+
+		expect(sessionData).toEqual({ userId: "124" });
 	});
 
-	test("#unuse", () => {
-		let auth = new Authenticator().use(new MockStrategy(async () => null));
+	test("authenticate with REQUIRED options", async () => {
+		let formData = new FormData();
+		formData.append("user", "user");
+		formData.append("password", "pass");
 
-		expect(auth.unuse("mock")).toBe(auth);
+		let request = new Request("https://example.com/login", {
+			method: "POST",
+			body: formData,
+		});
 
-		expect(
-			async () =>
-				await auth.authenticate("mock", new Request("http://remix.auth/test")),
-		).toThrow(new ReferenceError("Strategy mock not found."));
+		let sessionData = await auth.authenticate("login", request, "user");
+
+		expect(sessionData).toEqual({ userId: "124" });
 	});
 
-	test("#authenticate", async () => {
-		let auth = new Authenticator().use(
-			new MockStrategy(async () => ({ id: 1 })),
-		);
-
-		expect(
-			await auth.authenticate("mock", new Request("http://remix.auth/test")),
-		).toEqual({ id: 1 });
-	});
-
-	test("#get", () => {
-		let auth = new Authenticator();
-
-		let strategy = new MockStrategy(async () => ({ id: 1 }));
-		auth.use(strategy);
-
-		let getted = auth.get<MockStrategy<{ id: number }>>("mock");
-
-		expect(getted).toBe(strategy);
-		// biome-ignore lint/style/noNonNullAssertion: It's a test
-		expect(getted!.custom()).toBe("custom");
+	test("access strategies", () => {
+		expect(auth.strategies.form).toBeInstanceOf(FormStrategy);
+		expect(auth.strategies.login).toBeInstanceOf(LoginStrategy);
+		expect(auth.strategies.oauth2).toBeInstanceOf(OAuth2Strategy);
 	});
 });
