@@ -24,6 +24,8 @@
 	"exports": {
 		".": "./build/index.js",
 		"./strategy": "./build/strategy.js",
+		"./oauth2": "./build/strategies/oauth2.js",
+		"./form": "./build/strategies/form.js",
 		"./package.json": "./package.json"
 	},
 	"bugs": {
