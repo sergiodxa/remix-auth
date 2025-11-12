@@ -314,7 +314,7 @@ export namespace OAuth2Strategy {
 	export interface CallbackOptions {
 		/** The request that triggered the verification flow */
 		request: Request;
-		/** The OAuth2 tokens retrivied from the identity provider */
+		/** The OAuth2 tokens retrieved from the identity provider */
 		tokens: OAuth2Tokens;
 	}
 
