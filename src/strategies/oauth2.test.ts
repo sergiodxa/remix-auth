@@ -11,7 +11,7 @@ import { Cookie, SetCookie } from "@remix-run/headers";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/native";
 import { OAuth2Strategy } from "./oauth2.js";
-import { StateStore } from "../lib/state-store.js";
+import { CodeVerifier, State, StateStore } from "../lib/state-store.js";
 
 const server = setupServer(
 	http.post("https://example.app/token", async () => {
@@ -124,7 +124,7 @@ describe(OAuth2Strategy.name, () => {
 		let strategy = new OAuth2Strategy<User>(options, verify);
 
 		let store = new StateStore();
-		store.set("random-state", "random-code-verifier");
+		store.set("random-state" as State, "random-code-verifier" as CodeVerifier);
 
 		let cookie = new Cookie();
 		cookie.set("oauth2", store.toString());
@@ -143,7 +143,7 @@ describe(OAuth2Strategy.name, () => {
 		let strategy = new OAuth2Strategy<User>(options, verify);
 
 		let store = new StateStore();
-		store.set("random-state", "random-code-verifier");
+		store.set("random-state" as State, "random-code-verifier" as CodeVerifier);
 
 		let cookie = new Cookie();
 		cookie.set(store.toSetCookie()?.name as string, store.toString());
@@ -165,7 +165,7 @@ describe(OAuth2Strategy.name, () => {
 		let strategy = new OAuth2Strategy<User>(options, verify);
 
 		let store = new StateStore();
-		store.set("random-state", "random-code-verifier");
+		store.set("random-state" as State, "random-code-verifier" as CodeVerifier);
 
 		let cookie = new Cookie();
 		cookie.set(store.toSetCookie()?.name as string, store.toString());
