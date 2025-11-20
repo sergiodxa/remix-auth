@@ -106,6 +106,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 			url.search = this.authorizationParams(
 				url.searchParams,
 				request,
+				options,
 			).toString();
 
 			let store = StateStore.fromRequest(request, this.cookieName);
@@ -184,13 +185,20 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 	 * standardized by the OAuth 2.0 specification, OAuth 2.0-based authentication
 	 * strategies can override this function in order to populate these
 	 * parameters as required by the provider.
+	 *
+	 * @param searchParams - The existing URL search parameters for the authorization request
+	 * @param request - The request that initiated the authentication flow
+	 * @param options - The options passed to the authenticate method
+	 * @returns The modified URL search parameters including any additional parameters
 	 */
 	protected authorizationParams(
-		params: URLSearchParams,
+		searchParams: URLSearchParams,
 		// oxlint-disable-next-line no-unused-vars - needed for overrides
 		request: Request,
+		// oxlint-disable-next-line no-unused-vars - needed for overrides
+		options: OAuth2Strategy.AuthenticateOptions = {},
 	): URLSearchParams {
-		return new URLSearchParams(params);
+		return new URLSearchParams(searchParams);
 	}
 
 	/**
