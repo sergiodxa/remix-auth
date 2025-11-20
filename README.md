@@ -423,7 +423,7 @@ export async function action({ request }: Route.ActionArgs) {
 If your strategy needs to store intermediate state, you can override the `contructor` method to expect a `Cookie` object, or even a `SessionStorage` object.
 
 ```ts
-import { SetCookie } from "@mjackson/headers";
+import { SetCookie } from "@remix-run/headers";
 
 export class MyStrategy<SessionData> extends Strategy<
 	SessionData,
@@ -480,10 +480,10 @@ export class MyStrategy<SessionData> extends Strategy<
 }
 ```
 
-Then you can read the value in the next request using the `Cookie` object from the `@mjackson/headers` package.
+Then you can read the value in the next request using the `Cookie` object from the `@remix-run/headers` package.
 
 ```ts
-import { Cookie } from "@mjackson/headers";
+import { Cookie } from "@remix-run/headers";
 
 export class MyStrategy<SessionData> extends Strategy<
 	SessionData,
