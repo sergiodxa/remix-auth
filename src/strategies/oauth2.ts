@@ -11,7 +11,11 @@ import {
 } from "arctic";
 import { Strategy } from "../strategy.js";
 import { redirect } from "../lib/redirect.js";
-import { StateStore } from "../lib/state-store.js";
+import {
+	StateStore,
+	type CodeVerifier,
+	type State,
+} from "../lib/state-store.js";
 import type { SetCookieInit } from "@remix-run/headers";
 
 type URLConstructor = ConstructorParameters<typeof URL>[0];
@@ -84,9 +88,9 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 	): Promise<SessionData> {
 		let url = new URL(request.url);
 
-		let stateUrl = url.searchParams.get("state");
+		let stateFromURL = url.searchParams.get("state");
 
-		if (!stateUrl) {
+		if (stateFromURL === null) {
 			let { state, codeVerifier, url } = this.createAuthorizationURL(
 				options.scopes,
 			);
@@ -105,7 +109,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 			).toString();
 
 			let store = StateStore.fromRequest(request, this.cookieName);
-			store.set(state, codeVerifier);
+			store.set(state as State, codeVerifier as CodeVerifier);
 
 			throw redirect(url.toString(), {
 				headers: {
@@ -122,7 +126,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 			throw new ReferenceError("Missing state on cookie.");
 		}
 
-		if (!store.has(stateUrl)) {
+		if (!store.has(stateFromURL as State)) {
 			throw new RangeError("State in URL doesn't match state in cookie.");
 		}
 
@@ -131,14 +135,14 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 		if (error) {
 			let description = url.searchParams.get("error_description");
 			let uri = url.searchParams.get("error_uri");
-			throw new OAuth2RequestError(error, description, uri, stateUrl);
+			throw new OAuth2RequestError(error, description, uri, stateFromURL);
 		}
 
 		let code = url.searchParams.get("code");
 
 		if (!code) throw new ReferenceError("Missing code in the URL");
 
-		let codeVerifier = store.get(stateUrl);
+		let codeVerifier = store.get(stateFromURL as State);
 
 		if (!codeVerifier) {
 			throw new ReferenceError("Missing code verifier on cookie.");

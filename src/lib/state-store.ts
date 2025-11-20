@@ -1,6 +1,16 @@
 import { Cookie, SetCookie, type SetCookieInit } from "@remix-run/headers";
 
 /**
+ * Branded type for State to improve type safety.
+ */
+export type State = string & { __brand: "State" };
+
+/**
+ * Branded type for CodeVerifier to improve type safety.
+ */
+export type CodeVerifier = string & { __brand: "CodeVerifier" };
+
+/**
  * This class is used to store the state and code verifier for the OAuth2 flow.
  *
  * If the user is redirected to the authorization endpoint, we need to store the
@@ -20,8 +30,8 @@ import { Cookie, SetCookie, type SetCookieInit } from "@remix-run/headers";
  * object, this is useful when we need to get the store from the cookie.
  */
 export class StateStore {
-	states = new Set<string>();
-	codeVerifiers = new Map<string, string>();
+	states = new Set<State>();
+	codeVerifiers = new Map<State, CodeVerifier>();
 
 	/**
 	 * The current state value to be serialized in the next toString() call.
@@ -30,7 +40,7 @@ export class StateStore {
 	 * instance per authentication request, so there's no risk of race conditions
 	 * between concurrent authentication flows.
 	 */
-	state: string | undefined;
+	state: State | undefined;
 
 	/**
 	 * The current code verifier to be serialized in the next toString() call.
@@ -39,13 +49,13 @@ export class StateStore {
 	 * request, so there's no risk of race conditions between concurrent
 	 * authentication flows.
 	 */
-	codeVerifier: string | undefined;
+	codeVerifier: CodeVerifier | undefined;
 
 	constructor(params = new URLSearchParams()) {
 		for (let [state, verifier] of params) {
 			if (state === "state") continue;
-			this.states.add(state);
-			this.codeVerifiers.set(state, verifier);
+			this.states.add(state as State);
+			this.codeVerifiers.set(state as State, verifier as CodeVerifier);
 		}
 	}
 
@@ -62,7 +72,7 @@ export class StateStore {
 	 * calls set() followed immediately by toString() in the same request, there
 	 * is no risk of race conditions between concurrent authentication flows.
 	 */
-	set(state: string, verifier?: string) {
+	set(state: State, verifier?: CodeVerifier) {
 		this.state = state;
 		this.codeVerifier = verifier;
 
@@ -73,7 +83,7 @@ export class StateStore {
 	/**
 	 * Check if the store has the given state
 	 */
-	has(state?: string) {
+	has(state?: State) {
 		if (state) return this.states.has(state);
 		return this.states.size > 0;
 	}
@@ -81,7 +91,7 @@ export class StateStore {
 	/**
 	 * Get the code verifier for the given state
 	 */
-	get(state: string) {
+	get(state: State) {
 		return this.codeVerifiers.get(state);
 	}
 
