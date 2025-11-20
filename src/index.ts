@@ -80,7 +80,9 @@ export class Authenticator<
 	 * @example
 	 * let loginStrategy = auth.strategies.login;
 	 */
-	get strategies() {
+	get strategies(): Readonly<{
+		[K in keyof StrategyRecord]: Omit<StrategyRecord[K], "authenticate">;
+	}> {
 		return this.#strategies;
 	}
 }
