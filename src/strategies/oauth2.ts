@@ -231,7 +231,8 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 	 * the OIDC configuration that is returned.
 	 *
 	 * This method will fetch the OIDC configuration from the issuer and create a
-	 * new OAuth2Strategy instance with the provided options and verify function.
+	 * new OAuth2Strategy instance with the provided options and callback
+	 * function.
 	 *
 	 * @param uri The URI of the issuer, this can be a full URL or just the domain
 	 * @param options The rest of the options to pass to the OAuth2Strategy constructor, clientId, clientSecret, redirectURI, and scopes are required.
@@ -350,7 +351,7 @@ export namespace OAuth2Strategy {
 		 */
 		authorizationEndpoint: URLConstructor;
 		/**
-		 * The endpoint the Identity Provider uses to let's you exchange an access
+		 * The endpoint the Identity Provider uses to let you exchange an access
 		 * code for an access and refresh token.
 		 */
 		tokenEndpoint: URLConstructor;
