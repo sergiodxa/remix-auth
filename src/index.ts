@@ -64,7 +64,9 @@ export class Authenticator<
 	async authenticate<StrategyName extends keyof StrategyRecord>(
 		strategyName: StrategyName,
 		...args: Parameters<StrategyRecord[StrategyName]["authenticate"]>
-	): Promise<Authenticator.StrategySessionData<StrategyRecord>> {
+	): Promise<
+		StrategyRecord[StrategyName] extends Strategy<infer SD, any> ? SD : never
+	> {
 		const strategy = this.#strategies[strategyName];
 		return strategy.authenticate.apply(
 			strategy,
