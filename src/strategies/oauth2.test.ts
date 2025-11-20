@@ -319,6 +319,220 @@ describe(OAuth2Strategy.name, () => {
 			"custom:scope1 custom:scope2",
 		);
 	});
+
+	test("adds prompt parameter as string", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				prompt: "login",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("prompt")).toBe("login");
+	});
+
+	test("adds prompt parameter as array", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				prompt: ["login", "consent"],
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("prompt")).toBe("login consent");
+	});
+
+	test("adds max_age parameter", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				maxAge: 3600,
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("max_age")).toBe("3600");
+	});
+
+	test("adds login_hint parameter", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				loginHint: "user@example.com",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("login_hint")).toBe("user@example.com");
+	});
+
+	test("adds ui_locales parameter as string", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				uiLocales: "en-US es-ES",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("ui_locales")).toBe("en-US es-ES");
+	});
+
+	test("adds ui_locales parameter as array", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				uiLocales: ["en-US", "es-ES", "fr-FR"],
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("ui_locales")).toBe("en-US es-ES fr-FR");
+	});
+
+	test("adds acr_values parameter", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				acrValues: "urn:mace:incommon:iap:silver",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("acr_values")).toBe(
+			"urn:mace:incommon:iap:silver",
+		);
+	});
+
+	test("adds claims parameter", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let claimsObject = {
+			userinfo: { email: { essential: true } },
+			id_token: { name: null },
+		};
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				claims: claimsObject,
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("claims")).toBe(
+			JSON.stringify(claimsObject),
+		);
+	});
+
+	test("adds id_token_hint parameter", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				idTokenHint: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("id_token_hint")).toBe(
+			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+		);
+	});
+
+	test("adds resource parameter as string", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				resource: "https://api.example.com",
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("resource")).toBe(
+			"https://api.example.com",
+		);
+	});
+
+	test("adds resource parameter as array", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				resource: ["https://api.example.com", "https://internal.example.com"],
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.getAll("resource")).toEqual([
+			"https://api.example.com",
+			"https://internal.example.com",
+		]);
+	});
+
+	test("combines multiple OIDC parameters", async () => {
+		let strategy = new OAuth2Strategy<User>(options, verify);
+
+		let request = new Request("https://remix.auth/login");
+
+		let response = await catchResponse(
+			strategy.authenticate(request, {
+				prompt: "login",
+				maxAge: 1800,
+				loginHint: "user@example.com",
+				uiLocales: ["en-US", "fr-FR"],
+			}),
+		);
+
+		let redirect = new URL(response.headers.get("location")!);
+
+		expect(redirect.searchParams.get("prompt")).toBe("login");
+		expect(redirect.searchParams.get("max_age")).toBe("1800");
+		expect(redirect.searchParams.get("login_hint")).toBe("user@example.com");
+		expect(redirect.searchParams.get("ui_locales")).toBe("en-US fr-FR");
+	});
 });
 
 function isResponse(value: unknown): value is Response {

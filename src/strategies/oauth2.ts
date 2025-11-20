@@ -9,6 +9,7 @@ import {
 	generateCodeVerifier,
 	generateState,
 } from "arctic";
+import type { Jsonify } from "type-fest";
 import { Strategy } from "../strategy.js";
 import { redirect } from "../lib/redirect.js";
 import {
@@ -17,6 +18,7 @@ import {
 	type State,
 } from "../lib/state-store.js";
 import type { SetCookieInit } from "@remix-run/headers";
+import { arrayify } from "../lib/arrayify.js";
 
 type URLConstructor = ConstructorParameters<typeof URL>[0];
 
@@ -31,6 +33,12 @@ export {
 };
 
 export type { OAuth2Tokens };
+
+/**
+ * Valid prompt values for OIDC authentication requests.
+ * @see {@link OAuth2Strategy.Prompt} for detailed documentation.
+ */
+export type Prompt = OAuth2Strategy.Prompt;
 
 /**
  * A strategy for authenticating users using the OAuth 2.0 authorization flow.
@@ -95,12 +103,44 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 				options.scopes,
 			);
 
-			let audience = options.audience ?? this.options.audience;
+			let audience = arrayify(options.audience ?? this.options.audience ?? []);
+			for (let aud of audience) {
+				if (aud.length > 0) url.searchParams.append("audience", aud);
+			}
 
-			if (audience) {
-				if (Array.isArray(audience)) {
-					for (let aud of audience) url.searchParams.append("audience", aud);
-				} else url.searchParams.append("audience", audience);
+			if (options.prompt) {
+				url.searchParams.set("prompt", arrayify(options.prompt).join(" "));
+			}
+
+			if (options.maxAge !== undefined && options.maxAge >= 0) {
+				url.searchParams.set("max_age", options.maxAge.toString());
+			}
+
+			if (options.loginHint) {
+				url.searchParams.set("login_hint", options.loginHint);
+			}
+
+			if (options.uiLocales) {
+				url.searchParams.set(
+					"ui_locales",
+					arrayify(options.uiLocales).join(" "),
+				);
+			}
+
+			if (options.acrValues) {
+				url.searchParams.set("acr_values", options.acrValues);
+			}
+
+			if (options.claims) {
+				url.searchParams.set("claims", JSON.stringify(options.claims));
+			}
+
+			if (options.idTokenHint) {
+				url.searchParams.set("id_token_hint", options.idTokenHint);
+			}
+
+			for (let res of arrayify(options.resource ?? [])) {
+				if (res.length > 0) url.searchParams.append("resource", res);
 			}
 
 			url.search = this.authorizationParams(
@@ -154,7 +194,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 		return await this.callback({ request, tokens });
 	}
 
-	protected createAuthorizationURL(scopes?: string[]) {
+	protected createAuthorizationURL(scopes?: string | string[]) {
 		let state = generateState();
 		let codeVerifier = generateCodeVerifier();
 
@@ -163,7 +203,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 			state,
 			this.options.codeChallengeMethod ?? CodeChallengeMethod.S256,
 			codeVerifier,
-			scopes ?? this.options.scopes ?? [],
+			arrayify(scopes ?? this.options.scopes ?? []),
 		);
 
 		return { state, codeVerifier, url };
@@ -216,7 +256,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 		return this.client.refreshAccessToken(
 			this.options.tokenEndpoint.toString(),
 			refreshToken,
-			scopes ?? this.options.scopes ?? [],
+			arrayify(scopes ?? this.options.scopes ?? []),
 		);
 	}
 
@@ -324,6 +364,19 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 }
 
 export namespace OAuth2Strategy {
+	/**
+	 * Valid prompt values for OIDC authentication requests.
+	 *
+	 * Controls the authentication and consent prompts shown to the user:
+	 * - `none`: No prompts are shown, fails if user is not authenticated
+	 * - `login`: Forces user to re-authenticate
+	 * - `consent`: Forces user to consent to permissions
+	 * - `select_account`: Forces user to select an account
+	 *
+	 * Can be used as a single value or array of values for multiple prompts.
+	 */
+	export type Prompt = "none" | "login" | "consent" | "select_account";
+
 	export interface CallbackOptions {
 		/** The request that triggered the verification flow */
 		request: Request;
@@ -331,7 +384,8 @@ export namespace OAuth2Strategy {
 		tokens: OAuth2Tokens;
 	}
 
-	export interface ConstructorOptions {
+	export interface ConstructorOptions
+		extends Pick<AuthenticateOptions, "scopes" | "audience" | "resource"> {
 		/**
 		 * The name of the cookie used to keep state and code verifier around.
 		 *
@@ -380,33 +434,117 @@ export namespace OAuth2Strategy {
 		tokenRevocationEndpoint?: URLConstructor;
 
 		/**
-		 * The scopes you want to request from the Identity Provider, this is a list
-		 * of strings that represent the permissions you want to request from the
-		 * user.
-		 */
-		scopes?: string[];
-
-		/**
 		 * The code challenge method to use when sending the authorization request.
 		 * This is used when the Identity Provider requires a code challenge to be
 		 * sent with the authorization request.
 		 * @default "CodeChallengeMethod.S256"
 		 */
 		codeChallengeMethod?: CodeChallengeMethod;
+	}
+
+	/**
+	 * Options that can be defined at athentication time to override the default
+	 * behavior of the OAuth2Strategy for a specific authentication request.
+	 */
+	export interface AuthenticateOptions {
+		/**
+		 * The scopes you want to request from the Identity Provider, this is a list
+		 * of strings that represent the permissions you want to request from the
+		 * user.
+		 */
+		scopes?: string | string[];
 
 		/**
 		 * The audience of the token to request from the Identity Provider. This is
 		 * used when the Identity Provider requires a specific audience to be set on
 		 * the token.
-		 *
-		 * This can be a string or an array of strings.
+		 * @example
+		 * "your-api-audience"
+		 * @example
+		 * ["your-api-audience", "another-audience"]
 		 */
 		audience?: string | string[];
-	}
 
-	/**
-	 * Options that can be passed to the `authenticate` method.
-	 */
-	export interface AuthenticateOptions
-		extends Pick<ConstructorOptions, "audience" | "scopes"> {}
+		/**
+		 * Controls the authentication and consent prompts shown to the user.
+		 * Can be a single value or array of values.
+		 * @see {@link Prompt} for valid values and their descriptions.
+		 * @example
+		 * "login"
+		 * @example
+		 * ["login", "consent"]
+		 */
+		prompt?: Prompt | Prompt[];
+
+		/**
+		 * Maximum age in seconds since the user's last authentication.
+		 * If exceeded, the user will be prompted to re-authenticate.
+		 *
+		 * @example
+		 * 1800 // 30 minutes
+		 * @example
+		 * 3600 // 1 hour
+		 */
+		maxAge?: number;
+
+		/**
+		 * Hint about the user's identity (email, username, etc.) to pre-fill
+		 * the authentication form and improve user experience.
+		 *
+		 * The format and interpretation of this hint depend on the identity
+		 * provider.
+		 *
+		 * @example
+		 * "john_doe"
+		 * @example
+		 * "john@example.com"
+		 * @example
+		 * "+1234567890"
+		 * @example
+		 * "user123"
+		 */
+		loginHint?: string;
+
+		/**
+		 * Preferred locales for the authentication UI.
+		 * Can be a single locale string or array of locale strings.
+		 * @example
+		 * "en-US"
+		 * @example
+		 * ["en-US", "es-ES", "fr-FR"]
+		 */
+		uiLocales?: string | string[];
+
+		/**
+		 * Authentication Context Class Reference values that specify the
+		 * authentication methods that the authorization server is being
+		 * requested to use or has used when authenticating the user.
+		 * Multiple values can be provided as a space-separated string.
+		 */
+		acrValues?: string;
+
+		/**
+		 * Specific claims to request from the identity provider.
+		 * Object will be automatically stringified to JSON.
+		 * @example
+		 * { userinfo: { name: null, email: null } }
+		 */
+		claims?: Jsonify<any>;
+
+		/**
+		 * Previously issued ID token as a hint about the user's session.
+		 * Can be used to optimize the authentication flow.
+		 */
+		idTokenHint?: string;
+
+		/**
+		 * Target service or resource for which the token is being requested.
+		 * Useful in scenarios where tokens need to be scoped to specific APIs.
+		 * @example
+		 * "https://api.example.com/"
+		 * @example
+		 * ["https://api.example.com/", "https://another-api.example.com/"]
+		 */
+		resource?: string | string[];
+	}
 }
