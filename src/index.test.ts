@@ -43,7 +43,7 @@ describe(Authenticator, () => {
 				let username = form.get("username") as string;
 				let password = form.get("password") as string;
 
-				if (username && password) return { userId: "124" };
+				if (username && password) return { userId: "124", username };
 				throw new Error("Invalid signup data");
 			}),
 
@@ -80,7 +80,7 @@ describe(Authenticator, () => {
 
 		let sessionData = await auth.authenticate("form", request);
 
-		expect(sessionData).toEqual({ userId: "124" });
+		expect(sessionData).toEqual({ userId: "124", username: "user" });
 	});
 
 	test("authenticate with REQUIRED options", async () => {
