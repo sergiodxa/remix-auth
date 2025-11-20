@@ -29,11 +29,6 @@ namespace LoginStrategy {
 		form: FormData;
 		fields: { username: string; password: string };
 	}
-
-	export interface AuthenticateOptions {
-		usernameField: string;
-		passwordField: string;
-	}
 }
 
 describe(Authenticator, () => {
