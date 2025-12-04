@@ -11,7 +11,7 @@ import {
 } from "arctic";
 import type { Jsonify } from "type-fest";
 import { Strategy } from "../strategy.js";
-import { redirect } from "../lib/redirect.js";
+import { createRedirectResponse as redirect } from "@remix-run/response/redirect";
 import {
 	StateStore,
 	type CodeVerifier,

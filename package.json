@@ -60,6 +60,7 @@
 	"dependencies": {
 		"@edgefirst-dev/data": "^0.0.4",
 		"@remix-run/headers": "^0.16.0",
+		"@remix-run/response": "^0.2.0",
 		"arctic": "^3.7.0",
 		"type-fest": "^5.2.0"
 	}
