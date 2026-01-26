@@ -52,10 +52,10 @@ export class StateStore {
 	codeVerifier: CodeVerifier | undefined;
 
 	constructor(params = new URLSearchParams()) {
-		for (let [state, verifier] of params) {
-			if (state === "state") continue;
-			this.states.add(state as State);
-			this.codeVerifiers.set(state as State, verifier as CodeVerifier);
+		for (let [key, value] of params) {
+			if (key === "state") continue;
+			this.states.add(key as State);
+			this.codeVerifiers.set(key as State, value as CodeVerifier);
 		}
 	}
 
