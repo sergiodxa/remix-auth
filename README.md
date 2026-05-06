@@ -181,7 +181,7 @@ export async function action({ request }: Route.ActionArgs) {
 	} catch (error) {
 		// Return validation errors or authentication errors
 		if (error instanceof Error) {
-			return json({ error: error.message });
+			return data({ error: error.message });
 		}
 
 		// Re-throw any other errors (including redirects)
@@ -199,7 +199,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	if (user) return redirect("/dashboard");
 
 	// Otherwise return null to render the login page
-	return json(null);
+	return data(null);
 }
 ```
 
