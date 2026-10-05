@@ -15,7 +15,7 @@
 		"@mjackson/headers": "^0.11.1",
 		"@total-typescript/tsconfig": "^1.0.4",
 		"@types/bun": "^1.1.14",
-		"msw": "^2.7.0",
+		"msw": "^3.0.1",
 		"oxlint": "^1.22.0",
 		"prettier": "^3.6.2",
 		"typedoc": "^0.28.0",
