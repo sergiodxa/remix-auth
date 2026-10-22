@@ -33,7 +33,9 @@ export function encodeBasicCredentials(
 	return encodeBase64(bytes);
 }
 
-export async function sendTokenRequest(request: Request): Promise<OAuth2Tokens> {
+export async function sendTokenRequest(
+	request: Request,
+): Promise<OAuth2Tokens> {
 	let response: Response;
 	try {
 		response = await fetch(request);

@@ -39,7 +39,8 @@ export class OAuth2Tokens {
 
 	hasRefreshToken(): boolean {
 		return (
-			"refresh_token" in this.data && typeof this.data.refresh_token === "string"
+			"refresh_token" in this.data &&
+			typeof this.data.refresh_token === "string"
 		);
 	}
 
