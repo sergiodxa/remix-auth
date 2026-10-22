@@ -21,7 +21,7 @@ Remix Auth is a complete open-source authentication solution for Remix and React
 
 Heavily inspired by [Passport.js](https://passportjs.org), but completely rewrote it from scratch to work on top of the [Web Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). Remix Auth can be dropped in to any Remix or React Router based application with minimal setup.
 
-As with Passport.js, it uses the strategy pattern to support the different authentication flows. Each strategy is published individually as a separate npm package.
+As with Passport.js, it uses the strategy pattern to support the different authentication flows. Form and OAuth 2.0 strategies ship with Remix Auth; other strategies are published individually as separate npm packages.
 
 ## Installation
 
@@ -31,10 +31,10 @@ npm install remix-auth
 
 ## Supported Authentication Methods
 
-Remix Auth supports various authentication methods through its strategy system. Here are some popular strategies:
+Remix Auth includes built-in strategies and supports community ones:
 
-- [Form Strategy](https://github.com/sergiodxa/remix-auth-form) - Username/password form-based authentication
-- [OAuth 2.0](https://github.com/sergiodxa/remix-auth-oauth2) - Generic OAuth 2.0 authentication
+- Form Strategy (`remix-auth/form`) - Username/password form-based authentication
+- OAuth 2.0 (`remix-auth/oauth2`) - Generic OAuth 2.0 / OIDC authentication
 - [GitHub](https://github.com/sergiodxa/remix-auth-github) - GitHub authentication
 
 For a complete list of community-maintained strategies, check the [Community Strategies discussion](https://github.com/sergiodxa/remix-auth/discussions/111).
@@ -49,7 +49,7 @@ Import the `Authenticator` class and instantiate it with your authentication str
 ```ts
 // app/services/auth.server.ts
 import { Authenticator } from "remix-auth";
-import { FormStrategy } from "remix-auth-form";
+import { FormStrategy } from "remix-auth/form";
 import { createCookieSessionStorage } from "react-router";
 
 // Create a session storage
@@ -336,9 +336,7 @@ export class MyStrategy<SessionData> extends Strategy<
 	async authenticate(request: Request): Promise<SessionData> {
 		// Your logic here, you can use `this.options` to get constructor options
 		// Extract data from the request and call the callback
-		return await this.callback({
-			/* your callback options here */
-		});
+		return await this.callback({/* your callback options here */});
 	}
 }
 ```
