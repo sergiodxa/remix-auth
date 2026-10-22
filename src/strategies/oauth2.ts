@@ -1,14 +1,4 @@
 import { ObjectParser } from "@edgefirst-dev/data/parser";
-import {
-	CodeChallengeMethod,
-	OAuth2Client,
-	OAuth2RequestError,
-	type OAuth2Tokens,
-	UnexpectedErrorResponseBodyError,
-	UnexpectedResponseError,
-	generateCodeVerifier,
-	generateState,
-} from "arctic";
 import type { Jsonify } from "type-fest";
 import { Strategy } from "../strategy.js";
 import { createRedirectResponse as redirect } from "@remix-run/response/redirect";
@@ -19,6 +9,16 @@ import {
 } from "../lib/state-store.js";
 import type { SetCookieInit } from "@remix-run/headers";
 import { arrayify } from "../lib/arrayify.js";
+import {
+	CodeChallengeMethod,
+	OAuth2Client,
+	OAuth2RequestError,
+	type OAuth2Tokens,
+	UnexpectedErrorResponseBodyError,
+	UnexpectedResponseError,
+	generateCodeVerifier,
+	generateState,
+} from "../lib/oauth2/index.js";
 
 type URLConstructor = ConstructorParameters<typeof URL>[0];
 
@@ -106,7 +106,7 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 		let stateFromURL = url.searchParams.get("state");
 
 		if (stateFromURL === null) {
-			let { state, codeVerifier, url } = this.createAuthorizationURL(
+			let { state, codeVerifier, url } = await this.createAuthorizationURL(
 				options.scopes,
 			);
 
@@ -201,11 +201,11 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 		return await this.callback({ request, tokens });
 	}
 
-	protected createAuthorizationURL(scopes?: string | string[]) {
+	protected async createAuthorizationURL(scopes?: string | string[]) {
 		let state = generateState();
 		let codeVerifier = generateCodeVerifier();
 
-		let url = this.client.createAuthorizationURLWithPKCE(
+		let url = await this.client.createAuthorizationURLWithPKCE(
 			this.options.authorizationEndpoint.toString(),
 			state,
 			this.options.codeChallengeMethod ?? CodeChallengeMethod.S256,
