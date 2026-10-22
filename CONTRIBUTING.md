@@ -62,10 +62,7 @@ Please do not open public issues for security reports. Email me at `hello+oss@se
 
 ## Creating a Strategy
 
-Strategies are published as separate packages. Official Remix Auth strategies:
-
-- [FormStrategy](https://github.com/sergiodxa/remix-auth-form)
-- [OAuth2Strategy](https://github.com/sergiodxa/remix-auth-oauth2)
+Form and OAuth 2.0 strategies live in this repository (`remix-auth/form` and `remix-auth/oauth2`). Other strategies are published as separate packages.
 
 If you build a custom Remix Auth strategy and want to share it, please publish it yourself. Recommended checklist:
 

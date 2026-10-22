@@ -70,14 +70,21 @@ export class OAuth2Strategy<SessionData> extends Strategy<
 
 	private get cookieName() {
 		if (typeof this.options.cookie === "string") {
+			// Empty string is treated as unset and falls back to the default name.
 			return this.options.cookie || "oauth2";
 		}
 		return this.options.cookie?.name ?? "oauth2";
 	}
 
 	private get cookieOptions() {
-		if (typeof this.options.cookie !== "object") return {};
-		return this.options.cookie ?? {};
+		// `typeof null === "object"` in JS, so exclude null explicitly.
+		if (
+			this.options.cookie == null ||
+			typeof this.options.cookie !== "object"
+		) {
+			return {};
+		}
+		return this.options.cookie;
 	}
 
 	/**
@@ -443,7 +450,7 @@ export namespace OAuth2Strategy {
 	}
 
 	/**
-	 * Options that can be defined at athentication time to override the default
+	 * Options that can be defined at authentication time to override the default
 	 * behavior of the OAuth2Strategy for a specific authentication request.
 	 */
 	export interface AuthenticateOptions {

@@ -11,7 +11,7 @@ import type { Strategy } from "./strategy.js";
  *
  * @example
  * import { Authenticator } from "remix-auth";
- * import { FormStrategy } from "remix-auth-form";
+ * import { FormStrategy } from "remix-auth/form";
  *
  * // Create an instance of the authenticator
  * const authenticator = new Authenticator({
@@ -77,13 +77,20 @@ export class Authenticator<
 	/**
 	 * Retrieves a readonly record of all registered strategies.
 	 * Useful if the strategy exposes additional methods.
+	 *
+	 * The public type omits `authenticate` so callers go through
+	 * `Authenticator.authenticate`. Runtime instances still expose the method
+	 * on the strategy prototype.
+	 *
 	 * @example
 	 * let loginStrategy = auth.strategies.login;
 	 */
 	get strategies(): Readonly<{
 		[K in keyof StrategyRecord]: Omit<StrategyRecord[K], "authenticate">;
 	}> {
-		return this.#strategies;
+		return this.#strategies as Readonly<{
+			[K in keyof StrategyRecord]: Omit<StrategyRecord[K], "authenticate">;
+		}>;
 	}
 }
 
