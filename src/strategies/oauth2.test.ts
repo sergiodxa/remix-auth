@@ -9,21 +9,29 @@ import {
 } from "bun:test";
 import { Cookie, SetCookie } from "@remix-run/headers";
 import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/native";
+import { FetchInterceptor } from "@mswjs/interceptors/fetch/web";
+import { defineNetwork, InterceptorSource } from "msw/experimental";
 import { OAuth2Strategy } from "./oauth2.js";
 import { CodeVerifier, State, StateStore } from "../lib/state-store.js";
 
-const server = setupServer(
-	http.post("https://example.app/token", async () => {
-		return HttpResponse.json({
-			access_token: "mocked",
-			expires_in: 3600,
-			refresh_token: "mocked",
-			scope: ["user:email", "user:profile"].join(" "),
-			token_type: "Bearer",
-		});
-	}),
-);
+const server = defineNetwork({
+	sources: [
+		new InterceptorSource({
+			interceptors: [new FetchInterceptor()],
+		}),
+	],
+	handlers: [
+		http.post("https://example.app/token", async () => {
+			return HttpResponse.json({
+				access_token: "mocked",
+				expires_in: 3600,
+				refresh_token: "mocked",
+				scope: ["user:email", "user:profile"].join(" "),
+				token_type: "Bearer",
+			});
+		}),
+	],
+});
 
 describe(OAuth2Strategy.name, () => {
 	let verify = mock();
@@ -41,16 +49,16 @@ describe(OAuth2Strategy.name, () => {
 		id: string;
 	}
 
-	beforeAll(() => {
-		server.listen();
+	beforeAll(async () => {
+		await server.enable();
 	});
 
 	afterEach(() => {
 		server.resetHandlers();
 	});
 
-	afterAll(() => {
-		server.close();
+	afterAll(async () => {
+		await server.disable();
 	});
 
 	test("redirects to authorization url if there's no state", async () => {
