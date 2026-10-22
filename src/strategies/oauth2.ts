@@ -391,10 +391,8 @@ export namespace OAuth2Strategy {
 		tokens: OAuth2Tokens;
 	}
 
-	export interface ConstructorOptions extends Pick<
-		AuthenticateOptions,
-		"scopes" | "audience" | "resource"
-	> {
+	export interface ConstructorOptions
+		extends Pick<AuthenticateOptions, "scopes" | "audience" | "resource"> {
 		/**
 		 * The name of the cookie used to keep state and code verifier around.
 		 *

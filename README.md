@@ -336,7 +336,9 @@ export class MyStrategy<SessionData> extends Strategy<
 	async authenticate(request: Request): Promise<SessionData> {
 		// Your logic here, you can use `this.options` to get constructor options
 		// Extract data from the request and call the callback
-		return await this.callback({/* your callback options here */});
+		return await this.callback({
+			/* your callback options here */
+		});
 	}
 }
 ```
