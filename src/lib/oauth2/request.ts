@@ -25,12 +25,25 @@ export function createOAuth2Request(
 	return request;
 }
 
+/**
+ * Encode client credentials for HTTP Basic authentication.
+ *
+ * Per RFC 6749 §2.3.1, the client ID and secret are each
+ * `application/x-www-form-urlencoded` encoded before they are joined with `:`
+ * and Base64-encoded. Without that step, reserved characters like `:` or `+`
+ * in either value are misparsed by conforming authorization servers.
+ */
 export function encodeBasicCredentials(
 	username: string,
 	password: string,
 ): string {
-	let bytes = new TextEncoder().encode(`${username}:${password}`);
+	let encoded = `${formUrlEncode(username)}:${formUrlEncode(password)}`;
+	let bytes = new TextEncoder().encode(encoded);
 	return encodeBase64(bytes);
+}
+
+function formUrlEncode(value: string): string {
+	return encodeURIComponent(value).replaceAll("%20", "+");
 }
 
 export async function sendTokenRequest(

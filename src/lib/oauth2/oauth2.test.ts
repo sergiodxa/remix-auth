@@ -7,6 +7,7 @@ import {
 	generateCodeVerifier,
 	generateState,
 } from "./index.js";
+import { encodeBasicCredentials } from "./request.js";
 
 describe("oauth2 helpers", () => {
 	test("generateState and generateCodeVerifier return base64url without padding", () => {
@@ -78,5 +79,18 @@ describe("oauth2 helpers", () => {
 		expect(tokens.hasScopes()).toBe(true);
 		expect(tokens.scopes()).toEqual(["a", "b"]);
 		expect(tokens.idToken()).toBe("id");
+	});
+
+	test("encodeBasicCredentials form-encodes reserved characters (RFC 6749 §2.3.1)", () => {
+		// Without form-encoding, `client:id` / `s+ecret` would be decoded as
+		// username `client` and password `id:s ecret` by a conforming server.
+		let encoded = encodeBasicCredentials("client:id", "s+ecret");
+		let decoded = atob(encoded);
+		expect(decoded).toBe("client%3Aid:s%2Becret");
+
+		let [user, ...rest] = decoded.split(":");
+		let pass = rest.join(":");
+		expect(decodeURIComponent(user!)).toBe("client:id");
+		expect(decodeURIComponent(pass)).toBe("s+ecret");
 	});
 });
