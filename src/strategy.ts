@@ -6,75 +6,70 @@
  * authentication methods (e.g., form-based, OAuth, etc.) and are registered
  * with an Authenticator instance.
  *
- * @typeParam User - The type of user object that will be returned after authentication
- * @typeParam VerifyOptions - The type of parameters that the verify callback will receive from the strategy
+ * @typeParam SessionData - The type of session data that will be returned after authentication
+ * @typeParam CallbackOptions - The type of parameters that the callback will receive from the strategy
  *
  * @example
- * ```ts
  * // Example of a custom strategy implementation
- * class MyCustomStrategy extends Strategy<User, { username: string; password: string }> {
- *   name = "my-custom";
- *
- *   async authenticate(request: Request): Promise<User> {
+ * class MyCustomStrategy<SessionData> extends Strategy<
+ *   SessionData,
+ *   { username: string; password: string }
+ * > {
+ *   async authenticate(request: Request): Promise<SessionData> {
  *     // Implementation details...
  *   }
  * }
- * ```
  */
-export abstract class Strategy<User, VerifyOptions> {
-	/**
-	 * The unique name of the strategy.
-	 *
-	 * This name is used by the Authenticator to identify and retrieve the
-	 * strategy when authentication is requested. If no custom name is provided
-	 * when registering with the Authenticator, this property will be used as the
-	 * default name.
-	 */
-	public abstract name: string;
+export abstract class Strategy<SessionData, CallbackOptions> {
+	protected callback: Strategy.CallbackFunction<SessionData, CallbackOptions>;
 
 	/**
 	 * Creates a new Strategy instance.
 	 *
-	 * @param verify - A function that validates the credentials and returns a user or throws an error if authentication fails
+	 * @param callback - A function that validates the credentials and returns a user or throws an error if authentication fails
 	 */
-	public constructor(
-		protected verify: Strategy.VerifyFunction<User, VerifyOptions>,
-	) {}
+	constructor(
+		callback: Strategy.CallbackFunction<SessionData, CallbackOptions>,
+	) {
+		this.callback = callback;
+	}
 
 	/**
 	 * The core authentication method that each strategy must implement.
 	 *
 	 * This method handles the specific authentication flow for the strategy.
 	 * It extracts the necessary information from the request, validates it,
-	 * and calls the verify function to authenticate the user.
+	 * and calls the callback function to authenticate the user.
 	 *
 	 * @param request - The incoming request to authenticate
+	 * @param ...args - Additional arguments specific to the strategy
 	 * @returns A promise that resolves to the authenticated user data
 	 * @throws Appropriate error if authentication fails
 	 */
-	public abstract authenticate(request: Request): Promise<User>;
+	abstract authenticate(
+		request: Request,
+		...args: unknown[]
+	): Promise<SessionData>;
 }
 
 export namespace Strategy {
 	/**
-	 * A function type for the verification callback used by authentication
-	 * strategies.
+	 * A function type for the callback used by authentication strategies.
 	 *
-	 * The verify function is responsible for validating credentials extracted by
-	 * the strategy and returning the corresponding user object if authentication
-	 * succeeds.
+	 * The callback function is responsible for validating credentials extracted
+	 * by the strategy and returning the corresponding user object if
+	 * authentication succeeds.
 	 *
 	 * @typeParam User - The type of user object that will be returned after authentication
-	 * @typeParam VerifyParams - The type of parameters that will be passed to the verify function by the strategy
+	 * @typeParam CallbackParams - The type of parameters that will be passed to the callback function by the strategy
 	 *
 	 * @param params - The authentication parameters extracted by the strategy (e.g., username/password, token, etc.)
 	 * @returns A promise that resolves to the authenticated user data
 	 * @throws Should throw an appropriate error if authentication fails (e.g., invalid credentials)
 	 *
 	 * @example
-	 * ```ts
-	 * // Example verify function for a form strategy
-	 * const verify: Strategy.VerifyFunction<User, { form: FormData }> = async ({ form }) => {
+	 * // Example callback function for a form strategy
+	 * const callback: Strategy.CallbackFunction<User, { form: FormData }> = async ({ form }) => {
 	 *   const username = form.get("username");
 	 *   const password = form.get("password");
 	 *
@@ -85,9 +80,8 @@ export namespace Strategy {
 	 *
 	 *   return user;
 	 * };
-	 * ```
 	 */
-	export type VerifyFunction<User, VerifyParams> = (
-		params: VerifyParams,
-	) => Promise<User>;
+	export type CallbackFunction<SessionData, CallbackOptions> = (
+		options: CallbackOptions,
+	) => Promise<SessionData>;
 }
