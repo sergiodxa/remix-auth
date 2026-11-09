@@ -95,7 +95,7 @@
 
     "@oxlint/binding-win32-x64-msvc": ["@oxlint/binding-win32-x64-msvc@1.90.0", "", { "os": "win32", "cpu": "x64" }, "sha512-30JiaFEBUB9peEOcvVM8ggo88SoN/IdSr9DW505JdBji/R6dM66gKEiG65hw6qcaF2f4mO0cEJ+RwRZprmun9g=="],
 
-    "@remix-run/headers": ["@remix-run/headers@1.0.1", "", {}, "sha512-C1iaFscxEcAVZl4g6u46aZqEvLUWrUaG2jliTgNW0wlqZRVemsTw7msOQ1UDBmhiqa4LzPK/l+7ynYHYUIxzaA=="],
+    "@remix-run/headers": ["@remix-run/headers@1.1.0", "", {}, "sha512-Rmzn+WesET0EfVukEHYYKT6RV9HYQb9WGdda3oWedQJXCoHnrXgaQc39DdwZ2rztI05izBAOF1HEHmEpGtjKHQ=="],
 
     "@remix-run/html-template": ["@remix-run/html-template@1.0.0", "", {}, "sha512-XX2VgVMf4d8Mk3bvcDkHqHQEfXLjny8SE5QApXaTbc7F2BpuQbtTVji2d8Aqlo7U4V5ZGOPZqdbGhwjI2Iknqw=="],
 
