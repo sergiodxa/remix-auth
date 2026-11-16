@@ -3,6 +3,11 @@ name: Publish
 on:
   release:
     types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   publish-npm:
@@ -18,8 +23,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "lts/*"
-          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false
 
+      # Trusted publishing uses the GitHub OIDC token. Setting NODE_AUTH_TOKEN
+      # (including secrets.NPM_TOKEN) makes npm skip that exchange.
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
