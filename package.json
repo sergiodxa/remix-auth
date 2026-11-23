@@ -62,6 +62,6 @@
 		"@edgefirst-dev/data": "^0.0.4",
 		"@remix-run/headers": "^1.0.1",
 		"@remix-run/response": "^1.0.2",
-		"type-fest": "^5.2.0"
+		"type-fest": "^6.0.3"
 	}
 }
